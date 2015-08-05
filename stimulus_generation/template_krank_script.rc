@@ -1,0 +1,17 @@
+
+
+
+stim reset
+
+# stimuli are added here
+
+# end stimuli here
+
+stim list
+set ao_freq 40000
+set n_trials 25
+set stim_order 0
+set ramp_time 0
+# For these probe stims will give a 70dB playout.
+set attenuation 15
+set attenuation2 0

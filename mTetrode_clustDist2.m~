@@ -1,0 +1,46 @@
+function [meanscores clustscores] = mTetrode_clustDist2(dataMtx,gmobj,maxclusts,plotit)
+%
+% [distvect clustmtx] = mMakeClustIDMtx2(dataMtx,gmobj,maxclusts,plotit)
+%
+% gmobj is a gaussian mixture model object created by gmdistribution.fit 
+%
+% 
+%
+
+datasize = size(dataMtx);
+numpnts = datasize(1);
+numdims = datasize(2);
+
+clustdist = zeros(1,numpnts);
+clustmtx = zeros(maxclusts-1,numpnts);
+othermtx = zeros(maxclusts-1,numpnts);
+
+for theclust=2:1:maxclusts
+    [distvect distmtx] = mTetrode_clustDist(dataMtx,gmobj{theclust},theclust);
+    clustids = cluster(gmobj{theclust},dataMtx);    
+    otherdists = zeros(1,numpnts);
+    for i=1:1:numpnts        
+        clustdist(i) = distmtx(i,clustids(i)); % distance to assigned cluster
+        thedistvect = distmtx(i,:);
+        thedistvect(find(thedistvect == clustdist(i))) = [];
+        otherdists(i) = min(thedistvect);
+        %otherdists(i) = min(distmtx(i,(find(distmtx(i,:)>clustdist(i))))); % distance to nearest non-assigned cluster
+        clustmtx(theclust-1,i) = clustdist(i);
+        othermtx(theclust-1,i) = otherdists(i);
+    end
+    
+end
+
+clustscores = (othermtx-clustmtx) ./ othermtx; % similar to silhouette score
+meanscores = mean(clustscores');
+
+if(plotit)
+    figure();
+    plot([2:1:maxclusts],mean(clustscores),'ro');hold on
+    [hi lo] = mBootstrapCI_mtx(clustscores,.95);
+    plot([2:1:maxclusts],hi,'r.');
+    plot([2:1:maxclusts],lo,'r.');
+    xlabel('number of clusters')
+    ylabel('')
+    hold off;
+end

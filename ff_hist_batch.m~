@@ -1,0 +1,33 @@
+function [histout] = ff_hist_batch(batch,bins)
+%
+% [histout] = ff_hist_batch(batch, bins)
+% returns histogram of rolling fund freq values for files in batch
+%
+
+fid=fopen(batch,'r');
+disp(['working...']);
+
+histout = zeros(size(bins));
+
+num
+h = waitbar(0,'starting...');
+while (1)
+    fn=fgetl(fid);
+    if (~ischar(fn))
+        break;
+    end
+    if (~exist(fn,'file'))
+        continue;
+    end
+
+   %disp(fn);
+   
+    [ff ffconf fftime] = rolling_ff(fn); 
+    filtff = mfffilt(ff,ffconf);
+    
+    [ffhist] = hist(filtff,bins);
+    histout = histout + ffhist;
+end
+fclose(fid);
+
+return;

@@ -1,0 +1,25 @@
+function interpPeakLoc = minterppeak(invect)
+%
+%
+% function interpPeak = minterppeak(invect)
+%
+% returns location of peak in inVect interpolated using 
+% derivative's zero-crossing
+% 
+%
+
+[peaks peaklocs]= findpeaks(invect);
+if(length(peaks))
+   diffvect = diff
+   [maxpeak maxloc] = max(peaks);
+   vectseg = invect(peaklocs(maxloc)-1:peaklocs(maxloc)+1);
+   segaxis = [peaklocs(maxloc)-1:1:peaklocs(maxloc)+1];
+   diffvect = diff(vectseg);
+   fitcoeffs = polyfit(segaxis,diffvect,1); % linear fit of 1st derivative
+   interpPeakLoc = fitcoeffs(2) / -fitcoeffs(1);
+else
+    interPeakLoc = 0;
+end
+
+
+return;

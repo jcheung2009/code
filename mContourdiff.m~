@@ -1,0 +1,21 @@
+function [avgdiff] = mContourdiff(contours)
+%
+%
+% [totaldiff] = mContourdiff(contours)
+%
+% computes absolute difference between each pitch contour in 'contours'
+% and the avg pitch contour, and normalizes by number of contours
+%
+%
+
+meanContour = mean(contours');
+%meanMtx = zeroes(size(contours));
+
+numcontours = size(contours);
+
+totdiff = 0;
+for i=1:numcontours(2);
+    totdiff = totdiff + abs(contours(:,i)-meanContour');    
+end
+
+avgdiff = totdiff / numcontours(2);

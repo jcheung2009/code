@@ -1,0 +1,11 @@
+function [out] = specDeriv(inMtx)
+%
+%
+%
+%
+%
+
+for i=0:size(inMtx,2)
+    
+    
+end

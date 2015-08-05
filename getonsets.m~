@@ -1,0 +1,26 @@
+function onsets=getonsets(notMat,syll)
+%
+% mnm, 28 april 2009
+%
+
+if(isempty(syll))
+    syll = '';
+end
+
+labels = notMat.labels;
+onsets = zeros   
+
+for index=1:length(labels);
+    thesyll = labels(index);
+    if(~isempty(syll))
+        if(strcmp(syll,thesyll))
+            
+        end
+    else
+        
+        
+    end
+        
+
+    
+end

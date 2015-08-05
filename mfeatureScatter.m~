@@ -1,0 +1,31 @@
+function mfeatureScatter(featureNum,featureStruct)
+%
+%
+%
+%
+%
+
+fighandle = figure();
+set(fighandle,'Color','white');
+
+colorvect = zeros(1,length(featureStruct.index));
+colorvect = 
+
+
+
+theFeatureName = feature_vect_name(featureNum); % the feature common to all scatter plots
+
+for plotnum = 1:1:16; % plot each of the other features against theFeatureName
+    if(plotnum == featureNum);
+        plotnum = plotnum +1;
+    else
+        featureName2 = feature_vect_name(plotnum);
+        subplot(4,4,plotnum);
+        scatter(featureStruct(:,featureNum),featureStruct(:,plotnum));
+        titleStr = [theFeatureName ' vs ' featureName2];
+        title(titleStr);
+
+    end
+
+end
+

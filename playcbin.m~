@@ -1,0 +1,11 @@
+function [out] = playcbin(cbin)
+%
+%
+% plays a cbin file on computer's sound system
+%
+%
+
+[rawsong fs] = ReadCbinFile(cbin);
+
+rawsong = rawsong(:,1);
+normalize

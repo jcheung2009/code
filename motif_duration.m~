@@ -1,0 +1,27 @@
+durfunction [motif_dur] = motif_duration(batch,motif)
+
+fid=fopen(batch,'r');
+files=[];cnt=0;
+while (1)
+       fn=fgetl(fid);
+       if (~ischar(fn))
+               break;
+       end
+       cnt=cnt+1;
+       files(cnt).fn=fn;
+end
+fclose(fid);
+
+motif_length = length(motif)-1;
+motif_dur = [];
+for i = 1:length(files);
+    if exist([files(i).fn,'.not.mat']
+    load(strcat(files(i).fn,'.not.mat'));
+    a = strfind(labels, motif);
+   for ii = 1:length(a)
+    motif_onset = onsets(a(ii));
+    motif_offset = offsets(a(ii)+motif_length);
+    motif_duration = motif_offset - motif_onset;
+    motif_dur = cat(2,motif_dur, motif_duration);
+    end
+end

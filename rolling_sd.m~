@@ -1,0 +1,8 @@
+function [sd_out] = rolling_sd(invect,window)
+%
+%
+%
+%
+%
+%
+

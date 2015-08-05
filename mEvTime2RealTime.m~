@@ -1,0 +1,14 @@
+function realtime = mEvTime2RealTime(evtime)
+%
+% converts EvSuite Filetimes (i.e. 061719 = 6am, 17 minutes, 19 seconds) to
+% hours from 0 to facilitate linear plots vs time
+%
+%
+
+thelength = length(evtime);
+
+hours = str2num(evtime(1:2));
+minutes = str2num(evtime(3:4));
+seconds = str2num(evtime(thelength-1:thelength));
+
+realtime = seconds + (60*minutes) + (3600*hours);

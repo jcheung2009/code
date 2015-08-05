@@ -1,0 +1,68 @@
+function jc_dtwsegmentnotes(batch,note,prenote,postnote,CHANSPEC)
+
+datadir = ['specs_for_note_',note];
+if ~exist(datadir)
+    mkdir(datadir);
+end
+
+%extract raw amplitude waveforms for syllables into structure
+ff = load_batchf(batch);
+specparams = jc_defaultspecparams;
+h = waitbar(0,'computing spectrograms');
+for i = 1:length(ff)
+    fn = ff(i).name;
+    fnn=[fn,'.not.mat'];
+    if (~exist(fnn,'file'))
+        continue;
+    end
+    load(fnn);
+    labels = lower(labels);
+    labels(findstr(labels,'0'))='-';
+ 
+    srchstr = [prenote,note,postnote];
+    p = strfind(labels,srchstr);
+    if isempty(p)
+        continue
+    else
+         [pthstr,tnm,ext] = fileparts(fn);
+        if (strcmp(CHANSPEC,'w'))
+                [dat,fs] = wavread(fn);
+        elseif (strcmp(ext,'.ebin'))
+            [dat,fs]=readevtaf(fn,CHANSPEC);
+        else
+            [dat,fs]=evsoundin('',fn,CHANSPEC);
+        end
+        if (isempty(dat))
+            disp(['hey no data!']);
+            continue;
+        end
+    end
+    
+    notespecs = struct('spec',[],'tm',[],'amp',[],'cliponset',[],'clipoffset',[],'noteindex',[]);
+    for ii = 1:length(p)
+        onsamp = floor(onsets(p(ii))*1e-3*fs) - 128;
+        offsamp = ceil(offsets(p(ii))*1e-3*fs) + 128;
+        rawsong = dat(onsamp:offsamp);
+        cliponset = onsamp/fs;
+        clipoffset = offsamp/fs;
+        [spec f t] = jc_ftr_specgram(rawsong,specparams);
+        amp = sqrt(sum(abs(spec).^2));
+        notespecs = [notespecs, struct('spec',spec,'tm',t,'amp',amp,'cliponset',onsamp/fs,...
+            'clipoffset',offsamp/fs,'noteindex',p(ii))];
+    end
+    save(fullfile([cd,datadir,fn,'_spec.mat']),'notespecs'
+    waitbar(i/length(ff));
+end
+
+
+%extract spectrograms of all rawclips and save into structure
+specparams = jc_defaultspecparams;
+[rawclips.spec] = deal([]);
+[rawclips.amp] = deal([]);%amplitude from summing spectrogram power
+h = waitbar(0,'computing spectrograms');
+for i = 1:length(rawclips)
+    [rawclips(i).spec f t] = jc_ftr_specgram(rawclips(i).rawsong,specparams);
+    rawclips(i).amp = sqrt(sum(abs(rawclips(i).spec).^2));
+    waitbar(i/length(rawclips));
+end
+close(h)

@@ -1,0 +1,18 @@
+function [out] = plotspect(rawsong,fs)
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+
+[smoothed spec t f] = evsmooth(rawsong,fs,50,256,0.8,2.5);
+
+figure();
+imagesc(t,f,log(abs(spec)));
+syn;ylim([0,1e4]);
+co

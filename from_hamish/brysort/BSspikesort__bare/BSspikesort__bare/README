@@ -1,0 +1,63 @@
+Hello
+Here's the version of the BS spike sorter so far. It's definitely not distribution ready yet...
+You'll have to put up with some errors and some poorly formatted issues, but the basics work and you can get a feel for it.
+
+You will need to download the fastica matlab package  (try here: http://research.ics.tkk.fi/ica/fastica/code/dlcode.html)
+You will need to add these files and fastica to your path.
+
+Values you need to change:
+
+1) In "spikesortDirectories.m"
+You must change the variable "exeDir" to reflect the path where KlustaKwik and AutoClass are located (line 14)
+
+2) You need to create a file called "dirstosort"
+In this file you should list the full path to every directory you want to sort.
+Add a # as the last line to by-pass a bug
+#'s at the beginning also comment out lines
+
+
+
+Optional changes:
+
+In "spikesortDirectories.m"
+-the variable doKlustaKwik is boolean to determine which method you do (1 is yes, 0 is no)
+-at line 69 you can change how many standard deviations above the noise you threshold
+-Just before fastica, klustakwik and autoclass are called there are some variables you can try changing
+look at the lines preceding 78, 89, and 95.
+
+In "KlustaKwick.m"
+-you can change the minimum and maximum number of clusters produced and that you search through in line 23
+
+In "AutoClass.m"
+-you can change the starting points on line 103
+
+
+
+How to run the code:
+from the directory with the file dirstosort, call "spikesortDirectories"
+then go to each directory and call "spikeclassifyCWD"
+see notes below on the gui.
+when you're done, call "BSsort2mat(pwd,[string note for stimulus],'1x16x150',30303,0,0)" (replace [] with your stimulus and the second to last argument saves it automatically)
+I think the resulting .spk is compatible with yours, but no guarantees
+
+How to use the GUI:
+Pull down menus in upper left select units.
+the "Switch" button quickly switches the two
+the "Combine" button assigns group 2 as part of group 1
+the top big graph plots ~200 traces from each of the two units
+the bottom big graph plots the mean for each unless "plot one model" is selected
+with "plot one model" you can use the "next" and "previous example" buttons to go throughs spikes
+You can zoom both plots with the slider
+The bottom-central plot is the peak height of each spike in this cluster over time
+Once you've combined units to your liking, use the "single" "multiunit" and "noise" buttons to label them. By default only "single" units are analyzed by BSsort2mat.
+The "reset sorts" button resets the work you've done on this unit so far
+"Note to resort" creates a new file with a list the file where you pressed the button, this can allow for automatic resorting of poorly sorted units
+When you're all done, press "continue" to save the data for this file.
+As of yet, there's no way to go back in the directory.
+
+
+Known bugs:
+-you need an extra # at the end of dirstosort
+-the classifying gui is finiky sometimes. You may need to turn of "plot singles" to get groups to combine correctly
+-also the windows don't always update immediately, they sometimes need an extra couple of button presses.
+-I think that KlustaKwik does a better job than AutoClass. It might be slower however. 
