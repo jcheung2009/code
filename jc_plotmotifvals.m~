@@ -184,7 +184,7 @@ else
             ylabel('Duration (seconds)');
             xlabel('Time (seconds since lights on)');  
             
-            if length(motifvals.firstpeakdistance(:,2)) > 50
+            if length(motifvals.firstpeakdistance(:,2) > 50)
                 runningaverage = jc_RunningAverage(motifvals.firstpeakdistance(:,2),50);
                 fill([tb_firstpeakdistance',fliplr(tb_firstpeakdistance')],...
                     [runningaverage(:,1)'-runningaverage(:,2)',...
@@ -210,7 +210,7 @@ else
         xlabel('Time (seconds since lights on)');  
         title('Motif duration');
         
-        if length(motifvals.motifdur(:,2)) >50
+        if length(motifvals.motifdur(:,2) >50)
             runningaverage = jc_RunningAverage(motifvals.motifdur(:,2),50);
             fill([tb_motifdur',fliplr(tb_motifdur')],...
                 [runningaverage(:,1)'-runningaverage(:,2)',...
@@ -236,7 +236,7 @@ else
         xlabel('Time (seconds since lights on)');  
         title('Average syllable duration');
         
-        if length(avgsyllduration(:,2)) > 50
+        if length(avgsyllduration(:,2) > 50)
             runningaverage = jc_RunningAverage(avgsyllduration(:,2),50);
             fill([tb_sylldur',fliplr(tb_sylldur')],...
                 [runningaverage(:,1)'-runningaverage(:,2)',...
@@ -262,14 +262,13 @@ else
         xlabel('Time (seconds since lights on)');  
         title('Average gap duration');
             
-        if length(avggapduration(:,2)) > 50
-            runningaverage = jc_RunningAverage(avggapduration(:,2),50);
-            fill([tb_gap',fliplr(tb_gap')],...
-                [runningaverage(:,1)'-runningaverage(:,2)',...
-                fliplr(runningaverage(:,1)'+runningaverage(:,2)')],linecolor,...
-                'EdgeColor','none','FaceAlpha',0.5);
-        end
-        
+        if length(avggapduration(:,2)) > 
+        runningaverage = jc_RunningAverage(avggapduration(:,2),50);
+        fill([tb_gap',fliplr(tb_gap')],...
+            [runningaverage(:,1)'-runningaverage(:,2)',...
+            fliplr(runningaverage(:,1)'+runningaverage(:,2)')],linecolor,...
+            'EdgeColor','none','FaceAlpha',0.5);
+
     %syllable and gap duration for each syllable
     % tb_sylldur = jc_tb(motifvals.syllduration(:,1),7,0);
     % subtightplot(4,2,5,0.04);hold on;
