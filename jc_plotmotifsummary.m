@@ -1,284 +1,291 @@
-function jc_plotfvsummary(fv_syll_sal, fv_syll_cond,marker,linecolor);
-%fv_syll from jc_findwnote5
-%generate summary changes in pitch, entropy, volume, and pitch cv
-%(normalized and raw)
+function jc_plotmotifsummary(motif_sal, motif_cond, marker, linecolor, excludewashin)
 
-
-if iscell(fv_syll_sal)
-    tb_sal=[];
-    for i = 1:length(fv_syll_sal)
-        tb_sal = [tb_sal; jc_tb([fv_syll_sal{i}(:).datenm]',7,0)];
+if iscell(motif_sal)
+     tb_sal=[];
+    motif = [];
+    for i = 1:length(motif_sal)
+        tb_sal = [tb_sal; jc_tb([motif_sal{i}(:).datenm]',7,0)];
+        motif = [motif motif_sal{i}];
     end
-    
+    motif_sal = motif;
 end
-if iscell(fv_syll_cond)
+if iscell(motif_cond)
     tb_cond=[];
-    for i = 1:length(fv_syll_cond)
-        tb_cond = [tb_cond; jc_tb([fv_syll_cond{i}(:).datenm]',7,0)];
+    motif = [];
+    for i = 1:length(motif_cond)
+        tb_cond = [tb_cond; jc_tb([motif_cond{i}(:).datenm]',7,0)];
+        motif =[motif motif_cond{i}];
     end
+    motif_cond = motif;
 end
 
-pitch = [fv_syll_sal(:).mxvals];
-vol = log([fv_syll_sal(:).maxvol]);
-ent = [fv_syll_sal(:).spent];
-tb_sal = jc_tb([fv_syll_sal(:).datenm]',7,0);
-tb_cond = jc_tb([fv_syll_cond(:).datenm]',7,0);
-ind = find(tb_cond<tb_sal(end)+1800); %exclude first half hour of wash in 
+motifdur = [motif_sal(:).motifdur];
+sylldur = mean([motif_sal(:).durations],1);
+gapdur = mean([motif_sal(:).gaps],1);
+if ~iscell(motif_sal) 
+    tb_sal = jc_tb([motif_sal(:).datenm]',7,0);
+end
+if ~iscell(motif_cond)
+    tb_cond = jc_tb([motif_cond(:).datenm]',7,0);
+end
+if excludewashin == 1
+    ind = find(tb_cond<tb_sal(end)+1800); %exclude first half hour of wash in 
+end
 
 fignum = input('figure number for checking outliers:');
 figure(fignum);
-plot(tb_sal,pitch,'k.');
+h = plot(tb_sal,motifdur,'k.');
 removeoutliers = input('remove outliers (y/n):','s');
 while removeoutliers == 'y'
-    cla;
     nstd = input('nstd:');
-    removeind = jc_findoutliers(pitch',nstd);
-    pitch(removeind) = [];
-    vol(removeind) = [];
-    ent(removeind) = [];
+    delete(h);
+    removeind = jc_findoutliers(motifdur',nstd);
+    motifdur(removeind) = [];
+    sylldur(removeind) = [];
+    gapdur(removeind) = [];
     tb_sal(removeind) = [];
-    plot(tb_sal,pitch,'k.');
+    plot(tb_sal,motifdur,'k.');
     removeoutliers = input('remove outliers (y/n):','s');
 end
-cla
+delete(h);
 
-plot(tb_sal,vol,'k.');
-removeoutliers = input('remove outliers:','s');
+h = plot(tb_sal,sylldur,'k.');
+removeoutliers = input('remove outliers (y/n):','s');
 while removeoutliers == 'y'
-    cla;
     nstd = input('nstd:');
-    removeind = jc_findoutliers(vol',nstd);
-    pitch(removeind) = [];
-    vol(removeind) = [];
-    ent(removeind) = [];
+    delete(h);
+    removeind = jc_findoutliers(sylldur',nstd);
+    motifdur(removeind) = [];
+    sylldur(removeind) = [];
+    gapdur(removeind) = [];
     tb_sal(removeind) = [];
-    plot(tb_sal,vol,'k.');
+    plot(tb_sal,sylldur,'k.');
     removeoutliers = input('remove outliers (y/n):','s');
 end
-cla
+delete(h);
 
-plot(tb_sal,ent,'k.');
-removeoutliers = input('remove outliers:','s');
+h = plot(tb_sal,gapdur,'k.');
+removeoutliers = input('remove outliers (y/n):','s');
 while removeoutliers == 'y'
-    cla;
     nstd = input('nstd:');
-    removeind = jc_findoutliers(ent',nstd);
-    pitch(removeind) = [];
-    vol(removeind) = [];
-    ent(removeind) = [];
+    delete(h);
+    removeind = jc_findoutliers(gapdur',nstd);
+    motifdur(removeind) = [];
+    sylldur(removeind) = [];
+    gapdur(removeind) = [];
     tb_sal(removeind) = [];
-    plot(tb_sal,ent,'k.');
+    plot(tb_sal,gapdur,'k.');
     removeoutliers = input('remove outliers (y/n):','s');
 end
-cla
+delete(h);
 
-pitch2 = [fv_syll_cond(:).mxvals];
-vol2 = log([fv_syll_cond(:).maxvol]);
-ent2 = [fv_syll_cond(:).spent];
-pitch2(ind) = [];
-vol2(ind) = [];
-ent2(ind) = [];
+motifdur2 = [motif_cond(:).motifdur];
+sylldur2 = mean([motif_cond(:).durations],1);
+gapdur2 = mean([motif_cond(:).gaps],1);
+if excludewashin == 1
+    motifdur2(ind) = [];
+    sylldur2(ind) = [];
+    gapdur2(ind) = [];
+end
 
-plot(tb_cond,pitch2,'k.');
-removeoutliers = input('remove outliers:','s');
+h = plot(tb_cond,motifdur2,'k.');
+removeoutliers = input('remove outliers (y/n):','s');
 while removeoutliers == 'y'
-    cla;
     nstd = input('nstd:');
-    removeind = jc_findoutliers(pitch2',nstd);
-    pitch2(removeind) = [];
-    vol2(removeind) = [];
-    ent2(removeind) = [];
+    delete(h);
+    removeind = jc_findoutliers(motifdur2',nstd);
+    motifdur2(removeind) = [];
+    sylldur2(removeind) = [];
+    gapdur2(removeind) = [];
     tb_cond(removeind) = [];
-    plot(tb_cond,pitch2,'k.');
+    plot(tb_cond,motifdur2,'k.');
     removeoutliers = input('remove outliers (y/n):','s');
 end
-cla
+delete(h);
 
-plot(tb_cond,vol2,'k.');
-removeoutliers = input('remove outliers:','s');
+h = plot(tb_cond,sylldur2,'k.');
+removeoutliers = input('remove outliers (y/n):','s');
 while removeoutliers == 'y'
-    cla;
     nstd = input('nstd:');
-    removeind = jc_findoutliers(vol2',nstd);
-    pitch2(removeind) = [];
-    vol2(removeind) = [];
-    ent2(removeind) = [];
+    delete(h);
+    removeind = jc_findoutliers(sylldur2',nstd);
+    motifdur2(removeind) = [];
+    sylldur2(removeind) = [];
+    gapdur2(removeind) = [];
     tb_cond(removeind) = [];
-    plot(tb_cond,vol2,'k.');
+    plot(tb_cond,sylldur2,'k.');
     removeoutliers = input('remove outliers (y/n):','s');
 end
-cla
+delete(h);
 
-plot(tb_cond,ent2,'k.');
-removeoutliers = input('remove outliers:','s');
+h = plot(tb_cond,gapdur2,'k.');
+removeoutliers = input('remove outliers (y/n):','s');
 while removeoutliers == 'y'
-    cla;
     nstd = input('nstd:');
-    removeind = jc_findoutliers(ent2',nstd);
-    pitch2(removeind) = [];
-    vol2(removeind) = [];
-    ent2(removeind) = [];
+    delete(h);
+    removeind = jc_findoutliers(gapdur2',nstd);
+    motifdur2(removeind) = [];
+    sylldur2(removeind) = [];
+    gapdur2(removeind) = [];
     tb_cond(removeind) = [];
-    plot(tb_cond,ent2,'k.');
+    plot(tb_cond,gapdur2,'k.');
     removeoutliers = input('remove outliers (y/n):','s');
 end
-hold off;
+delete(h);
+clf;
 
 rawplot = input('plot raw summary?:(y/n)','s');
 if rawplot == 'y'
-    fignum = input('figure number for fv summary:');
+    fignum = input('figure number for motif summary:');
     figure(fignum);hold on;
     subtightplot(2,4,1,0.07,0.04,0.1);hold on;
-    [hi lo mn1] = mBootstrapCI(pitch);
+    [hi lo mn1] = mBootstrapCI(motifdur);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [hi lo mn2] = mBootstrapCI(pitch2);
+    [hi lo mn2] = mBootstrapCI(motifdur2);
     plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
     plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
-    ylabel('Frequency Hz');
-    title('Raw pitch changes');
-
+    ylabel('Motif duration (s)');
+    title('Raw motif duration changes');
+    
 
     subtightplot(2,4,2,0.07,0.04,0.1);hold on;
-    [hi lo mn1] = mBootstrapCI(log(vol));
+    [hi lo mn1] = mBootstrapCI(sylldur);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [hi lo mn2] = mBootstrapCI(log(vol2));
+    [hi lo mn2] = mBootstrapCI(sylldur2);
     plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
     plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
-    ylabel('Amplitude (log)');
-    title('Raw volume changes');
+    ylabel('Mean syllable duration (s)');
+    title('Raw syllable duration changes');
 
     subtightplot(2,4,3,0.07,0.04,0.1);hold on;
-    [hi lo mn1] = mBootstrapCI(ent);
+    [hi lo mn1] = mBootstrapCI(gapdur);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [hi lo mn2] = mBootstrapCI(ent2);
+    [hi lo mn2] = mBootstrapCI(gapdur2);
     plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
     plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
-    ylabel('Entropy');
-    title('Raw entropy changes');
+    ylabel('Mean gap duration (s)');
+    title('Raw gap duration changes');
     
     subtightplot(2,4,4,0.07,0.04,0.1);hold on;
-    [mn1 hi lo] = mBootstrapCI_CV(pitch);
+    [mn1 hi lo] = mBootstrapCI_CV(motifdur);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [mn2 hi lo] = mBootstrapCI_CV(pitch2);
+    [mn2 hi lo] = mBootstrapCI_CV(motifdur2);
     plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
     plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
     ylabel('CV');
-    title('Raw Pitch CV changes');
+    title('Raw motif duration CV changes');
 
-    pitch2 = pitch2/mean(pitch);
-    pitch = pitch/mean(pitch);
-    vol2 = log(vol2)/mean(log(vol));
-    vol = log(vol)/mean(log(vol));
-    ent2 = ent2/mean(ent);
-    ent = ent/mean(ent);
+    motifdur2 = motifdur2/mean(motifdur);
+    motifdur = motifdur/mean(motifdur);
+    sylldur2 = sylldur2/mean(sylldur);
+    sylldur = sylldur/mean(sylldur);
+    gapdur2 = gapdur2/mean(gapdur);
+    gapdur = gapdur/mean(gapdur);
 
     subtightplot(2,4,5,0.07,0.04,0.1);hold on;
-    [hi lo mn1] = mBootstrapCI(pitch);
+    [hi lo mn1] = mBootstrapCI(motifdur);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [hi lo mn2] = mBootstrapCI(pitch2);
+    [hi lo mn2] = mBootstrapCI(motifdur2);
     plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
     plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
-    ylabel('Change in pitch relative to saline');
-    title('Normalized pitch changes');
+    ylabel('Change in motif duration relative to saline');
+    title('Normalized motif duration changes');
 
     subtightplot(2,4,6,0.07,0.04,0.1);hold on;
-    [hi lo mn1] = mBootstrapCI(vol);
+    [hi lo mn1] = mBootstrapCI(sylldur);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [hi lo mn2] = mBootstrapCI(vol2);
+    [hi lo mn2] = mBootstrapCI(sylldur2);
     plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
     plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
-    ylabel('Change in volume relative to saline');
-    title('Normalized volume changes');
+    ylabel({'Change in mean syllable duration', 'relative to saline'});
+    title('Normalized syllable duration changes');
 
     subtightplot(2,4,7,0.07,0.04,0.1);hold on;
-    [hi lo mn1] = mBootstrapCI(ent);
+    [hi lo mn1] = mBootstrapCI(gapdur);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [hi lo mn2] = mBootstrapCI(ent2);
+    [hi lo mn2] = mBootstrapCI(gapdur2);
     plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
     plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
-    ylabel('Change in entropy relative to saline');
-    title('Normalized entropy changes');
+    ylabel({'Change in mean gap duration', 'relative to saline'});
+    title('Normalized gap duration changes');
     
     subtightplot(2,4,8,0.07,0.04,0.1);hold on;
-    [mn1 hi lo] = mBootstrapCI_CV(pitch);
+    [mn1 hi lo] = mBootstrapCI_CV(motifdur);
     mn = mn1/mn1;
     hi = mn+((hi-mn1)/mn1);
     lo = mn-((mn1-lo)/mn1);
     plot(0.5,mn,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [mn2 hi lo] = mBootstrapCI_CV(pitch2);
+    [mn2 hi lo] = mBootstrapCI_CV(motifdur2);
     mn3 = mn2/mn1;
     hi = mn3+((hi-mn2)/mn1);
     lo = mn3-((mn2-lo)/mn1);
     plot(1.5,mn3,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
     plot([0.5 1.5],[mn mn3],linecolor,'linewidth',1);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
-    ylabel('Change in pitch CV relative to saline');
-    title('Normalized CV changes');
+    ylabel({'Change in motif duration CV', 'relative to saline'});
+    title('Normalized motif duration CV changes');
     
 else
     fignum = input('figure for all normalized data:');
     figure(fignum);hold on;
     
-    pitch2 = pitch2/mean(pitch);
-    pitch = pitch/mean(pitch);
-    vol2 = log(vol2)/mean(log(vol));
-    vol = log(vol)/mean(log(vol));
-    ent2 = ent2/mean(ent);
-    ent = ent/mean(ent);
+    motifdur2 = motifdur2/mean(motifdur);
+    motifdur = motifdur/mean(motifdur);
+    sylldur2 = sylldur2/mean(sylldur);
+    sylldur = sylldur/mean(sylldur);
+    gapdur2 = gapdur2/mean(gapdur2);
+    gapdur = gapdur/mean(gapdur);
     
     subtightplot(1,4,1,0.07,0.07,0.05);hold on;
-    [hi lo mn1] = mBootstrapCI(pitch);
+    [hi lo mn1] = mBootstrapCI(motifdur);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [hi lo mn2] = mBootstrapCI(pitch2);
+    [hi lo mn2] = mBootstrapCI(motifdur2);
     plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
     plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
-    ylabel('Change in pitch relative to saline');
-    title('Normalized pitch changes for all syllables');
+    ylabel({'Change in motif duration', 'relative to saline'});
+    title('Normalized motif duration changes for all syllables');
     
     subtightplot(1,4,2,0.07,0.07,0.05);hold on;
-    [hi lo mn1] = mBootstrapCI(vol);
+    [hi lo mn1] = mBootstrapCI(sylldur);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [hi lo mn2] = mBootstrapCI(vol2);
+    [hi lo mn2] = mBootstrapCI(sylldur2);
     plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
     plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
-    ylabel('Change in volume relative to saline');
-    title('Normalized volume changes for all syllables');
+    ylabel({'Change in mean syllable duration','relative to saline'});
+    title('Normalized syllable duration changes for all syllables');
     
     subtightplot(1,4,3,0.07,0.07,0.05);hold on;
-    [hi lo mn1] = mBootstrapCI(ent);
+    [hi lo mn1] = mBootstrapCI(gapdur);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [hi lo mn2] = mBootstrapCI(ent2);
+    [hi lo mn2] = mBootstrapCI(gapdur2);
     plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
     plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
-    ylabel('Change in entropy relative to saline');
-    title('Normalized entropy changes for all syllables');
+    ylabel({'Change in mean gap duration', 'relative to saline'});
+    title('Normalized gap duration changes for all syllables');
     
     subtightplot(1,4,4,0.07,0.07,0.05);hold on;
-    [mn1 hi lo] = mBootstrapCI_CV(pitch);
+    [mn1 hi lo] = mBootstrapCI_CV(motifdur);
     mn = mn1/mn1;
     hi = mn+((hi-mn1)/mn1);
     lo = mn-((mn1-lo)/mn1);
     plot(0.5,mn,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [mn2 hi lo] = mBootstrapCI_CV(pitch2);
+    [mn2 hi lo] = mBootstrapCI_CV(motifdur2);
     mn3 = mn2/mn1;
     hi = mn3+((hi-mn2)/mn1);
     lo = mn3-((mn2-lo)/mn1);
     plot(1.5,mn3,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
     plot([0.5 1.5],[mn mn3],linecolor,'linewidth',1);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
-    ylabel('Change in pitch CV relative to saline');
-    title('Normalized pitch CV changes for all syllables');
+    ylabel({'Change in motif duration CV', 'relative to saline'});
+    title('Normalized motif duration CV changes for all syllables');
 end
-    
-hold off 
-

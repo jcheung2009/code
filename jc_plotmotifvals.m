@@ -3,7 +3,7 @@ function averagemotif2 = jc_plotmotifvals(motifinfo,marker,linecolor,averagerefm
 %marker = 'k.';
 %linecolor = 'k';
 fs = 32000;
-
+   
 varseq = input('motif is variable (y/n):','s');
 if varseq == 'y'
     firstpeakdistance = [];sylldurations = [];gaps = [];
@@ -173,8 +173,9 @@ else
             h = plot(tb_firstpeakdistance,motifvals.firstpeakdistance(:,2),marker);
             removeoutliers = input('remove outliers? (y or n):','s');
             while removeoutliers == 'y'
+                nstd = input('use this nstd threshold:');
                 delete(h);
-                ind = jc_findoutliers(motifvals.firstpeakdistance(:,2),3.5);
+                ind = jc_findoutliers(motifvals.firstpeakdistance(:,2),nstd);
                 motifvals.firstpeakdistance(ind,:) = [];
                 tb_firstpeakdistance(ind) = [];
                 h = plot(tb_firstpeakdistance,motifvals.firstpeakdistance(:,2),marker);
@@ -194,13 +195,19 @@ else
         end
 
         %motif duration
+        
         tb_motifdur = jc_tb(motifvals.motifdur(:,1),7,0);
-        subtightplot(4,1,2,0.07,0.04,0.15);hold on;
+        if autocorr == 'y'
+            subtightplot(4,1,2,0.07,0.04,0.15);hold on;
+        else
+            subtightplot(3,1,1,0.07,0.04,0.15);hold on;
+        end
         h2 = plot(tb_motifdur,motifvals.motifdur(:,2),marker);
         removeoutliers = input('remove outliers? (y or n):','s');
         while removeoutliers == 'y'
+            nstd = input('use this nstd threshold:');
             delete(h2);
-            ind = jc_findoutliers(motifvals.motifdur(:,2),3.5);
+            ind = jc_findoutliers(motifvals.motifdur(:,2),nstd);
             motifvals.motifdur(ind,:) = [];
             tb_motifdur(ind) = [];
             h2 = plot(tb_motifdur,motifvals.motifdur(:,2),marker);
@@ -221,12 +228,17 @@ else
         %average syllable duration
         tb_sylldur = jc_tb(motifvals.syllduration(:,1),7,0);
         avgsyllduration = [motifvals.syllduration(:,1) mean(motifvals.syllduration(:,2:end),2)];
-        subtightplot(4,1,3,0.07,0.04,0.15);hold on;
+        if autocorr == 'y'
+            subtightplot(4,1,3,0.07,0.04,0.15);hold on;
+        else
+            subtightplot(3,1,2,0.07,0.04,0.15);hold on;
+        end
         h3 = plot(tb_sylldur,avgsyllduration(:,2),marker);
         removeoutliers = input('remove outliers? (y or n):','s');
         while removeoutliers == 'y'
+             nstd = input('use this nstd threshold:');
             delete(h3);
-            ind = jc_findoutliers(avgsyllduration(:,2),3.5);
+            ind = jc_findoutliers(avgsyllduration(:,2),nstd);
             avgsyllduration(ind,:) = [];
             tb_sylldur(ind) = [];
             h3 = plot(tb_sylldur,avgsyllduration(:,2),marker);
@@ -247,12 +259,18 @@ else
         %average gap duration
         tb_gap = jc_tb(motifvals.gaps(:,1),7,0);
         avggapduration = [motifvals.gaps(:,1) mean(motifvals.gaps(:,2:end),2)];
-        subtightplot(4,1,4,0.07,0.04,0.15);hold on;
+        if autocorr == 'y'
+             subtightplot(4,1,4,0.07,0.04,0.15);hold on;
+        else
+             subtightplot(3,1,3,0.07,0.04,0.15);hold on;
+        end
+             
         h4 = plot(tb_gap,avggapduration(:,2),marker);
         removeoutliers = input('remove outliers? (y or n):','s');
         while removeoutliers == 'y'
+             nstd = input('use this nstd threshold:');
             delete(h4);
-            ind = jc_findoutliers(avggapduration(:,2),3.5);
+            ind = jc_findoutliers(avggapduration(:,2),nstd);
             avggapduration(ind,:) = [];
             tb_gap(ind) = [];
             h4 = plot(tb_gap,avggapduration(:,2),marker);
@@ -361,15 +379,27 @@ if plot_correlation == 'y'
     ncol = size(motifdur_and_pitch,2)-1;
     figure;
     for i= 1:ncol
+        ind = find(isnan(motifdur_and_pitch(:,i+1)));
+        motifdur_and_pitch(ind,:) = [];
         subtightplot(3,ncol,i,0.07,0.1,0.1);hold on;
         plot(motifdur_and_pitch(:,1),motifdur_and_pitch(:,i+1),marker);
         removeoutliers = input('remove outliers in motifdur? (y/n)','s');
         while removeoutliers == 'y'
+             nstd = input('use this nstd threshold:');
             cla
-            ind = jc_findoutliers(motifdur_and_pitch(:,1),3.5);
+            ind = jc_findoutliers(motifdur_and_pitch(:,1),nstd);
             motifdur_and_pitch(ind,:) = [];
             plot(motifdur_and_pitch(:,1),motifdur_and_pitch(:,i+1),marker);
             removeoutliers = input('remove outliers in motifdur? (y/n)','s');
+        end
+        removeoutliers = input('remove outliers in pitch? (y/n)','s');
+        while removeoutliers == 'y'
+             nstd = input('use this nstd threshold:');
+            cla
+            ind = jc_findoutliers(motifdur_and_pitch(:,i+1),nstd);
+            motifdur_and_pitch(ind,:) = [];
+            plot(motifdur_and_pitch(:,1),motifdur_and_pitch(:,i+1),marker);
+            removeoutliers = input('remove outliers in pitch? (y/n)','s');
         end
         p = polyfit(motifdur_and_pitch(:,1),motifdur_and_pitch(:,i+1),1);
         [c1 pval] = corrcoef(motifdur_and_pitch(:,1),motifdur_and_pitch(:,i+1));
@@ -379,16 +409,28 @@ if plot_correlation == 'y'
         ylabel('Frequency (Hz)');
         title('Pitch vs motif duration');
         legend(h);
-
+        
+        ind = find(isnan(motifdur_and_volume(:,i+1)));
+        motifdur_and_volume(ind,:) = [];
         subtightplot(3,ncol,i+ncol,0.07,0.1,0.1);hold on;
         plot(motifdur_and_volume(:,1),log(motifdur_and_volume(:,i+1)),marker);
         removeoutliers = input('remove outliers in motifdur? (y/n)','s');
         while removeoutliers == 'y'
+            nstd = input('use this nstd threshold:');
             cla
-            ind = jc_findoutliers(motifdur_and_volume(:,1),3.5);
+            ind = jc_findoutliers(motifdur_and_volume(:,1),nstd);
             motifdur_and_volume(ind,:) = [];
             plot(motifdur_and_volume(:,1),log(motifdur_and_volume(:,i+1)),marker);
             removeoutliers = input('remove outliers in motifdur? (y/n)','s');
+        end
+        removeoutliers = input('remove outliers in volume? (y/n)','s');
+        while removeoutliers == 'y'
+            nstd = input('use this nstd threshold:');
+            cla
+            ind = jc_findoutliers(log(motifdur_and_volume(:,i+1)),nstd);
+            motifdur_and_volume(ind,:) = [];
+            plot(motifdur_and_volume(:,1),log(motifdur_and_volume(:,i+1)),marker);
+            removeoutliers = input('remove outliers in volume? (y/n)','s');
         end
         p = polyfit(motifdur_and_volume(:,1),log(motifdur_and_volume(:,i+1)),1);
             [c1 pval] = corrcoef(motifdur_and_volume(:,1),log(motifdur_and_volume(:,i+1)));
@@ -399,16 +441,29 @@ if plot_correlation == 'y'
         title('Volume vs motif duration');
         legend(h);
 
+        ind = find(isnan(motifdur_and_entropy(:,i+1)));
+        motifdur_and_entropy(ind,:) = [];
         subtightplot(3,ncol,i+2*ncol,0.07,0.1,0.1);hold on;
         plot(motifdur_and_entropy(:,1),motifdur_and_entropy(:,i+1),marker);
          removeoutliers = input('remove outliers in motifdur? (y/n)','s');
         while removeoutliers == 'y'
+            nstd = input('use this nstd threshold:');
             cla
-            ind = jc_findoutliers(motifdur_and_entropy(:,1),3.5);
+            ind = jc_findoutliers(motifdur_and_entropy(:,1),nstd);
             motifdur_and_entropy(ind,:) = [];
             plot(motifdur_and_entropy(:,1),motifdur_and_entropy(:,i+1),marker);
             removeoutliers = input('remove outliers in motifdur? (y/n)','s');
         end
+         removeoutliers = input('remove outliers in entropy? (y/n)','s');
+        while removeoutliers == 'y'
+            nstd = input('use this nstd threshold:');
+            cla
+            ind = jc_findoutliers(motifdur_and_entropy(:,i+1),nstd);
+            motifdur_and_entropy(ind,:) = [];
+            plot(motifdur_and_entropy(:,1),motifdur_and_entropy(:,i+1),marker);
+            removeoutliers = input('remove outliers in entropy? (y/n)','s');
+        end
+        
         p = polyfit(motifdur_and_entropy(:,1),motifdur_and_entropy(:,i+1),1);
             [c1 pval] = corrcoef(motifdur_and_entropy(:,1),motifdur_and_entropy(:,i+1));
             h = plot([motifdur_and_entropy(:,1)],polyval(p,[motifdur_and_entropy(:,1)]),'r','DisplayName',...
