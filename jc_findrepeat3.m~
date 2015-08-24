@@ -5,6 +5,7 @@ function fvalsstr = jc_findrepeat3(batch,note,prenote, ...
 %evsonganaly
 %does not compute spectral features, only counts repeat number and saves
 %waveform
+%note can be in form of regular expression *BUT BE SURE TO CHECK INDICES
 tic 
 usingregexp = input('using regular expression? (y/n):','s');
 
@@ -66,7 +67,8 @@ for ifn=1:length(ff)
     
     if usingregexp == 'y'
         [onind offind] = regexp(labels,note);
-        offind = offind-1;
+        offind = offind;
+        onind = onind+1;
         runlength = offind-onind+1;
         if isempty(runlength)
             continue
@@ -91,10 +93,11 @@ for ifn=1:length(ff)
         end
     end
     
-    for z = 1:length(runlength)
+    %recompute onsets and offsets for each syllable in repeat
+    for z = 1:length(onind)
         for v = 1:runlength(z) 
-            onsamp = floor(onsets(runlength(z)+v-1)*1e-3*fs)-256;
-            offsamp = ceil(offsets(runlength(z)+v-1)*1e-3*fs)+256;
+            onsamp = floor(onsets(onind(z)+v-1)*1e-3*fs)-256;
+            offsamp = ceil(offsets(onind(z)+v-1)*1e-3*fs)+256;
             smtemp = dat(onsamp:offsamp);
             sm = evsmooth(smtemp,fs);
             sm = log(sm);
@@ -102,7 +105,13 @@ for ifn=1:length(ff)
             sm = sm./max(sm);
             abovethresh = find(sm>=0.5);
             sm_ons = abovethresh(1);
-            sm_offs = abovethre
+            sm_offs = abovethresh(end);
+            onsamp = onsamp+sm_ons;
+            offsamp = onsamp+sm_offs;
+            onsets(onind(z)+v-1) = (onsamp/fs)*1e3;
+            offsets(onind(z)+v-1) = (offsamp/fs)*1e3;
+        end
+    end
     
     
     for i = 1:length(runlength) %for each instance of a repeat run
@@ -126,6 +135,11 @@ for ifn=1:length(ff)
         sm = log(sm);%better for segmentation
         sm = sm-min(sm);
         sm = sm./max(sm);
+        
+        ons = onsets(onind(i):onind(i)+runlength(i)-1); 
+        offs = offsets(onind(i):onind(i)+runlength(i)-1);
+        sylldurations = offs-ons;
+        gapdurations = ons(2:end)-offs(1:end-1);
 
         %compute datenum from rec file by adding repeat ton in milliseconds
          if (strcmp(CHANSPEC,'obs0'))
@@ -146,11 +160,11 @@ for ifn=1:length(ff)
         run_count=run_count+1;
         fvalsstr(run_count).fn = fn;    
         fvalsstr(run_count).datenm = datenm;
-%         fvalsstr(run_count).ons = ons; %in ms, onset of each syllable in run into smtemp
-%         fvalsstr(run_count).off = offs;% in ms, offset of each syllable in run into smtemp
+         fvalsstr(run_count).ons = ons; %in ms, onset of each syllable in run into smtemp
+         fvalsstr(run_count).off = offs;% in ms, offset of each syllable in run into smtemp
          fvalsstr(run_count).runlength = runlength(i); %number of syllables in run
-%         fvalsstr(run_count).sylldurations = sylldurations; %duration of each syllable in run
-%         fvalsstr(run_count).syllgaps = gapdurations; %gaps between each adjacent syllable in run
+         fvalsstr(run_count).sylldurations = sylldurations; %duration of each syllable in run
+         fvalsstr(run_count).syllgaps = gapdurations; %gaps between each adjacent syllable in run
         fvalsstr(run_count).smtmp = smtemp; %unfiltered amp env of repeat run
 %         fvalsstr(run_count).pitchest = pitchest; %pitch estimate for each syllable in repeat run 
 %         fvalsstr(run_count).ent = spent;%spectral entropy for each syllable in repeat run

@@ -5,6 +5,7 @@ function fvalsstr = jc_findrepeat3(batch,note,prenote, ...
 %evsonganaly
 %does not compute spectral features, only counts repeat number and saves
 %waveform
+%note can be in form of regular expression *BUT BE SURE TO CHECK INDICES
 tic 
 usingregexp = input('using regular expression? (y/n):','s');
 
@@ -66,7 +67,8 @@ for ifn=1:length(ff)
     
     if usingregexp == 'y'
         [onind offind] = regexp(labels,note);
-        offind = offind-1;
+        offind = offind;
+        onind = onind+1;
         runlength = offind-onind+1;
         if isempty(runlength)
             continue
@@ -91,6 +93,7 @@ for ifn=1:length(ff)
         end
     end
     
+    %recompute onsets and offsets for each syllable in repeat
     for z = 1:length(onind)
         for v = 1:runlength(z) 
             onsamp = floor(onsets(onind(z)+v-1)*1e-3*fs)-256;
@@ -133,8 +136,8 @@ for ifn=1:length(ff)
         sm = sm-min(sm);
         sm = sm./max(sm);
         
-        ons = onsets(onind(i):onind(i)+runlength(i)-1); 
-        offs = offsets(onind(i):onind(i)+runlength(i)-1);
+        ons = (onsets(onind(i):onind(i)+runlength(i)-1))-onsamp*1000/fs; %in ms, onsets of each syllable into smtemp
+        offs = (offsets(onind(i):onind(i)+runlength(i)-1))-onsamp*1000/fs;
         sylldurations = offs-ons;
         gapdurations = ons(2:end)-offs(1:end-1);
 
@@ -157,8 +160,8 @@ for ifn=1:length(ff)
         run_count=run_count+1;
         fvalsstr(run_count).fn = fn;    
         fvalsstr(run_count).datenm = datenm;
-%         fvalsstr(run_count).ons = ons; %in ms, onset of each syllable in run into smtemp
-%         fvalsstr(run_count).off = offs;% in ms, offset of each syllable in run into smtemp
+         fvalsstr(run_count).ons = ons; %in ms, onset of each syllable in run into smtemp
+         fvalsstr(run_count).off = offs;% in ms, offset of each syllable in run into smtemp
          fvalsstr(run_count).runlength = runlength(i); %number of syllables in run
          fvalsstr(run_count).sylldurations = sylldurations; %duration of each syllable in run
          fvalsstr(run_count).syllgaps = gapdurations; %gaps between each adjacent syllable in run
