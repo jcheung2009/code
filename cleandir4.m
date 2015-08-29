@@ -45,6 +45,7 @@ while (1)
         [dat,fs]=evsoundin('',fn,CHANSPEC);
         sm = evsmooth(dat,fs,100);
     end
+    sm = log(sm);
     [ons offs] = SegmentNotes(sm,fs,5.0,30.0,TH);
     %[ons,offs]=evsegment(sm,fs,5.0,30.0,TH);
 

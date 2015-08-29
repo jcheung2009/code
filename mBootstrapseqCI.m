@@ -8,12 +8,6 @@ end
 hithresh = alpha;
 lothresh = 1-alpha;
 
-if(length(invect)<40)
-    numsamps = 20;
-else
-    numsamps = 5;
-end
-
 numreps = 5000;
 shuffvect = zeros(1,numreps);
 a = ismember(invect,syll);

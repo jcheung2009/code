@@ -6,7 +6,7 @@ entdat = [[fv(:).datenm]',[fv(:).spent]'];
 
 fignum = input('figure number for raw data:');
 figure(fignum);hold on;
-subtightplot(3,1,1,0.07,0.03,0.1);hold on;
+subtightplot(3,1,1,0.07,0.05,0.1);hold on;
 h = plot(pitchdat(:,1),pitchdat(:,2),marker);hold on
 removeoutliers = input('remove outliers?:','s');
 while removeoutliers == 'y'
@@ -20,7 +20,7 @@ end
 xlabel('Time')
 ylabel('Frequency (Hz)')
 
-subtightplot(3,1,2,0.07,0.03,0.1);hold on;
+subtightplot(3,1,2,0.07,0.05,0.1);hold on;
 h = plot(voldat(:,1),voldat(:,2),marker);hold on
 removeoutliers = input('remove outliers?:','s');
 while removeoutliers == 'y'
@@ -34,7 +34,7 @@ end
 xlabel('Time')
 ylabel('Amplitude (log)')
 
-subtightplot(3,1,3,0.07,0.03,0.1);hold on;
+subtightplot(3,1,3,0.07,0.05,0.1);hold on;
 h = plot(entdat(:,1),entdat(:,2),marker);hold on
 removeoutliers = input('remove outliers?:','s');
 while removeoutliers == 'y'
@@ -45,5 +45,5 @@ while removeoutliers == 'y'
     h = plot(entdat(:,1),entdat(:,2),marker);hold on;
     removeoutliers = input('remove outliers?:','s');
 end
-xlabel('Time')
+xlabel('Time');
 ylabel('Entropy');

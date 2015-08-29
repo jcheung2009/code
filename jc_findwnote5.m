@@ -421,7 +421,7 @@ avgspec = avgspec./length(spec);
 pcstruct = jc_getpc(fvalsstr);
 
 figure;hold on;
-imagesc(spec(ind1).tm,spec(ind1).f,log(avgspec));hold on;
+imagesc(spec(ind1).tm,spec(ind1).f,log(avgspec));hold on;colormap('jet');
 plot(pcstruct.tm,nanmean(pcstruct.pc,2),'k');
 
 return;

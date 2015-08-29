@@ -1,5 +1,5 @@
 function jc_plotmotifsummary2(motif_sal, motif_cond,marker,linecolor,excludewashin)
-%plots bar graph of regression values between motif duration and
+%plots graph of regression values between motif duration and
 %pitch/entropy/volume, includes 95% confidence interval 
 
 if iscell(motif_sal)
@@ -171,11 +171,10 @@ for i = nsyllables
 end
 
 fignum = input('figure number for plotting bar plot for regression values');
-xlocs = input('x locations for plotting bars:');
 figure(fignum);
 
 for i = 1:nsyllables
-    subtightplot(i,3,1+3*(i-1),0.07,0.04,0.1);hold on;
+    subtightplot(i,3,1+3*(i-1),0.07,0.07,0.08);hold on;
     pitchcorr = [motifdur_and_pitch(:,1) motifdur_and_pitch(:,i+1)];
     removeind = find(isnan(pitchcorr(:,2)));
     pitchcorr(removeind,:) = [];
@@ -183,16 +182,20 @@ for i = 1:nsyllables
     removeind = find(isnan(pitchcorr2(:,2)));
     pitchcorr2(removeind,:) = [];
     [hi lo mn1] = jc_BootstrapCI_r(pitchcorr);
-    createPatches(xlocs(1),mn1,0.5,'k',0.5);
-    plot([xlocs(1) xlocs(1)],[hi lo],'k','linewidth',1);
+    plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
+%     createPatches(xlocs(1),mn1,0.5,'k',0.5);
+%     plot([xlocs(1) xlocs(1)],[hi lo],'k','linewidth',1);
     [hi lo mn2] = jc_BootstrapCI_r(pitchcorr2);
-    createPatches(xlocs(2),mn2,0.5,linecolor,0.5);
-    plot([xlocs(2) xlocs(2)],[hi lo],'k','linewidth',1);
-    h = findobj(gca,'Type','patch');set(h,'edgecolor','none');
+    plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
+    plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
+%     createPatches(xlocs(2),mn2,0.5,linecolor,0.5);
+%     plot([xlocs(2) xlocs(2)],[hi lo],'k','linewidth',1);
+%     h = findobj(gca,'Type','patch');set(h,'edgecolor','none');
     ylabel('Correlation Coefficient');
     title('Motif duration vs pitch correlation');
+    set(gca,'xlim',[0 2],'xtick',[0.5 1.5],'xticklabel',{'saline','drug'});
 
-    subtightplot(i,3,2+3*(i-1),0.07,0.04,0.1);hold on;
+    subtightplot(i,3,2+3*(i-1),0.07,0.07,0.08);hold on;
     volcorr = [motifdur_and_volume(:,1) motifdur_and_volume(:,i+1)];
     removeind = find(isnan(volcorr(:,2)));
     volcorr(removeind,:) = [];
@@ -200,15 +203,14 @@ for i = 1:nsyllables
     removeind = find(isnan(volcorr2(:,2)));
     volcorr2(removeind,:) = [];
     [hi lo mn1] = jc_BootstrapCI_r(volcorr);
-    createPatches(xlocs(1),mn1,0.5,'k',0.5);
-    plot([xlocs(1) xlocs(1)],[hi lo],'k','linewidth',1);
+    plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
     [hi lo mn2] = jc_BootstrapCI_r(volcorr2);
-    createPatches(xlocs(2),mn2,0.5,linecolor,0.5);
-    plot([xlocs(2) xlocs(2)],[hi lo],'k','linewidth',1);
-    h = findobj(gca,'Type','patch');set(h,'edgecolor','none');
+    plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
+    plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
     title('Motif duration vs volume correlation');
-
-    subtightplot(i,3,3+3*(i-1),0.07,0.04,0.1);hold on;
+    set(gca,'xlim',[0 2],'xtick',[0.5 1.5],'xticklabel',{'saline','drug'});
+    
+    subtightplot(i,3,3+3*(i-1),0.07,0.07,0.08);hold on;
     entcorr = [motifdur_and_entropy(:,1) motifdur_and_entropy(:,i+1)];
     removeind = find(isnan(entcorr(:,2)));
     entcorr(removeind,:) = [];
@@ -216,13 +218,12 @@ for i = 1:nsyllables
     removeind = find(isnan(entcorr2(:,2)));
     entcorr2(removeind,:) = [];
     [hi lo mn1] = jc_BootstrapCI_r(entcorr);
-    createPatches(xlocs(1),mn1,0.5,'k',0.5);
-    plot([xlocs(1) xlocs(1)],[hi lo],'k','linewidth',1);
+    plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
     [hi lo mn2] = jc_BootstrapCI_r(entcorr2);
-    createPatches(xlocs(2),mn2,0.5,linecolor,0.5);
-    plot([xlocs(2) xlocs(2)],[hi lo],'k','linewidth',1);
-    h = findobj(gca,'Type','patch');set(h,'edgecolor','none');
+    plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
+    plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
     title('Motif duration vs entropy correlation');
+    set(gca,'xlim',[0 2],'xtick',[0.5 1.5],'xticklabel',{'saline','drug'});
 end
 
 
