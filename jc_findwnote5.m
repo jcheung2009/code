@@ -27,6 +27,7 @@ function [fvalsstr]=jc_findwnote5(batch,NOTE,PRENOTE,POSTNOTE,...
 %   spent: spectral entropy
 %   evtaf: pitch values for hits and escapes 
 %   tmpttime: trig time from tmp file
+%test
 tic
 fvalsstr=[];
 if (~exist('PRENOTE'))
