@@ -32,6 +32,9 @@ for i = 1:length(ff)
     
     %number of motifs 
     ind = find(arrayfun(@(x) strcmp(x.filename,ff(i).name),motifinfo));
+    if isempty(ind)
+        continue
+    end
     nummotifsinbout = length(ind);
     
     %number of intro notes at the beginning of bout

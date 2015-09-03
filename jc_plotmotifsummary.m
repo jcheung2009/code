@@ -240,7 +240,7 @@ else
     motifdur = motifdur/mean(motifdur);
     sylldur2 = sylldur2/mean(sylldur);
     sylldur = sylldur/mean(sylldur);
-    gapdur2 = gapdur2/mean(gapdur2);
+    gapdur2 = gapdur2/mean(gapdur);
     gapdur = gapdur/mean(gapdur);
     
     subtightplot(1,4,1,0.07,0.07,0.05);hold on;

@@ -106,26 +106,36 @@ maxlength = max([runlength';runlength2']);
 for i = 1:maxlength
     ind = find(gapdur(:,1)==i);
     ind2 = find(gapdur2(:,1)==i);
-    if length(ind) < 20 | length(ind2) < 20
-         gapdur(ind,:) = [];
-         gapdur2(ind2,:) = [];
-         continue
+%     if length(ind) < 20 | length(ind2) < 20
+%          gapdur(ind,:) = [];
+%          gapdur2(ind2,:) = [];
+%          continue
+%     end
+    if ~isempty(ind)
+        salmn = mean(gapdur(ind,2));
+        gapdur(ind,2) = gapdur(ind,2)/salmn;
+        gapdur2(ind2,2) = gapdur2(ind2,2)/salmn;
+    else
+        gapdur(ind,:) = [];
+        gapdur2(ind2,:) = [];
     end
-    salmn = mean(gapdur(ind,2));
-    gapdur(ind,2) = gapdur(ind,2)/salmn;
-    gapdur2(ind2,2) = gapdur2(ind2,2)/salmn;
 end
 for i = 1:maxlength
     ind = find(sylldur(:,1)==i);
     ind2 = find(sylldur2(:,1)==i);
-    if length(ind) < 20 | length(ind2) < 20
+%     if length(ind) < 20 | length(ind2) < 20
+%         sylldur(ind,:) = [];
+%         sylldur2(ind2,:) = [];
+%         continue
+%     end
+    if ~isempty(ind)
+        salmn = mean(sylldur(ind,2));
+        sylldur(ind,2) = sylldur(ind,2)/salmn;
+        sylldur2(ind2,2) = sylldur2(ind2,2)/salmn;
+    else
         sylldur(ind,:) = [];
         sylldur2(ind2,:) = [];
-        continue
     end
-    salmn = mean(sylldur(ind,2));
-    sylldur(ind,2) = sylldur(ind,2)/salmn;
-    sylldur2(ind2,2) = sylldur2(ind2,2)/salmn;
 end
 
 fignum = input('figure number for plotting repeat summary:');

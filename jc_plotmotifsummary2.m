@@ -55,7 +55,7 @@ motifdur_and_pitch2(:,1) = (motifdur_and_pitch2(:,1)-mean(motifdur_and_pitch2(:,
 motifdur_and_volume2(:,1) = (motifdur_and_volume2(:,1)-mean(motifdur_and_volume2(:,1)))/std(motifdur_and_volume2(:,1));
 motifdur_and_entropy2(:,1) = (motifdur_and_entropy2(:,1)-mean(motifdur_and_entropy2(:,1)))/std(motifdur_and_entropy2(:,1));
 
-for i = nsyllables
+for i = 1:nsyllables
     motifdur_and_pitch(:,i+1) = (motifdur_and_pitch(:,i+1)-nanmean(motifdur_and_pitch(:,i+1)))/nanstd(motifdur_and_pitch(:,i+1));
     motifdur_and_volume(:,i+1) = (motifdur_and_volume(:,i+1)-nanmean(motifdur_and_volume(:,i+1)))/nanstd(motifdur_and_volume(:,i+1));
     motifdur_and_entropy(:,i+1) = (motifdur_and_entropy(:,i+1)-nanmean(motifdur_and_entropy(:,i+1)))/nanstd(motifdur_and_entropy(:,i+1));
@@ -63,129 +63,131 @@ for i = nsyllables
     motifdur_and_volume2(:,i+1) = (motifdur_and_volume2(:,i+1)-nanmean(motifdur_and_volume2(:,i+1)))/nanstd(motifdur_and_volume2(:,i+1));
     motifdur_and_entropy2(:,i+1) = (motifdur_and_entropy2(:,i+1)-nanmean(motifdur_and_entropy2(:,i+1)))/nanstd(motifdur_and_entropy2(:,i+1));
 end
+
+motifdur_and_pitch = [repmat(motifdur_and_pitch(:,1),nsyllables,1) reshape(motifdur_and_pitch(:,2:end),[],1)];
+motifdur_and_volume = [repmat(motifdur_and_volume(:,1),nsyllables,1) reshape(motifdur_and_volume(:,2:end),[],1)];
+motifdur_and_entropy = [repmat(motifdur_and_entropy(:,1),nsyllables,1) reshape(motifdur_and_entropy(:,2:end),[],1)];
+motifdur_and_pitch2 = [repmat(motifdur_and_pitch2(:,1),nsyllables,1) reshape(motifdur_and_pitch2(:,2:end),[],1)];
+motifdur_and_volume2 = [repmat(motifdur_and_volume2(:,1),nsyllables,1) reshape(motifdur_and_volume2(:,2:end),[],1)];
+motifdur_and_entropy2 = [repmat(motifdur_and_entropy2(:,1),nsyllables,1) reshape(motifdur_and_entropy2(:,2:end),[],1)];
+
+
 %check for outliers
 fignum = input('figure number for checking outliers:');
 figure(fignum);
-for i = nsyllables
-    h = plot(motifdur_and_pitch(:,1),motifdur_and_pitch(:,i+1),'k.');
-    removeoutliers = input('remove outliers (motifdur/pitch or n):','s');
-    while removeoutliers == 'm' | removeoutliers == 'p'
-        nstd = input('nstd:');
-        delete(h);
-        if removeoutliers == 'm'
-            removeind = jc_findoutliers(motifdur_and_pitch(:,1),nstd);
-            motifdur_and_pitch(removeind,:) = [];
-        else
-            removeind = jc_findoutliers(motifdur_and_pitch(:,i+1),nstd);
-            motifdur_and_pitch(removeind,i+1) = NaN;
-        end
-        plot(motifdur_and_pitch(:,1),motifdur_and_pitch(:,i+1),'k.');
-        removeoutliers = input('remove outliers (motifdur/pitch or n):','s');
-    end
-    delete(h);
-    
-    h = plot(motifdur_and_volume(:,1),motifdur_and_volume(:,i+1),'k.');
-    removeoutliers = input('remove outliers (motifdur/volume or n):','s');
-    while removeoutliers == 'm' | removeoutliers == 'v'
-        nstd = input('nstd:');
-        delete(h);
-        if removeoutliers == 'm'
-            removeind = jc_findoutliers(motifdur_and_volume(:,1),nstd);
-            motifdur_and_volume(removeind,:) = [];
-        else
-            removeind = jc_findoutliers(motifdur_and_volume(:,i+1),nstd);
-            motifdur_and_volume(removeind,i+1) = NaN;
-        end
-        plot(motifdur_and_volume(:,1),motifdur_and_volume(:,i+1),'k.');
-        removeoutliers = input('remove outliers (motifdur/volume or n):','s');
-    end
-    delete(h);
-    
-    h = plot(motifdur_and_entropy(:,1),motifdur_and_entropy(:,i+1),'k.');
-    removeoutliers = input('remove outliers (motifdur/entropy or n):','s');
-    while removeoutliers == 'm' | removeoutliers == 'e'
-        nstd = input('nstd:');
-        delete(h);
-        if removeoutliers == 'm'
-            removeind = jc_findoutliers(motifdur_and_entropy(:,1),nstd);
-            motifdur_and_entropy(removeind,:) = [];
-        else
-            removeind = jc_findoutliers(motifdur_and_entropy(:,i+1),nstd);
-            motifdur_and_entropy(removeind,i+1) = NaN;
-        end
-        plot(motifdur_and_entropy(:,1),motifdur_and_entropy(:,i+1),'k.');
-        removeoutliers = input('remove outliers (motifdur/entropy or n):','s');
-    end
-    delete(h);
-    
-    h = plot(motifdur_and_pitch2(:,1),motifdur_and_pitch2(:,i+1),'k.');
-    removeoutliers = input('remove outliers (motifdur/pitch or n):','s');
-    while removeoutliers == 'm' | removeoutliers == 'p'
-        nstd = input('nstd:');
-        delete(h);
-        if removeoutliers == 'm'
-            removeind = jc_findoutliers(motifdur_and_pitch2(:,1),nstd);
-            motifdur_and_pitch2(removeind,:) = [];
-        else
-            removeind = jc_findoutliers(motifdur_and_pitch2(:,i+1),nstd);
-            motifdur_and_pitch2(removeind,i+1) = NaN;
-        end
-        plot(motifdur_and_pitch2(:,1),motifdur_and_pitch2(:,i+1),'k.');
-        removeoutliers = input('remove outliers (motifdur/pitch or n):','s');
-    end
-    delete(h);
 
-    h = plot(motifdur_and_volume2(:,1),motifdur_and_volume2(:,i+1),'k.');
-    removeoutliers = input('remove outliers (motifdur/volume or n):','s');
-    while removeoutliers == 'm' | removeoutliers == 'v'
-        nstd = input('nstd:');
-        delete(h);
-        if removeoutliers == 'm'
-            removeind = jc_findoutliers(motifdur_and_volume2(:,1),nstd);
-            motifdur_and_volume2(removeind,:) = [];
-        else
-            removeind = jc_findoutliers(motifdur_and_volume2(:,i+1),nstd);
-            motifdur_and_volume2(removeind,i+1) = NaN;
-        end
-        plot(motifdur_and_volume2(:,1),motifdur_and_volume2(:,i+1),'k.');
-        removeoutliers = input('remove outliers (motifdur/volume or n):','s');
-    end
+h = plot(motifdur_and_pitch(:,1),motifdur_and_pitch(:,2),'k.');
+removeoutliers = input('remove outliers (motifdur/pitch or n):','s');
+while removeoutliers == 'm' | removeoutliers == 'p'
+    nstd = input('nstd:');
     delete(h);
-
-    h = plot(motifdur_and_entropy2(:,1),motifdur_and_entropy2(:,i+1),'k.');
-    removeoutliers = input('remove outliers (motifdur/entropy or n):','s');
-    while removeoutliers == 'm' | removeoutliers == 'e'
-        nstd = input('nstd:');
-        delete(h);
-        if removeoutliers == 'm'
-            removeind = jc_findoutliers(motifdur_and_entropy2(:,1),nstd);
-            motifdur_and_entropy2(removeind,:) = [];
-        else
-            removeind = jc_findoutliers(motifdur_and_entropy2(:,i+1),nstd);
-            motifdur_and_entropy2(removeind,i+1) = NaN;
-        end
-        plot(motifdur_and_entropy2(:,1),motifdur_and_entropy2(:,i+1),'k.');
-        removeoutliers = input('remove outliers (motifdur/entropy or n):','s');
+    if removeoutliers == 'm'
+        removeind = jc_findoutliers(motifdur_and_pitch(:,1),nstd);
+        motifdur_and_pitch(removeind,:) = [];
+    else
+        removeind = jc_findoutliers(motifdur_and_pitch(:,2),nstd);
+        motifdur_and_pitch(removeind,:) = [];
     end
-    delete(h);
+    plot(motifdur_and_pitch(:,1),motifdur_and_pitch(:,2),'k.');
+    removeoutliers = input('remove outliers (motifdur/pitch or n):','s');
 end
+delete(h);
+    
+h = plot(motifdur_and_volume(:,1),motifdur_and_volume(:,2),'k.');
+removeoutliers = input('remove outliers (motifdur/volume or n):','s');
+while removeoutliers == 'm' | removeoutliers == 'v'
+    nstd = input('nstd:');
+    delete(h);
+    if removeoutliers == 'm'
+        removeind = jc_findoutliers(motifdur_and_volume(:,1),nstd);
+        motifdur_and_volume(removeind,:) = [];
+    else
+        removeind = jc_findoutliers(motifdur_and_volume(:,2),nstd);
+        motifdur_and_volume(removeind,:) = [];
+    end
+    plot(motifdur_and_volume(:,1),motifdur_and_volume(:,2),'k.');
+    removeoutliers = input('remove outliers (motifdur/volume or n):','s');
+end
+delete(h);
+    
+h = plot(motifdur_and_entropy(:,1),motifdur_and_entropy(:,2),'k.');
+removeoutliers = input('remove outliers (motifdur/entropy or n):','s');
+while removeoutliers == 'm' | removeoutliers == 'e'
+    nstd = input('nstd:');
+    delete(h);
+    if removeoutliers == 'm'
+        removeind = jc_findoutliers(motifdur_and_entropy(:,1),nstd);
+        motifdur_and_entropy(removeind,:) = [];
+    else
+        removeind = jc_findoutliers(motifdur_and_entropy(:,2),nstd);
+        motifdur_and_entropy(removeind,:) = [];
+    end
+    plot(motifdur_and_entropy(:,1),motifdur_and_entropy(:,2),'k.');
+    removeoutliers = input('remove outliers (motifdur/entropy or n):','s');
+end
+delete(h);
+    
+h = plot(motifdur_and_pitch2(:,1),motifdur_and_pitch2(:,2),'k.');
+removeoutliers = input('remove outliers (motifdur/pitch or n):','s');
+while removeoutliers == 'm' | removeoutliers == 'p'
+    nstd = input('nstd:');
+    delete(h);
+    if removeoutliers == 'm'
+        removeind = jc_findoutliers(motifdur_and_pitch2(:,1),nstd);
+        motifdur_and_pitch2(removeind,:) = [];
+    else
+        removeind = jc_findoutliers(motifdur_and_pitch2(:,2),nstd);
+        motifdur_and_pitch2(removeind,:) = [];
+    end
+    plot(motifdur_and_pitch2(:,1),motifdur_and_pitch2(:,2),'k.');
+    removeoutliers = input('remove outliers (motifdur/pitch or n):','s');
+end
+delete(h);
+
+h = plot(motifdur_and_volume2(:,1),motifdur_and_volume2(:,2),'k.');
+removeoutliers = input('remove outliers (motifdur/volume or n):','s');
+while removeoutliers == 'm' | removeoutliers == 'v'
+    nstd = input('nstd:');
+    delete(h);
+    if removeoutliers == 'm'
+        removeind = jc_findoutliers(motifdur_and_volume2(:,1),nstd);
+        motifdur_and_volume2(removeind,:) = [];
+    else
+        removeind = jc_findoutliers(motifdur_and_volume2(:,2),nstd);
+        motifdur_and_volume2(removeind,:) = [];
+    end
+    plot(motifdur_and_volume2(:,1),motifdur_and_volume2(:,2),'k.');
+    removeoutliers = input('remove outliers (motifdur/volume or n):','s');
+end
+delete(h);
+
+h = plot(motifdur_and_entropy2(:,1),motifdur_and_entropy2(:,2),'k.');
+removeoutliers = input('remove outliers (motifdur/entropy or n):','s');
+while removeoutliers == 'm' | removeoutliers == 'e'
+    nstd = input('nstd:');
+    delete(h);
+    if removeoutliers == 'm'
+        removeind = jc_findoutliers(motifdur_and_entropy2(:,1),nstd);
+        motifdur_and_entropy2(removeind,:) = [];
+    else
+        removeind = jc_findoutliers(motifdur_and_entropy2(:,2),nstd);
+        motifdur_and_entropy2(removeind,:) = [];
+    end
+    plot(motifdur_and_entropy2(:,1),motifdur_and_entropy2(:,2),'k.');
+    removeoutliers = input('remove outliers (motifdur/entropy or n):','s');
+end
+delete(h);
+
 
 fignum = input('figure number for plotting bar plot for regression values');
 figure(fignum);
 
-for i = 1:nsyllables
-    subtightplot(i,3,1+3*(i-1),0.07,0.07,0.08);hold on;
-    pitchcorr = [motifdur_and_pitch(:,1) motifdur_and_pitch(:,i+1)];
-    removeind = find(isnan(pitchcorr(:,2)));
-    pitchcorr(removeind,:) = [];
-    pitchcorr2 = [motifdur_and_pitch2(:,1) motifdur_and_pitch2(:,i+1)];
-    removeind = find(isnan(pitchcorr2(:,2)));
-    pitchcorr2(removeind,:) = [];
-    [hi lo mn1] = jc_BootstrapCI_r(pitchcorr);
+    subtightplot(1,3,1,0.07,0.07,0.08);hold on;
+    [hi lo mn1] = jc_BootstrapCI_r(motifdur_and_pitch);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
 %     createPatches(xlocs(1),mn1,0.5,'k',0.5);
 %     plot([xlocs(1) xlocs(1)],[hi lo],'k','linewidth',1);
-    [hi lo mn2] = jc_BootstrapCI_r(pitchcorr2);
+    [hi lo mn2] = jc_BootstrapCI_r(motifdur_and_pitch2);
     plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
     plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
 %     createPatches(xlocs(2),mn2,0.5,linecolor,0.5);
@@ -195,36 +197,24 @@ for i = 1:nsyllables
     title('Motif duration vs pitch correlation');
     set(gca,'xlim',[0 2],'xtick',[0.5 1.5],'xticklabel',{'saline','drug'});
 
-    subtightplot(i,3,2+3*(i-1),0.07,0.07,0.08);hold on;
-    volcorr = [motifdur_and_volume(:,1) motifdur_and_volume(:,i+1)];
-    removeind = find(isnan(volcorr(:,2)));
-    volcorr(removeind,:) = [];
-    volcorr2 = [motifdur_and_volume2(:,1) motifdur_and_volume2(:,i+1)];
-    removeind = find(isnan(volcorr2(:,2)));
-    volcorr2(removeind,:) = [];
-    [hi lo mn1] = jc_BootstrapCI_r(volcorr);
+    subtightplot(1,3,2,0.07,0.07,0.08);hold on;
+    [hi lo mn1] = jc_BootstrapCI_r(motifdur_and_volume);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [hi lo mn2] = jc_BootstrapCI_r(volcorr2);
+    [hi lo mn2] = jc_BootstrapCI_r(motifdur_and_volume2);
     plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
     plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
     title('Motif duration vs volume correlation');
     set(gca,'xlim',[0 2],'xtick',[0.5 1.5],'xticklabel',{'saline','drug'});
     
-    subtightplot(i,3,3+3*(i-1),0.07,0.07,0.08);hold on;
-    entcorr = [motifdur_and_entropy(:,1) motifdur_and_entropy(:,i+1)];
-    removeind = find(isnan(entcorr(:,2)));
-    entcorr(removeind,:) = [];
-    entcorr2 = [motifdur_and_entropy2(:,1) motifdur_and_entropy2(:,i+1)];
-    removeind = find(isnan(entcorr2(:,2)));
-    entcorr2(removeind,:) = [];
-    [hi lo mn1] = jc_BootstrapCI_r(entcorr);
+    subtightplot(1,3,3,0.07,0.07,0.08);hold on;
+    [hi lo mn1] = jc_BootstrapCI_r(motifdur_and_entropy);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [hi lo mn2] = jc_BootstrapCI_r(entcorr2);
+    [hi lo mn2] = jc_BootstrapCI_r(motifdur_and_entropy2);
     plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
     plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
     title('Motif duration vs entropy correlation');
     set(gca,'xlim',[0 2],'xtick',[0.5 1.5],'xticklabel',{'saline','drug'});
-end
+
 
 
 

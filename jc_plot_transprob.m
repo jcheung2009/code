@@ -56,7 +56,7 @@ for i = 1:length(syllables)-1
     end
     divmat(:,i) = divergentprobs;
 end
-imagesc(divmat);colormap('jet');colorbar;
+imagesc(divmat,[0 1]);colormap('jet');colorbar;
 set(gca,'xtick',[1:length(syllables)],'xticklabel',syllables,'xaxislocation','top','yticklabel',syllables);
 xlabel('Divergent transition probability from syllable:')
 ylabel('To syllable')
@@ -78,7 +78,7 @@ for i = 1:length(syllables)-1
     end
     conmat(:,i) = convergentprobs;
 end
-imagesc(conmat);colormap('jet');colorbar;
+imagesc(conmat,[0 1]);colormap('jet');colorbar;
 set(gca,'xtick',[1:length(syllables)],'xticklabel',syllables,'xaxislocation','top','yticklabel',syllables);
 xlabel('Convergent transition probability to syllable:')
 ylabel('From syllable')
