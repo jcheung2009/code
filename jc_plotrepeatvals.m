@@ -10,7 +10,7 @@ figure(fignum);hold on;
 replength = [jc_tb([fv_rep(:).datenm]',7,0) [fv_rep(:).runlength]'];
 subtightplot(3,1,1,0.07,0.05,0.08);hold on;
 plot(replength(:,1),replength(:,2),marker);
-ylabel('Repeat length (number of syllables)');
+ylabel({'Repeat Length', '(number of syllables)'});
 xlabel('Time (seconds since lights on)');
 title('Number of syllables in repeat');
 

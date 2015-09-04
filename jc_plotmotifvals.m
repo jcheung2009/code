@@ -362,8 +362,8 @@ if plotsm == 'y'
     fill([tb_sm fliplr(tb_sm)],[averagemotif2(:,1)'-averagemotif2(:,2)',...
         fliplr(averagemotif2(:,1)'+averagemotif2(:,2)')],linecolor,'EdgeColor',linecolor,...
         'FaceAlpha',0.5);
-    ylabel('Time (seconds)');
-    xlabel('Normalized Amplitude (log)')
+    xlabel('Time (seconds)');
+    ylabel('Normalized Amplitude (log)')
 end
 
 %% correlate tempo with spectral features

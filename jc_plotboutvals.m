@@ -88,7 +88,7 @@ fliplr(nanmean(pitchpattern,2)'+nanstderr(pitchpattern,2)')],linecolor,'edgecolo
 'FaceAlpha',0.5);
 
 xlabel('Motif position of target syllable within bout');
-ylabel({'Frequency', '(normalized to first syllable)'});
+ylabel({'Normalized Frequency'});
 title('Pitch changes within bout (running average with SEM)');
 
 volumepattern = [];
@@ -105,7 +105,7 @@ fliplr(nanmean(volumepattern,2)'+nanstderr(volumepattern,2)')],linecolor,'edgeco
 'FaceAlpha',0.5);
 
 xlabel('Motif position of target syllable within bout');
-ylabel({'Volume', '(normalized to first syllable)'});
+ylabel({'Normalized Volume'});
 title('Volume changes within bout (running average with SEM)');
         
 entropypattern = [];
@@ -122,7 +122,7 @@ fliplr(nanmean(entropypattern,2)'+nanstderr(entropypattern,2)')],linecolor,'edge
 'FaceAlpha',0.5);
 
 xlabel('Motif position of target syllable within bout');
-ylabel({'Entropy', '(normalized to first syllable)'});
+ylabel({'Normalized Entropy'});
 title('Entropy changes within bout (running average with SEM)');
     
 tempopattern = [];
@@ -134,7 +134,7 @@ fill([1:maxnummotifs fliplr(1:maxnummotifs)],[nanmean(tempopattern,2)'-nanstderr
     fliplr(nanmean(tempopattern,2)'+nanstderr(tempopattern,2)')],linecolor,'edgecolor','none',...
     'facealpha',0.5);
 xlabel('Motif position of target syllable within bout');
-ylabel({'Motif', 'duration (normalized to first motif)'});
+ylabel({'Normalized motif duration'});
 title('Tempo changes within bout (running average with SEM)');
     
     
