@@ -3,7 +3,9 @@ function jc_plottransprobsummary(trnsprob_sal, trnsprob_cond, marker,linecolor,d
 %divtrns = {'bc','cd','qq'} (divergent transitions from 'b' to 'c', 'c' to
 %'d', 'q' to 'q'
 %convtrns = {'q'} (convergent transitions to these syllables
-
+%for difference matrices, trnsprob_sal = {trnsprob of all saline
+%conditions} and trnsprob_cond = {trnsprob of all drug conditions}, paired
+%analysis with drug-saline 
 
 
 %% plot transition probability changes
@@ -133,7 +135,7 @@ if plotdiffmat == 'y'
     subtightplot(1,4,3,0.07,[0.08 0.15],0.08);hold on;
     imagesc(diffmat,[-1 1]);colormap('jet');colorbar;
     set(gca,'xtick',[1:length(syllables)],'xticklabel',syllables,'xaxislocation','top','yticklabel',syllables);
-    xlabel({'Difference matrix in divergent transition probability', 'From syllable:'})
+    xlabel({'Difference matrix for divergent transitions', 'From syllable:'})
     ylabel('To syllable')
     axis tight
     %convergence
@@ -171,7 +173,7 @@ if plotdiffmat == 'y'
     subtightplot(1,4,4,0.07,[0.08 0.15],0.08);hold on;
     imagesc(diffmat2,[-1 1]);colormap('jet');colorbar;
     set(gca,'xtick',[1:length(syllables)],'xticklabel',syllables,'xaxislocation','top','yticklabel',syllables);
-    xlabel({'Difference matrix in convergent transition probability', 'To syllable:'})
+    xlabel({'Difference matrix for convergent transitions', 'To syllable:'})
     ylabel('From syllable')
     axis tight
 end

@@ -140,7 +140,7 @@ end
 
 fignum = input('figure number for plotting repeat summary:');
 figure(fignum);
-subtightplot(1,3,1,0.07,0.04,0.1);hold on;
+subtightplot(1,3,1,0.07,0.08,0.1);hold on;
 [hi lo mn1] = mBootstrapCI(runlength);
 plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
 [hi lo mn2] = mBootstrapCI(runlength2);
@@ -150,7 +150,7 @@ set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
 ylabel('Number of syllables in repeat');
 title('Change in repeat length');
 
-subtightplot(1,3,2,0.07,0.04,0.1);hold on;
+subtightplot(1,3,2,0.07,0.08,0.1);hold on;
 [hi lo mn1] = mBootstrapCI(gapdur(:,2));
 plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
 [hi lo mn2] = mBootstrapCI(gapdur2(:,2));
@@ -160,7 +160,7 @@ set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
 ylabel({'Gap duration','(normalized)'});
 title('Change in gap duration');
 
-subtightplot(1,3,3,0.07,0.04,0.1);hold on;
+subtightplot(1,3,3,0.07,0.08,0.1);hold on;
 [hi lo mn1] = mBootstrapCI(sylldur(:,2));
 plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
 [hi lo mn2] = mBootstrapCI(sylldur2(:,2));

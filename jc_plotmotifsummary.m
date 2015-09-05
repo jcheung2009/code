@@ -30,6 +30,7 @@ if ~iscell(motif_cond)
 end
 if excludewashin == 1
     ind = find(tb_cond<tb_sal(end)+1800); %exclude first half hour of wash in 
+    tb_cond(ind) = [];
 end
 
 fignum = input('figure number for checking outliers:');
@@ -243,7 +244,7 @@ else
     gapdur2 = gapdur2/mean(gapdur);
     gapdur = gapdur/mean(gapdur);
     
-    subtightplot(1,4,1,0.07,0.07,0.05);hold on;
+    subtightplot(1,4,1,0.07,0.08,0.05);hold on;
     [hi lo mn1] = mBootstrapCI(motifdur);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
     [hi lo mn2] = mBootstrapCI(motifdur2);
@@ -251,9 +252,9 @@ else
     plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
     ylabel({'Change in motif duration', 'relative to saline'});
-    title('Normalized motif duration changes for all syllables');
+    title('Motif duration changes');
     
-    subtightplot(1,4,2,0.07,0.07,0.05);hold on;
+    subtightplot(1,4,2,0.07,0.08,0.05);hold on;
     [hi lo mn1] = mBootstrapCI(sylldur);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
     [hi lo mn2] = mBootstrapCI(sylldur2);
@@ -261,9 +262,9 @@ else
     plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
     ylabel({'Change in mean syllable duration','relative to saline'});
-    title('Normalized syllable duration changes for all syllables');
+    title('Syllable duration changes');
     
-    subtightplot(1,4,3,0.07,0.07,0.05);hold on;
+    subtightplot(1,4,3,0.07,0.08,0.05);hold on;
     [hi lo mn1] = mBootstrapCI(gapdur);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
     [hi lo mn2] = mBootstrapCI(gapdur2);
@@ -271,9 +272,9 @@ else
     plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
     ylabel({'Change in mean gap duration', 'relative to saline'});
-    title('Normalized gap duration changes for all syllables');
+    title('Gap duration changes');
     
-    subtightplot(1,4,4,0.07,0.07,0.05);hold on;
+    subtightplot(1,4,4,0.07,0.08,0.05);hold on;
     [mn1 hi lo] = mBootstrapCI_CV(motifdur);
     mn = mn1/mn1;
     hi = mn+((hi-mn1)/mn1);
@@ -287,5 +288,5 @@ else
     plot([0.5 1.5],[mn mn3],linecolor,'linewidth',1);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
     ylabel({'Change in motif duration CV', 'relative to saline'});
-    title('Normalized motif duration CV changes for all syllables');
+    title('Motif duration CV changes');
 end

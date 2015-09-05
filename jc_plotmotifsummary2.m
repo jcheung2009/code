@@ -29,6 +29,7 @@ if ~iscell(motif_cond)
 end
 if excludewashin == 1
     ind = find(tb_cond<tb_sal(end)+1800); %exclude first half hour of wash in 
+    tb_cond(ind) = [];
     motif_cond(ind) = [];
 end
 
@@ -71,6 +72,18 @@ motifdur_and_pitch2 = [repmat(motifdur_and_pitch2(:,1),nsyllables,1) reshape(mot
 motifdur_and_volume2 = [repmat(motifdur_and_volume2(:,1),nsyllables,1) reshape(motifdur_and_volume2(:,2:end),[],1)];
 motifdur_and_entropy2 = [repmat(motifdur_and_entropy2(:,1),nsyllables,1) reshape(motifdur_and_entropy2(:,2:end),[],1)];
 
+removenan = find(isnan(motifdur_and_pitch(:,2)));
+motifdur_and_pitch(removenan,:) = [];
+removenan = find(isnan(motifdur_and_volume(:,2)));
+motifdur_and_volume(removenan,:) = [];
+removenan = find(isnan(motifdur_and_entropy(:,2)));
+motifdur_and_entropy(removenan,:) = [];
+removenan = find(isnan(motifdur_and_pitch2(:,2)));
+motifdur_and_pitch2(removenan,:) = [];
+removenan = find(isnan(motifdur_and_volume2(:,2)));
+motifdur_and_volume2(removenan,:) = [];
+removenan = find(isnan(motifdur_and_entropy2(:,2)));
+motifdur_and_entropy2(removenan,:) = [];
 
 %check for outliers
 fignum = input('figure number for checking outliers:');

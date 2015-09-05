@@ -34,6 +34,7 @@ if ~iscell(fv_syll_cond)
 end
 if excludewashin == 1
     ind = find(tb_cond<tb_sal(end)+1800); %exclude first half hour of wash in 
+    tb_cond(ind) = [];
 end
 
 fignum = input('figure number for checking outliers:');
