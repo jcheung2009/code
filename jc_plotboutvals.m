@@ -71,72 +71,74 @@ ylabel('Number of songs per hour');
 title('Singing Rate')
 
 %% plot within bout pitch,volume,entropy, and tempo patterns
-fignum = input('figure for spectral and tempo patterns within bouts:');
-figure(fignum);hold on;
-maxnummotifs = max(arrayfun(@(x) x.nummotifs,boutinfo));
-pitchpattern = [];
-for i = 1:length(boutinfo)
-    for ii = 1:numsylls
-        pitchpattern = [pitchpattern [boutinfo(i).boutpitch(:,ii)/boutinfo(i).boutpitch(1,ii);...
-            NaN(maxnummotifs-boutinfo(i).nummotifs,1)]];%normalize by syllable in first motif, concatenates data for all syllables into one set
+tempopattern = input('plot bout pattern?:','s');
+if tempopattern == 'y'
+    fignum = input('figure for spectral and tempo patterns within bouts:');
+    figure(fignum);hold on;
+    maxnummotifs = max(arrayfun(@(x) x.nummotifs,boutinfo));
+    pitchpattern = [];
+    for i = 1:length(boutinfo)
+        for ii = 1:numsylls
+            pitchpattern = [pitchpattern [boutinfo(i).boutpitch(:,ii)/boutinfo(i).boutpitch(1,ii);...
+                NaN(maxnummotifs-boutinfo(i).nummotifs,1)]];%normalize by syllable in first motif, concatenates data for all syllables into one set
+        end
     end
-end
 
-subtightplot(4,1,1,0.07,0.05,0.1);hold on;
-fill([1:maxnummotifs fliplr(1:maxnummotifs)],[nanmean(pitchpattern,2)'-nanstderr(pitchpattern,2)',...
-fliplr(nanmean(pitchpattern,2)'+nanstderr(pitchpattern,2)')],linecolor,'edgecolor','none',...
-'FaceAlpha',0.5);
+    subtightplot(4,1,1,0.07,0.05,0.1);hold on;
+    fill([1:maxnummotifs fliplr(1:maxnummotifs)],[nanmean(pitchpattern,2)'-nanstderr(pitchpattern,2)',...
+    fliplr(nanmean(pitchpattern,2)'+nanstderr(pitchpattern,2)')],linecolor,'edgecolor','none',...
+    'FaceAlpha',0.5);
 
-xlabel('Motif position of target syllable within bout');
-ylabel({'Normalized Frequency'});
-title('Pitch changes within bout (running average with SEM)');
+    xlabel('Motif position of target syllable within bout');
+    ylabel({'Normalized Frequency'});
+    title('Pitch changes within bout (running average with SEM)');
 
-volumepattern = [];
-for i = 1:length(boutinfo)
-    for ii = 1:numsylls
-        volumepattern = [volumepattern [log(boutinfo(i).boutvolume(:,ii))/log(boutinfo(i).boutvolume(1,ii));...
-            NaN(maxnummotifs-boutinfo(i).nummotifs,1)]];%normalize by syllable in first motif
+    volumepattern = [];
+    for i = 1:length(boutinfo)
+        for ii = 1:numsylls
+            volumepattern = [volumepattern [log(boutinfo(i).boutvolume(:,ii))/log(boutinfo(i).boutvolume(1,ii));...
+                NaN(maxnummotifs-boutinfo(i).nummotifs,1)]];%normalize by syllable in first motif
+        end
     end
-end
 
-subtightplot(4,1,2,0.07,0.05,0.1);hold on;
-fill([1:maxnummotifs fliplr(1:maxnummotifs)],[nanmean(volumepattern,2)'-nanstderr(volumepattern,2)',...
-fliplr(nanmean(volumepattern,2)'+nanstderr(volumepattern,2)')],linecolor,'edgecolor','none',...
-'FaceAlpha',0.5);
+    subtightplot(4,1,2,0.07,0.05,0.1);hold on;
+    fill([1:maxnummotifs fliplr(1:maxnummotifs)],[nanmean(volumepattern,2)'-nanstderr(volumepattern,2)',...
+    fliplr(nanmean(volumepattern,2)'+nanstderr(volumepattern,2)')],linecolor,'edgecolor','none',...
+    'FaceAlpha',0.5);
 
-xlabel('Motif position of target syllable within bout');
-ylabel({'Normalized Volume'});
-title('Volume changes within bout (running average with SEM)');
-        
-entropypattern = [];
-for i = 1:length(boutinfo)
-    for ii = 1:numsylls
-        entropypattern = [entropypattern [boutinfo(i).boutentropy(:,ii)/boutinfo(i).boutentropy(1,ii);...
-            NaN(maxnummotifs-boutinfo(i).nummotifs,1)]];%normalize by syllable in first motif
+    xlabel('Motif position of target syllable within bout');
+    ylabel({'Normalized Volume'});
+    title('Volume changes within bout (running average with SEM)');
+
+    entropypattern = [];
+    for i = 1:length(boutinfo)
+        for ii = 1:numsylls
+            entropypattern = [entropypattern [boutinfo(i).boutentropy(:,ii)/boutinfo(i).boutentropy(1,ii);...
+                NaN(maxnummotifs-boutinfo(i).nummotifs,1)]];%normalize by syllable in first motif
+        end
     end
-end
 
-subtightplot(4,1,3,0.07,0.05,0.1);hold on;
-fill([1:maxnummotifs fliplr(1:maxnummotifs)],[nanmean(entropypattern,2)'-nanstderr(entropypattern,2)',...
-fliplr(nanmean(entropypattern,2)'+nanstderr(entropypattern,2)')],linecolor,'edgecolor','none',...
-'FaceAlpha',0.5);
+    subtightplot(4,1,3,0.07,0.05,0.1);hold on;
+    fill([1:maxnummotifs fliplr(1:maxnummotifs)],[nanmean(entropypattern,2)'-nanstderr(entropypattern,2)',...
+    fliplr(nanmean(entropypattern,2)'+nanstderr(entropypattern,2)')],linecolor,'edgecolor','none',...
+    'FaceAlpha',0.5);
 
-xlabel('Motif position of target syllable within bout');
-ylabel({'Normalized Entropy'});
-title('Entropy changes within bout (running average with SEM)');
-    
-tempopattern = [];
-for i = 1:length(boutinfo)
-    tempopattern = [tempopattern [boutinfo(i).bouttempo/boutinfo(i).bouttempo(1);NaN(maxnummotifs-boutinfo(i).nummotifs,1)]];
+    xlabel('Motif position of target syllable within bout');
+    ylabel({'Normalized Entropy'});
+    title('Entropy changes within bout (running average with SEM)');
+
+    tempopattern = [];
+    for i = 1:length(boutinfo)
+        tempopattern = [tempopattern [boutinfo(i).bouttempo/boutinfo(i).bouttempo(1);NaN(maxnummotifs-boutinfo(i).nummotifs,1)]];
+    end
+    subtightplot(4,1,4,0.07,0.05,0.1);hold on;
+    fill([1:maxnummotifs fliplr(1:maxnummotifs)],[nanmean(tempopattern,2)'-nanstderr(tempopattern,2)',...
+        fliplr(nanmean(tempopattern,2)'+nanstderr(tempopattern,2)')],linecolor,'edgecolor','none',...
+        'facealpha',0.5);
+    xlabel('Motif position of target syllable within bout');
+    ylabel({'Normalized motif duration'});
+    title('Tempo changes within bout (running average with SEM)');
 end
-subtightplot(4,1,4,0.07,0.05,0.1);hold on;
-fill([1:maxnummotifs fliplr(1:maxnummotifs)],[nanmean(tempopattern,2)'-nanstderr(tempopattern,2)',...
-    fliplr(nanmean(tempopattern,2)'+nanstderr(tempopattern,2)')],linecolor,'edgecolor','none',...
-    'facealpha',0.5);
-xlabel('Motif position of target syllable within bout');
-ylabel({'Normalized motif duration'});
-title('Tempo changes within bout (running average with SEM)');
-    
     
     
     

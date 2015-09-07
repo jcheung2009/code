@@ -130,8 +130,8 @@ for i = 1:length(ff)
         end
         
         if jitter == 'n'
-            minint = 5;%gap
-            mindur = 20;%syllable
+            minint = 15;%gap
+            mindur = 30;%syllable
             thresholdforsegmentation = {0.3,minint,mindur};%{graythresh(sm2),minint,mindur};%otsu's method
             [ons offs] = SegmentNotes(sm2,fs,thresholdforsegmentation{2},...
                 thresholdforsegmentation{3},thresholdforsegmentation{1});
