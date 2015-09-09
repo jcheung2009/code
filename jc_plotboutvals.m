@@ -1,7 +1,7 @@
 function jc_plotboutvals(boutinfo,marker,linecolor)
 %boutinfo from jc_findbout
 %remember to change numsylls
-numsylls = 3; %number of syllables measured for spectral features
+numsylls = 1; %number of syllables measured for spectral features
 plotintronotes = input('plot intro notes measurements:','s');
 
 %% plot number of motifs in bout over time
@@ -130,7 +130,7 @@ if tempopattern == 'y'
     tempopattern = [];
     for i = 1:length(boutinfo)
         tempopattern = [tempopattern [boutinfo(i).bouttempo/boutinfo(i).bouttempo(1);NaN(maxnummotifs-boutinfo(i).nummotifs,1)]];
-    end
+        end_tran
     subtightplot(4,1,4,0.07,0.05,0.1);hold on;
     fill([1:maxnummotifs fliplr(1:maxnummotifs)],[nanmean(tempopattern,2)'-nanstderr(tempopattern,2)',...
         fliplr(nanmean(tempopattern,2)'+nanstderr(tempopattern,2)')],linecolor,'edgecolor','none',...

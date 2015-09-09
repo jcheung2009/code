@@ -28,7 +28,8 @@ function [fvalsstr]=jc_findwnote5(batch,NOTE,PRENOTE,POSTNOTE,...
 %   evtaf: pitch values for hits and escapes 
 %   tmpttime: trig time from tmp file
 %
-tic
+
+
 fvalsstr=[];
 if (~exist('PRENOTE'))
     PRENOTE='';
@@ -211,10 +212,12 @@ for ifn=1:length(ff)
             % pitch contour
             onsamp = floor((ton*1e-3)*fs);
             offsamp = ceil((toff*1e-3)*fs);
-            overlap = NFFT-2;
-            t=-NFFT/2+1:NFFT/2;
-            sigma=(1/1000)*fs;
-            w=exp(-(t/sigma).^2);%gaussian window for spectrogram
+
+                overlap = NFFT-2;
+                t=-NFFT/2+1:NFFT/2;
+                sigma=(1/1000)*fs;
+                w=exp(-(t/sigma).^2);%gaussian window for spectrogram
+      
     
             if offsamp + 256 < length(dat)
                 note_cnt = note_cnt+1;
@@ -248,112 +251,114 @@ for ifn=1:length(ff)
                 error([fn,' time cutoff at end of syllable exceeds file length']);
             end
             
-            [sp f tm pxx] = spectrogram(filtsong,w,overlap,NFFT,fs);
-            spec(note_cnt).sp = abs(sp);
-            spec(note_cnt).tm = tm;
-            spec(note_cnt).f = f;
-            pc = [];   
-            %use weighted average of power and fft values from sp
-            for m = 1:size(sp,2)
-                fdat = abs(sp(:,m));
-                mxtmpvec = zeros([1,size(FVALBND,1)]);
-                for kk = 1:size(FVALBND,1)
-                    tmpinds = find((f>=FVALBND(kk,1))&(f<=FVALBND(kk,2)));
-                    NPNTS = 10;
-                    [tmp pf] = max(fdat(tmpinds));
-                    pf = pf+tmpinds(1)-1;
-                    if (USEFIT==1)%weighted average 
-                        tmpxv=pf + [-NPNTS:NPNTS];
-                        tmpxv=tmpxv(find((tmpxv>0)&(tmpxv<=length(f))));
-                        mxtmpvec(kk)=f(tmpxv)'*fdat(tmpxv);
-                        mxtmpvec(kk)=mxtmpvec(kk)./sum(fdat(tmpxv));
-                    else
-                        mxtmpvec(kk) = f(pf);
+   
+                [sp f tm pxx] = spectrogram(filtsong,w,overlap,NFFT,fs);
+                spec(note_cnt).sp = abs(sp);
+                spec(note_cnt).tm = tm;
+                spec(note_cnt).f = f;
+                pc = [];   
+                %use weighted average of power and fft values from sp
+                for m = 1:size(sp,2)
+                    fdat = abs(sp(:,m));
+                    mxtmpvec = zeros([1,size(FVALBND,1)]);
+                    for kk = 1:size(FVALBND,1)
+                        tmpinds = find((f>=FVALBND(kk,1))&(f<=FVALBND(kk,2)));
+                        NPNTS = 10;
+                        [tmp pf] = max(fdat(tmpinds));
+                        pf = pf+tmpinds(1)-1;
+                        if (USEFIT==1)%weighted average 
+                            tmpxv=pf + [-NPNTS:NPNTS];
+                            tmpxv=tmpxv(find((tmpxv>0)&(tmpxv<=length(f))));
+                            mxtmpvec(kk)=f(tmpxv)'*fdat(tmpxv);
+                            mxtmpvec(kk)=mxtmpvec(kk)./sum(fdat(tmpxv));
+                        else
+                            mxtmpvec(kk) = f(pf);
+                        end
                     end
+                    pc = cat(1,pc,mean(diff([0,mxtmpvec])));
                 end
-                pc = cat(1,pc,mean(diff([0,mxtmpvec])));
-            end
-            pc = [tm' pc];            
-            ti1 = find(tm<=TIMESHIFT);
-            ti1 = ti1(end);
-            mxvals = pc(ti1,2);%pitch estimate at timeshift
+                pc = [tm' pc];            
+                ti1 = find(tm<=TIMESHIFT);
+                ti1 = ti1(end);
+                mxvals = pc(ti1,2);%pitch estimate at timeshift
             
-            %uses autocorrelation of spectrogram to determine pitch
-%             for m = 1:size(sp,2)
-%                 fdat = abs(sp(:,m));
-%                 c = xcorr(fdat,'coeff');%
-%                 c = c(ceil(length(c)/2):end);
-%                 [pks locs] = findpeaks(c);
-%                 ind = find(f(locs) >= FVALBND(1) & f(locs) <= FVALBND(2));%finds indices of peaks within freq range
-%                 [mx id] = max(pks(ind)); %finds peak with max power within freq range
-%                 if isempty(id)
-%                     pc = cat(1,pc,NaN);
-%                 else
-%                     maxpowerind = locs(ind(id)); 
-%                     maxpowerind = maxpowerind + [-1:1];%get three points surrounding peak ind
-%                     pc = cat(1,pc,pinterp(f(maxpowerind),c(maxpowerind)));
-%                 end
-%             end
+                %uses autocorrelation of spectrogram to determine pitch
+    %             for m = 1:size(sp,2)
+    %                 fdat = abs(sp(:,m));
+    %                 c = xcorr(fdat,'coeff');%
+    %                 c = c(ceil(length(c)/2):end);
+    %                 [pks locs] = findpeaks(c);
+    %                 ind = find(f(locs) >= FVALBND(1) & f(locs) <= FVALBND(2));%finds indices of peaks within freq range
+    %                 [mx id] = max(pks(ind)); %finds peak with max power within freq range
+    %                 if isempty(id)
+    %                     pc = cat(1,pc,NaN);
+    %                 else
+    %                     maxpowerind = locs(ind(id)); 
+    %                     maxpowerind = maxpowerind + [-1:1];%get three points surrounding peak ind
+    %                     pc = cat(1,pc,pinterp(f(maxpowerind),c(maxpowerind)));
+    %                 end
+    %             end
 
-            %entropy measurements
-%             we = mean(log(geomean(abs(sp),1))); %wiener entropy by averaging all WE values in every timebin of spec
-            pxx = bsxfun(@rdivide,pxx,sum(pxx));
-            spent = [];%spectral entropy
-            for qq = 1:size(pxx,2)
-                spent = [spent; -sum(pxx(:,qq).*log(pxx(:,qq)))];
-            end
-            spent = mean(spent);
-%             %pith measurement based on time into syllable
-%             ti1=ceil((TIMESHIFT + ton*1e-3)*fs);
-%             onsamp = ceil((ton*1e-3)*fs);
-%             offsamp = ceil((toff*1e-3)*fs);
-%             if (ti1+NFFT-1<=length(dat))
-%                 note_cnt = note_cnt + 1;
-%                 dattmp=dat([ti1:(ti1+NFFT-1)]);%NFFT samples AFTER timeshift 
-%                 smtemp=dat(onsamp-128:offsamp+128);
-%                 sm = filter(ones(1,256)/256,1,(smtemp.^2));
-%                 fdattmp=abs(fft(dattmp.*hamming(length(dattmp))));
-%                 %get the freq vals in Hertz
-%                 fvals=[0:length(fdattmp)/2]*fs/(length(fdattmp));
-%                 fdattmp=fdattmp(1:end/2);
-%                 mxtmpvec=zeros([1,size(FVALBND,1)]);
-%                 for kk = 1:size(FVALBND,1)
-%                     tmpinds=find((fvals>=FVALBND(kk,1))&(fvals<=FVALBND(kk,2)));
-%                     NPNTS=10;%number of frequency bins to do weighted average
-%                     [tmp,pf] = max(fdattmp(tmpinds));
-%                     pf = pf + tmpinds(1) - 1;
-%                     if (USEFIT==1)%weighted average 
-%                         tmpxv=pf + [-NPNTS:NPNTS];
-%                         tmpxv=tmpxv(find((tmpxv>0)&(tmpxv<=length(fvals))));
-%                         mxtmpvec(kk)=fvals(tmpxv)*fdattmp(tmpxv);
-%                         mxtmpvec(kk)=mxtmpvec(kk)./sum(fdattmp(tmpxv));
-%                     else
-%                         mxtmpvec(kk) = fvals(pf);
-%                     end
-%                 end
-                
-             %evtaf pitch estimates based on tmp detection
-             if evtaf == 1
-                evtafv = []; tmpttime = [];
-                pp = find((tt.*(1e3/fs)>=ton)&(tt.*(1e3/fs)<=toff));
-                if ~isempty(pp)
-                    nfft = 2*varargin{3};%8 ms before tmp trig time
-                    nbins = 3;
-                    if length(pp) > 1
-                        disp(fn)
-                    end
-                    inds = tt(pp)+[-(nfft-1):0];
-                    datchunk = dat(inds);
-                    fdatchunk = abs(fft(hamming(nfft).*datchunk));
-                    fv = [0:nfft/2]*fs/nfft;
-                    tmpind = find(fv >= varargin{4}(1) & fv <= varargin{4}(2));
-                    [tmp pf] = max(fdatchunk(tmpind));
-                    pf = pf + tmpind(1) -1;
-                    pf = pf + [-nbins:nbins];
-                    evtafv = sum(fv(pf).*fdatchunk(pf).')./sum(fdatchunk(pf));
-                    tmpttime = tt(pp)*1e3/fs;
+                %entropy measurements
+    %             we = mean(log(geomean(abs(sp),1))); %wiener entropy by averaging all WE values in every timebin of spec
+                pxx = bsxfun(@rdivide,pxx,sum(pxx));
+                spent = [];%spectral entropy
+                for qq = 1:size(pxx,2)
+                    spent = [spent; -sum(pxx(:,qq).*log(pxx(:,qq)))];
                 end
-             end
+                spent = mean(spent);
+    %             %pith measurement based on time into syllable
+    %             ti1=ceil((TIMESHIFT + ton*1e-3)*fs);
+    %             onsamp = ceil((ton*1e-3)*fs);
+    %             offsamp = ceil((toff*1e-3)*fs);
+    %             if (ti1+NFFT-1<=length(dat))
+    %                 note_cnt = note_cnt + 1;
+    %                 dattmp=dat([ti1:(ti1+NFFT-1)]);%NFFT samples AFTER timeshift 
+    %                 smtemp=dat(onsamp-128:offsamp+128);
+    %                 sm = filter(ones(1,256)/256,1,(smtemp.^2));
+    %                 fdattmp=abs(fft(dattmp.*hamming(length(dattmp))));
+    %                 %get the freq vals in Hertz
+    %                 fvals=[0:length(fdattmp)/2]*fs/(length(fdattmp));
+    %                 fdattmp=fdattmp(1:end/2);
+    %                 mxtmpvec=zeros([1,size(FVALBND,1)]);
+    %                 for kk = 1:size(FVALBND,1)
+    %                     tmpinds=find((fvals>=FVALBND(kk,1))&(fvals<=FVALBND(kk,2)));
+    %                     NPNTS=10;%number of frequency bins to do weighted average
+    %                     [tmp,pf] = max(fdattmp(tmpinds));
+    %                     pf = pf + tmpinds(1) - 1;
+    %                     if (USEFIT==1)%weighted average 
+    %                         tmpxv=pf + [-NPNTS:NPNTS];
+    %                         tmpxv=tmpxv(find((tmpxv>0)&(tmpxv<=length(fvals))));
+    %                         mxtmpvec(kk)=fvals(tmpxv)*fdattmp(tmpxv);
+    %                         mxtmpvec(kk)=mxtmpvec(kk)./sum(fdattmp(tmpxv));
+    %                     else
+    %                         mxtmpvec(kk) = fvals(pf);
+    %                     end
+    %                 end
+
+                 %evtaf pitch estimates based on tmp detection
+                 if evtaf == 1
+                    evtafv = []; tmpttime = [];
+                    pp = find((tt.*(1e3/fs)>=ton)&(tt.*(1e3/fs)<=toff));
+                    if ~isempty(pp)
+                        nfft = 2*varargin{3};%8 ms before tmp trig time
+                        nbins = 3;
+                        if length(pp) > 1
+                            disp(fn)
+                        end
+                        inds = tt(pp)+[-(nfft-1):0];
+                        datchunk = dat(inds);
+                        fdatchunk = abs(fft(hamming(nfft).*datchunk));
+                        fv = [0:nfft/2]*fs/nfft;
+                        tmpind = find(fv >= varargin{4}(1) & fv <= varargin{4}(2));
+                        [tmp pf] = max(fdatchunk(tmpind));
+                        pf = pf + tmpind(1) -1;
+                        pf = pf + [-nbins:nbins];
+                        evtafv = sum(fv(pf).*fdatchunk(pf).')./sum(fdatchunk(pf));
+                        tmpttime = tt(pp)*1e3/fs;
+                    end
+                 end
+        
    
              %extract datenum from rec file, add syllable ton in seconds
              if (strcmp(CHANSPEC,'obs0'))
@@ -380,7 +385,11 @@ for ifn=1:length(ff)
 %                 fvalsstr(note_cnt).min    = minutes;
 %                 fvalsstr(note_cnt).scnd    = sec;
                 fvalsstr(note_cnt).datenm = datenm;
-                fvalsstr(note_cnt).mxvals = mxvals;%pitch estimate at timeshift
+       
+                    fvalsstr(note_cnt).mxvals = mxvals;%pitch estimate at timeshift
+                    fvalsstr(note_cnt).pitchcontour = pc;
+                    fvalsstr(note_cnt).spent = spent;%spectral entropy 
+  
                 fvalsstr(note_cnt).TRIG   = TRIG;
                 fvalsstr(note_cnt).CATCH  = ISCATCH;
                 fvalsstr(note_cnt).smtmp = smtemp; %unfiltered amp envelope of whole syllable
@@ -388,12 +397,9 @@ for ifn=1:length(ff)
                 fvalsstr(note_cnt).offs   = toff;%offset of syllable in song
                 fvalsstr(note_cnt).lbl    = labels;
                 fvalsstr(note_cnt).ind    = p(ii);%index for syllable in song file
-                fvalsstr(note_cnt).NPNTS  = NPNTS;
                 fvalsstr(note_cnt).sm     = sm;%smooth amplitude envelop
-                fvalsstr(note_cnt).maxvol = mean(filtsong.^2);
-                fvalsstr(note_cnt).pitchcontour = pc;
+                fvalsstr(note_cnt).maxvol = mean(filtsong.^2); 
                 %fvalsstr(note_cnt).we = we;%wiener entropy
-                 fvalsstr(note_cnt).spent = spent;%spectral entropy 
 %                 fvalsstr(note_cnt).spec.sp = abs(sp);%spectrogram
 %                 fvalsstr(note_cnt).spec.f = f;%frequency values for spec
 %                 fvalsstr(note_cnt).spec.tm = tm;%time values for spec
@@ -410,20 +416,22 @@ for ifn=1:length(ff)
 end
 
 %% check pitch contours with average spectrograms 
-[maxlength ind1] = max(arrayfun(@(x) length(x.tm),spec));
-freqlength = max(arrayfun(@(x) length(x.f),spec));
-avgspec = zeros(freqlength,maxlength);
-for ii = 1:length(spec)
-    pad = maxlength-length(spec(ii).tm);
-    avgspec = avgspec+[spec(ii).sp,zeros(size(spec(ii).sp,1),pad)];
-end
-avgspec = avgspec./length(spec);
 
-pcstruct = jc_getpc(fvalsstr);
+    [maxlength ind1] = max(arrayfun(@(x) length(x.tm),spec));
+    freqlength = max(arrayfun(@(x) length(x.f),spec));
+    avgspec = zeros(freqlength,maxlength);
+    for ii = 1:length(spec)
+        pad = maxlength-length(spec(ii).tm);
+        avgspec = avgspec+[spec(ii).sp,zeros(size(spec(ii).sp,1),pad)];
+    end
+    avgspec = avgspec./length(spec);
 
-figure;hold on;
-imagesc(spec(ind1).tm,spec(ind1).f,log(avgspec));hold on;colormap('jet');
-plot(pcstruct.tm,nanmean(pcstruct.pc,2),'k');
+    pcstruct = jc_getpc(fvalsstr);
+
+    figure;hold on;
+    imagesc(spec(ind1).tm,spec(ind1).f,log(avgspec));hold on;colormap('jet');
+    plot(pcstruct.tm,nanmean(pcstruct.pc,2),'k');
+
 
 return;
-toc
+
