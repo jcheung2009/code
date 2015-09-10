@@ -131,18 +131,19 @@ for ifn=1:length(ff)
         sm = sm-min(sm);
         sm = sm./max(sm);
         
-        minint = 10;
-        mindur = 20;
-        thresholdforsegmentation = {graythresh(sm),minint,mindur};
+        minint = 3;
+        mindur = 30;
+        thresholdforsegmentation = {0.5,minint,mindur};
         [ons offs] = SegmentNotes(sm,fs,thresholdforsegmentation{2},...
             thresholdforsegmentation{3},thresholdforsegmentation{1});
-        if length(ons) ~= runlength(i)
+        if length(ons) ~= runlength(i) | floor(ons(1)*fs) == 1
             figure;hold on;
         end
-        while length(ons)~=runlength(i)
+        while length(ons)~=runlength(i) | floor(ons(1)*fs) == 1
             clf
-            plot(sm,'k');hold on;plot([floor(ons(1)*fs) ceil(offs(end)*fs)],...
-                [thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');
+            plot(sm,'k');hold on;%plot([floor(ons(1)*fs) ceil(offs(end)*fs)],...
+                %[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');
+                plot([floor(ons*fs) ceil(offs*fs)],[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');hold on;
             disp([num2str(length(ons)),' syllables detected']);
             accept_or_not = input('accept segmentation? (y/n):','s');
             if accept_or_not=='y'
@@ -153,6 +154,9 @@ for ifn=1:length(ff)
                     thresholdforsegmentation{3},thresholdforsegmentation{1});
             end
         end
+        if length(ons) ~= runlength(i) | floor(ons(1)*fs) == 1
+            continue
+        end
         sylldurations = offs-ons;%in seconds
         gapdurations = ons(2:end)-offs(1:end-1);
 
@@ -162,6 +166,9 @@ for ifn=1:length(ff)
             for ii = 1:length(ons) %for each syllable in repeat run
                 filtsong = bandpass(smtemp,fs,300,15000,'hanningffir');%band pass filter required for good entropy estimates
                 if ii == 1
+                    if floor(ons(ii)*fs) <= 128
+                        ons(ii) = 129/fs;
+                    end
                     datsyll = filtsong(floor(ons(ii)*fs)-128:ceil(offs(ii)*fs)+128);
                 else
                     datsyll = filtsong(floor(ons(ii)*fs)-128:ceil(offs(ii)*fs)+128);

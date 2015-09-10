@@ -5,6 +5,9 @@ ff = load_batchf(batch);
 
 for i = 1:length(ff)
     fn = ff(i).name;
+    if ~exist([fn,'.not.mat'])
+        continue
+    end
     load([fn,'.not.mat']);
     [dat Fs] = evsoundin('',fn,'obs0');
     sm = evsmooth(dat,Fs);

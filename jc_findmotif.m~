@@ -163,7 +163,7 @@ for i = 1:length(ff)
                     clf
                     plot(sm2,'k');hold on;%plot([floor(ons(1)*fs) ceil(offs(end)*fs)],...
                         %[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');
-                        plot([floor(ons*fs) ceil(offs*fs)],[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');hold on;
+                        plot([floor(ons*fs) ceil(offs*fs)],[thresholdforsegmentation{1} thresholdforseg,'r');hold on;
                     accept_or_not = input('accept segmentation? (y/n):','s');
                     if accept_or_not == 'y'
                         break
