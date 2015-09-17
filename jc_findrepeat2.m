@@ -171,6 +171,9 @@ for ifn=1:length(ff)
                     end
                     datsyll = filtsong(floor(ons(ii)*fs)-128:ceil(offs(ii)*fs)+128);
                 else
+                    if ceil(offs(ii)*fs)+128 > length(filtsong)
+                        offs(ii) = (length(filtsong)-128)/fs;
+                    end
                     datsyll = filtsong(floor(ons(ii)*fs)-128:ceil(offs(ii)*fs)+128);
                     [corr lag] = xcorr(abs(filtsong(floor(ons(1)*fs):ceil(offs(1)*fs))),...
                         abs(datsyll));
