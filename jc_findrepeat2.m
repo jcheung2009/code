@@ -224,13 +224,13 @@ for ifn=1:length(ff)
 
                 %entropy
                 %we = cat(1,we,mean(log(geomean(abs(sp),1))));%wiener ent for each syll by averaging across all we values in every time bin of sp
-                spent = [];
                 pxx = bsxfun(@rdivide,pxx,sum(pxx));
-                spent = [];%spectral entropy
-                for qq = 1:size(pxx,2)
-                    spent = [spent; -sum(pxx(:,qq).*log(pxx(:,qq)))];
-                end
-                spent = mean(spent);
+                spent = -sum(pxx(:,ti1).*log(pxx(:,ti1)));
+%                 spent = [];%spectral entropy
+%                 for qq = 1:size(pxx,2)
+%                     spent = [spent; -sum(pxx(:,qq).*log(pxx(:,qq)))];
+%                 end
+%                 spent = mean(spent);
             end
             maxpclength = max(cellfun(@length,pitchcontours_all_syllables));
             pitchcontours_all_syllables = cell2mat(cellfun(@(x) [x;NaN(maxpclength-length(x),1)]',...
