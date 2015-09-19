@@ -9,6 +9,9 @@ if changetb == 'y'
     pitchdat(:,1) = jc_tb(pitchdat(:,1),7,0);
     voldat(:,1) = jc_tb(voldat(:,1),7,0);
     entdat(:,1) = jc_tb(entdat(:,1),7,0);
+    xticklabel = [0:2:14];
+    xtick = xticklabel*3600;
+    xticklabel = arrayfun(@(x) num2str(x),xticklabel,'unif',0);
 end
 
 fignum = input('figure number for raw data:');
@@ -24,7 +27,13 @@ while removeoutliers == 'y'
     h = plot(pitchdat(:,1),pitchdat(:,2),marker);hold on;
     removeoutliers = input('remove outliers?:','s');
 end
-xlabel('Time')
+if changetb == 'y'
+    set(gca,'xtick',xtick,'xticklabel',xticklabel);
+    xlabel('');
+else
+   xlabel('Time') 
+end
+
 ylabel('Frequency (Hz)')
 
 subtightplot(3,1,2,0.07,0.08,0.15);hold on;
@@ -38,7 +47,12 @@ while removeoutliers == 'y'
     h = plot(voldat(:,1),voldat(:,2),marker);hold on;
     removeoutliers = input('remove outliers?:','s');
 end
-xlabel('Time')
+if changetb == 'y'
+    set(gca,'xtick',xtick,'xticklabel',xticklabel);
+    xlabel('')
+else
+    xlabel('Time');
+end
 ylabel('Amplitude (log)')
 
 subtightplot(3,1,3,0.07,0.08,0.15);hold on;
@@ -52,5 +66,10 @@ while removeoutliers == 'y'
     h = plot(entdat(:,1),entdat(:,2),marker);hold on;
     removeoutliers = input('remove outliers?:','s');
 end
-xlabel('Time');
+if changetb == 'y'
+    set(gca,'xtick',xtick,'xticklabel',xticklabel);
+    xlabel('Time in hours since 7 AM');
+else
+    xlabel('');
+end
 ylabel('Entropy');
