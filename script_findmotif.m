@@ -1,19 +1,19 @@
 %script to run jc_findmotif in batch
 %this will still require user input for segmentation 
 %load up fv_parameters
-
+tic
 %start in directory with all data folders
-ff = load_batchf('batch');
+ff = load_batchf('batchsal2');
 
 for i = 1:length(ff)
     cd(ff(i).name);
-    cmd = ['motif_aabbb_',ff(i).name,'=','jc_findmotif(''batch.keep'',''aabbb'',{''a'',''b''},{fvalbnd_syllA1,fvalbnd_syllB},{0.05,0.035})'];
+    cmd = ['motif_aabb_',ff(i).name,'=','jc_findmotif(''batch.keep'',''aabb'',{''a'',''b''},{fvalbnd_syllA1,fvalbnd_syllB},{0.05,0.035},''n'',''n'')'];
     eval(cmd);
-    varname = ['''motif_aabbb_',ff(i).name,''''];
-    cmd2 = ['bout_',ff(i).name,'=','jc_findbout(''batch.keep''',varname,',''aabbb'')'];
-    varname2 = ['''bout_',ff(i).name,''''];
+    cmd2 = ['bout_',ff(i).name,'=','jc_findbout(''batch.keep'',motif_aabb_',ff(i).name,',''aabb'',0,0)'];
     eval(cmd2);
     cd ../analysis/data_structures
+    varname = ['''motif_aabb_',ff(i).name,''''];
+    varname2 = ['''bout_',ff(i).name,''''];
     savecmd = ['save(',varname,',',varname,',','''-v7.3'')'];
     savecmd2 = ['save(',varname2,',',varname2,',','''-v7.3'')'];
     eval(savecmd);
@@ -21,3 +21,4 @@ for i = 1:length(ff)
     clearvars -except fvalbnd_syllA1 fvalbnd_syllB ff
     cd ../../
 end
+toc

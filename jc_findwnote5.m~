@@ -283,19 +283,13 @@ for ifn=1:length(ff)
                     ti1 = ti1(end);
                     mxvals = pc(ti1,2);%pitch estimate at timeshift
                 elseif length(TIMESHIFT) == 2
-                    ti1 = find(tm >= TIMESHIFT(1) & tm <= TIMESHIFT(2));
-                    mxvals = mean(pc(ti1,2));
-                end
+                    ti1
                 
 
                 %entropy measurements
     %             we = mean(log(geomean(abs(sp),1))); %wiener entropy by averaging all WE values in every timebin of spec
                 pxx = bsxfun(@rdivide,pxx,sum(pxx));
-                if length(TIMESHIFT) == 1
-                    spent = -sum(pxx(:,ti1).*log(pxx(:,ti1)));
-                elseif length(TIMESHIFT) == 2
-                    spent = mean(-sum(pxx(:,ti1).*log(pxx(:,ti1))));
-                end
+                spent = -sum(pxx(:,ti1).*log(pxx(:,ti1)));
 %                 spent = [];%spectral entropy
 %                 for qq = 1:size(pxx,2)
 %                     spent = [spent; -sum(pxx(:,qq).*log(pxx(:,qq)))];

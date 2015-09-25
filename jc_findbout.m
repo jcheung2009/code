@@ -1,9 +1,11 @@
-function bout = jc_findbout(batch,motifinfo,motif)
+function bout = jc_findbout(batch,motifinfo,motif,varseq,measure_intro)
 %define bout by each song file 
 %motifinfo from jc_findmotif
-varseq = input('motif is variable (y/n):','s');
+%varseq = 1 if variable sequence, measure_intro = 1 if intro notes should
+%be measured
+%varseq = input('motif is variable (y/n):','s');
 CHANSPEC = 'obs0';
-measure_intro = input('measure intro notes?:','s');
+%measure_intro = input('measure intro notes?:','s');
 
 ff = load_batchf(batch);
 bout_cnt = 0;
@@ -38,9 +40,9 @@ for i = 1:length(ff)
     nummotifsinbout = length(ind);
     
     %number of intro notes at the beginning of bout
-    if measure_intro == 'y'
+    if measure_intro == 1
         intronoteind = strfind(labels,'i');
-        if varseq == 'y'
+        if varseq == 1'
             motifind = regexp(labels,motif);
         else
             motifind = strfind(labels,motif);

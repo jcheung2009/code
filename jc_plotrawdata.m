@@ -1,4 +1,4 @@
-function jc_plotrawdata(fv,marker)
+function jc_plotrawdata(fv,marker,tbshift)
 %fv from jc_findwnote5
 pitchdat = [[fv(:).datenm]',[fv(:).mxvals]'];
 voldat = [[fv(:).datenm]',log([fv(:).maxvol]')];
@@ -6,10 +6,22 @@ entdat = [[fv(:).datenm]',[fv(:).spent]'];
 
 changetb = input('change time to seconds from day start:','s');
 if changetb == 'y'
-    pitchdat(:,1) = jc_tb(pitchdat(:,1),7,0);
-    voldat(:,1) = jc_tb(voldat(:,1),7,0);
-    entdat(:,1) = jc_tb(entdat(:,1),7,0);
-    xticklabel = [0:2:14];
+    if tbshift == -1
+        pitchdat(:,1) = jc_tb(pitchdat(:,1),7,0)-(24*3600);
+        voldat(:,1) = jc_tb(voldat(:,1),7,0)-(24*3600);
+        entdat(:,1) = jc_tb(entdat(:,1),7,0)-(24*3600);
+        xticklabel = [-24:2:38];
+    elseif tbshift == 1
+        pitchdat(:,1) = jc_tb(pitchdat(:,1),7,0)+(24*3600);
+        voldat(:,1) = jc_tb(voldat(:,1),7,0)+(24*3600);
+        entdat(:,1) = jc_tb(entdat(:,1),7,0)+(24*3600);
+        xticklabel = [-24:2:38];
+    elseif tbshift == 0
+        pitchdat(:,1) = jc_tb(pitchdat(:,1),7,0);
+        voldat(:,1) = jc_tb(voldat(:,1),7,0);
+        entdat(:,1) = jc_tb(entdat(:,1),7,0);
+        xticklabel = [-24:2:38];
+    end
     xtick = xticklabel*3600;
     xticklabel = arrayfun(@(x) num2str(x),xticklabel,'unif',0);
 end

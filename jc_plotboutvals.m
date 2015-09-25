@@ -3,7 +3,9 @@ function jc_plotboutvals(boutinfo,marker,linecolor)
 %remember to change numsylls
 numsylls = 1; %number of syllables measured for spectral features
 plotintronotes = input('plot intro notes measurements:','s');
-
+  xticklabel = [0:2:16];
+    xtick = xticklabel*3600;
+    xticklabel = arrayfun(@(x) num2str(x),xticklabel,'unif',0);
 %% plot number of motifs in bout over time
 tb_nummotif = jc_tb([boutinfo(:).datenm]',7,0);
 nummotifs = [boutinfo(:).nummotifs]';
@@ -19,8 +21,9 @@ plot(tb_nummotif,nummotifs,marker);
 % fill([tb_nummotif' fliplr(tb_nummotif')],[runningaverage(:,1)'-runningaverage(:,2)',...
 %     fliplr(runningaverage(:,1)'+runningaverage(:,2)')],linecolor,'EdgeColor','none','FaceAlpha',0.5);
 ylabel('Number of motifs in bout');
-xlabel('Time (seconds since lights on)');
 title('Number of motifs in bout');
+set(gca,'xtick',xtick,'xticklabel',xticklabel);
+    xlabel('');
 
 %% plot number of intronotes in bout over time
 
@@ -33,7 +36,8 @@ if plotintronotes == 'y'
 %     fill([tb_numintro' fliplr(tb_numintro')],[runningaverage(:,1)'-runningaverage(:,2)',...
 %         fliplr(runningaverage(:,1)'+runningaverage(:,2)')],linecolor,'EdgeColor','none','FaceAlpha',0.5);
     ylabel('Number of intro notes in bout');
-    xlabel('Time (seconds since lights on)');
+    set(gca,'xtick',xtick,'xticklabel',xticklabel);
+    xlabel('');
     title('Number of intro notes in bout');
 end
 
@@ -66,7 +70,8 @@ else
 end
 bar(numsongs(:,1),numsongs(:,2),1,'edgecolor','none','facecolor',linecolor);
 h=findobj(gca,'Type','patch');set(h,'facealpha',0.5);
-xlabel('Time (seconds since lights on)');
+set(gca,'xtick',xtick,'xticklabel',xticklabel);
+    xlabel('Time in hours since 7 AM');
 ylabel('Number of songs per hour');
 title('Singing Rate')
 

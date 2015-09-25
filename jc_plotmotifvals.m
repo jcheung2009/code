@@ -3,7 +3,9 @@ function averagemotif2 = jc_plotmotifvals(motifinfo,marker,linecolor,averagerefm
 %marker = 'k.';
 %linecolor = 'k';
 fs = 32000;
-   
+xticklabel = [0:2:16];
+xtick = xticklabel*3600;
+xticklabel = arrayfun(@(x) num2str(x),xticklabel,'unif',0);  
 varseq = input('motif is variable (y/n):','s');
 if varseq == 'y'
     firstpeakdistance = [];sylldurations = [];gaps = [];
@@ -36,7 +38,8 @@ if varseq == 'y'
 %     'EdgeColor','none','FaceAlpha',0.5);
     title('Average duration between adjacent syllables');
     ylabel('Duration (seconds)');
-    xlabel('Time (seconds since lights on)');  
+    set(gca,'xtick',xtick,'xticklabel',xticklabel);
+    xlabel('');
 
     %plot average syll duration over time
       tb_syllduration = jc_tb(sylldurations(:,1),7,0);
@@ -57,7 +60,8 @@ if varseq == 'y'
 %     'EdgeColor','none','FaceAlpha',0.5);
     title('Average syllable duration');
     ylabel('Duration (seconds)');
-    xlabel('Time (seconds since lights on)');      
+      set(gca,'xtick',xtick,'xticklabel',xticklabel);
+    xlabel('');
     
     %plot average gap duration over time
       tb_gap = jc_tb(gaps(:,1),7,0);
@@ -78,7 +82,8 @@ if varseq == 'y'
 %     'EdgeColor','none','FaceAlpha',0.5);
     title('Average gap duration');
     ylabel('Duration (seconds)');
-    xlabel('Time (seconds since lights on)');      
+       set(gca,'xtick',xtick,'xticklabel',xticklabel);
+    xlabel('Time in hours since 7 AM');
     
     %plot tempo vs spec correlation
     figure;hold on;
@@ -183,7 +188,8 @@ else
             end
             title('Average duration between adjacent syllables');
             ylabel('Duration (seconds)');
-            xlabel('Time (seconds since lights on)');  
+            set(gca,'xtick',xtick,'xticklabel',xticklabel);
+            xlabel('');
             
 %             if length(motifvals.firstpeakdistance(:,2)) > 50
 %                 runningaverage = jc_RunningAverage(motifvals.firstpeakdistance(:,2),50);
@@ -214,8 +220,9 @@ else
             removeoutliers = input('remove outliers? (y or no):','s');
         end
         ylabel('Duration (seconds)');
-        xlabel('Time (seconds since lights on)');  
         title('Motif duration');
+        set(gca,'xtick',xtick,'xticklabel',xticklabel);
+        xlabel('');
         
 %         if length(motifvals.motifdur(:,2)) >50
 %             runningaverage = jc_RunningAverage(motifvals.motifdur(:,2),50);
@@ -244,10 +251,10 @@ else
             h3 = plot(tb_sylldur,avgsyllduration(:,2),marker);
             removeoutliers = input('remove outliers? (y or no):','s');
         end
-        ylabel('Duration (seconds)');
-        xlabel('Time (seconds since lights on)');  
+        ylabel('Duration (seconds)'); 
         title('Average syllable duration');
-        
+        set(gca,'xtick',xtick,'xticklabel',xticklabel);
+        xlabel('');
 %         if length(avgsyllduration(:,2)) > 50
 %             runningaverage = jc_RunningAverage(avgsyllduration(:,2),50);
 %             fill([tb_sylldur',fliplr(tb_sylldur')],...
@@ -277,7 +284,8 @@ else
             removeoutliers = input('remove outliers? (y or no):','s');
         end
         ylabel('Duration (seconds)');
-        xlabel('Time (seconds since lights on)');  
+        set(gca,'xtick',xtick,'xticklabel',xticklabel);
+        xlabel('Time in hours since 7 AM');  
         title('Average gap duration');
             
 %         if length(avggapduration(:,2)) > 50
