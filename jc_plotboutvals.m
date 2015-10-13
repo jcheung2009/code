@@ -1,4 +1,4 @@
-function jc_plotboutvals(boutinfo,marker,linecolor)
+function jc_plotboutvals(boutinfo,marker,linecolor,tbshift)
 %boutinfo from jc_findbout
 %remember to change numsylls
 numsylls = 1; %number of syllables measured for spectral features
@@ -7,43 +7,56 @@ plotintronotes = input('plot intro notes measurements:','s');
     xtick = xticklabel*3600;
     xticklabel = arrayfun(@(x) num2str(x),xticklabel,'unif',0);
 %% plot number of motifs in bout over time
-tb_nummotif = jc_tb([boutinfo(:).datenm]',7,0);
-nummotifs = [boutinfo(:).nummotifs]';
-fignum = input('figure for bout measurements:');
-figure(fignum);hold on;
-if plotintronotes == 'y'
-    subtightplot(3,1,1,0.07,0.05,0.08);hold on;
-else
-    subtightplot(2,1,1,0.07,0.05,0.08);hold on;
-end
-plot(tb_nummotif,nummotifs,marker);
-% runningaverage = jc_RunningAverage(nummotifs,10);
-% fill([tb_nummotif' fliplr(tb_nummotif')],[runningaverage(:,1)'-runningaverage(:,2)',...
-%     fliplr(runningaverage(:,1)'+runningaverage(:,2)')],linecolor,'EdgeColor','none','FaceAlpha',0.5);
-ylabel('Number of motifs in bout');
-title('Number of motifs in bout');
-set(gca,'xtick',xtick,'xticklabel',xticklabel);
-    xlabel('');
+% tb_nummotif = jc_tb([boutinfo(:).datenm]',7,0);
+% nummotifs = [boutinfo(:).nummotifs]';
+% fignum = input('figure for bout measurements:');
+% figure(fignum);hold on;
+% if plotintronotes == 'y'
+%     subtightplot(3,1,1,0.07,0.05,0.08);hold on;
+% else
+%     subtightplot(2,1,1,0.07,0.05,0.08);hold on;
+% end
+% plot(tb_nummotif,nummotifs,marker);
+% % runningaverage = jc_RunningAverage(nummotifs,10);
+% % fill([tb_nummotif' fliplr(tb_nummotif')],[runningaverage(:,1)'-runningaverage(:,2)',...
+% %     fliplr(runningaverage(:,1)'+runningaverage(:,2)')],linecolor,'EdgeColor','none','FaceAlpha',0.5);
+% ylabel('Number of motifs in bout');
+% title('Number of motifs in bout');
+% set(gca,'xtick',xtick,'xticklabel',xticklabel);
+%     xlabel('');
 
 %% plot number of intronotes in bout over time
 
-if plotintronotes == 'y'
-    tb_numintro = jc_tb([boutinfo(:).datenm]',7,0);
-    numintro = [boutinfo(:).numintro]';
-    subtightplot(3,1,2,0.07,0.05,0.08);hold on;
-    plot(tb_numintro,numintro,marker);
-%     runningaverage = jc_RunningAverage(numintro,10);
-%     fill([tb_numintro' fliplr(tb_numintro')],[runningaverage(:,1)'-runningaverage(:,2)',...
-%         fliplr(runningaverage(:,1)'+runningaverage(:,2)')],linecolor,'EdgeColor','none','FaceAlpha',0.5);
-    ylabel('Number of intro notes in bout');
-    set(gca,'xtick',xtick,'xticklabel',xticklabel);
-    xlabel('');
-    title('Number of intro notes in bout');
-end
+% if plotintronotes == 'y'
+%     tb_numintro = jc_tb([boutinfo(:).datenm]',7,0);
+%     numintro = [boutinfo(:).numintro]';
+%     subtightplot(3,1,2,0.07,0.05,0.08);hold on;
+%     plot(tb_numintro,numintro,marker);
+% %     runningaverage = jc_RunningAverage(numintro,10);
+% %     fill([tb_numintro' fliplr(tb_numintro')],[runningaverage(:,1)'-runningaverage(:,2)',...
+% %         fliplr(runningaverage(:,1)'+runningaverage(:,2)')],linecolor,'EdgeColor','none','FaceAlpha',0.5);
+%     ylabel('Number of intro notes in bout');
+%     set(gca,'xtick',xtick,'xticklabel',xticklabel);
+%     xlabel('');
+%     title('Number of intro notes in bout');
+% end
 
 
 %% plot singing rate
 tb_singingrate = jc_tb([boutinfo(:).datenm]',7,0);
+
+ if tbshift == -1
+        tb_singingrate = tb_singingrate - (24*3600);
+        xticklabel = [-24:2:38];
+ elseif tbshift == 1
+     tb_singingrate = tb_singingrate + (24*3600);
+      xticklabel = [-24:2:38];
+ elseif tbshift == 0
+     xticklabel = [-24:2:38];
+ end
+ xtick = xticklabel*3600;
+ xticklabel = arrayfun(@(x) num2str(x),xticklabel,'unif',0);
+
 numseconds = tb_singingrate(end)-tb_singingrate(1);
 timewindow = 1800; %half hr in seconds
 jogsize = 900;%15 minutes
@@ -63,11 +76,13 @@ if numtimewindows == 1
     numsongs = [numsongs; timept1+jogsize 0];
 end
 
-if plotintronotes == 'y'
-    subtightplot(3,1,3,0.07,0.05,0.08);hold on;
-else
-    subtightplot(2,1,2,0.07,0.05,0.08);hold on;
-end
+% if plotintronotes == 'y'
+%     subtightplot(3,1,3,0.07,0.05,0.08);hold on;
+% else
+%     subtightplot(2,1,2,0.07,0.05,0.08);hold on;
+% end
+fignum = input('fig number for singing rate:');
+figure(fignum);hold on;
 bar(numsongs(:,1),numsongs(:,2),1,'edgecolor','none','facecolor',linecolor);
 h=findobj(gca,'Type','patch');set(h,'facealpha',0.5);
 set(gca,'xtick',xtick,'xticklabel',xticklabel);

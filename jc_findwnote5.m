@@ -336,7 +336,7 @@ for ifn=1:length(ff)
                 ind2 = strfind(rd.header{5},'=');
                 filelength = sscanf(rd.header{5}(ind2 + 1:end),'%g');%duration of file
                 
-                tm_st = addtodate(tmstamp,-(filelength),'millisecond');%time at start of file
+                tm_st = addtodate(tmstamp,-(filelength),'millisecond');%time at start of filefiltsong
                 datenm = addtodate(tm_st, round(ton), 'millisecond');%add time to onset of syllable
                 [yr mon dy hr minutes sec] = datevec(datenm);
              elseif strcmp(CHANSPEC,'w')

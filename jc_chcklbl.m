@@ -120,6 +120,7 @@ load('syllwv1.wav.not.mat');
      end
 else
     disp('size vlsorfn ~= size labels')
+    disp(['vlsorn size = ',num2str(length(vlsorfn)),' labels size = ',num2str(length(labels))])
 end
     
             

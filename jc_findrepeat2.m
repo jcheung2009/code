@@ -1,5 +1,5 @@
 function fvalsstr = jc_findrepeat2(batch,note,prenote,fvalbnd,timeshift,USEFIT, ...
-    CHANSPEC)
+    CHANSPEC,usingregexp,computespec)
 %extract information for each instance of a repeat run and information for
 %each syllable within those repeat runs
 %note = repeating syllable, prenote = syllable that precedes the first
@@ -23,8 +23,8 @@ function fvalsstr = jc_findrepeat2(batch,note,prenote,fvalbnd,timeshift,USEFIT, 
 %   amp = volume of each syllable in run
 %   sm = smooth filtered amp env of run
 tic 
-usingregexp = input('using regular expression? (y/n):','s');
-computespec = input('compute spectral features?:','s');
+%usingregexp = input('using regular expression? (y/n):','s');
+%computespec = input('compute spectral features?:','s');
 
 fvalsstr=[];
 
@@ -133,12 +133,14 @@ for ifn=1:length(ff)
         
         minint = 3;
         mindur = 30;
-        thresholdforsegmentation = {0.5,minint,mindur};
+        thresholdforsegmentation = {0.3,minint,mindur};
         [ons offs] = SegmentNotes(sm,fs,thresholdforsegmentation{2},...
             thresholdforsegmentation{3},thresholdforsegmentation{1});
+        disp([num2str(length(ons)),' syllables detected']);
         if length(ons) ~= runlength(i) | floor(ons(1)*fs) == 1
             figure;hold on;
         end
+        
         while length(ons)~=runlength(i) | floor(ons(1)*fs) == 1
             clf
             plot(sm,'k');hold on;%plot([floor(ons(1)*fs) ceil(offs(end)*fs)],...
@@ -218,9 +220,14 @@ for ifn=1:length(ff)
                     pc = cat(1,pc,mean(diff([0,mxtmpvec])));
                 end
                 pitchcontours_all_syllables{ii} = pc;
-                ti1 = find(tm<=timeshift);
-                ti1 = ti1(end);
-                pitchest = cat(1,pitchest,pc(ti1));%pitch estimate at timeshift 
+                if length(timeshift) == 1
+                    ti1 = find(tm<=timeshift);
+                    ti1 = ti1(end);
+                    pitchest = cat(1,pitchest,pc(ti1));%pitch estimate at timeshift 
+                elseif length(timeshift) == 2
+                    ti1 = find(tm>=timeshift(1) & tm<= timeshift(2));
+                    pitchest = cat(1,pitchest,mean(pc(ti1)));
+                end
 
                 %entropy
                 %we = cat(1,we,mean(log(geomean(abs(sp),1))));%wiener ent for each syll by averaging across all we values in every time bin of sp

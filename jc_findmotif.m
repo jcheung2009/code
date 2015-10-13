@@ -133,8 +133,8 @@ for i = 1:length(ff)
         
         if jitter == 'n'
             minint = 3;%gap
-            mindur = 30;%syllable
-            thresholdforsegmentation = {0.5,minint,mindur};%{graythresh(sm2),minint,mindur};%otsu's method
+            mindur = 20;%syllable
+            thresholdforsegmentation = {0.3,minint,mindur};%{graythresh(sm2),minint,mindur};%otsu's method
             [ons offs] = SegmentNotes(sm2,fs,thresholdforsegmentation{2},...
                 thresholdforsegmentation{3},thresholdforsegmentation{1});
             disp([num2str(length(ons)),' syllables detected']);
@@ -254,12 +254,21 @@ for i = 1:length(ff)
                         end
                         pc = cat(1,pc,mean(diff([0,mxtmpvec])));
                 end
-                pc = [tm' pc];      
-                ti1 = find(tm<=timeshifts{syllind});
-                ti1 = ti1(end);
-                pitchestimates(syllind) = pc(ti1,2);%pitch estimate at timeshift
+                pc = [tm' pc];
+                if length(timeshifts{syllind})==1
+                    ti1 = find(tm<=timeshifts{syllind});
+                    ti1 = ti1(end);
+                    pitchestimates(syllind) = pc(ti1,2);%pitch estimate at timeshift
+                elseif length(timeshifts{syllind}) == 2
+                    ti1 = find(tm>=timeshifts{syllind}(1)&tm<=timeshifts{syllind}(2));
+                    pitchestimates(syllind) = mean(pc(ti1,2));%pitch estimate at timeshift
+                end
                 pxx = bsxfun(@rdivide,pxx,sum(pxx));
-                entropyestimates(syllind) = -sum(pxx(:,ti1).*log(pxx(:,ti1)));
+                if length(timeshifts{syllind})==1
+                    entropyestimates(syllind) = -sum(pxx(:,ti1).*log(pxx(:,ti1)));
+                elseif length(timeshifts{syllind}) == 2
+                    entropyestimates(syllind) = mean(-sum(pxx(:,ti1).*log(pxx(:,ti1))));
+                end
                 volumeestimates(syllind)=mean(filtsong(ceil(ons(syllablepositions{syllind})*fs):ceil(offs(syllablepositions{syllind})*fs)-1).^2);
            else
                continue

@@ -36,7 +36,7 @@ if isempty(NFFT)
     NFFT=128;
 end
 
-CHANSPEC='obs0';
+CHANSPEC='w';
 
     
 % s = load(template);
@@ -66,12 +66,16 @@ while (1)
     if (~exist(fn,'file'))
         continue;
     end
-    rdat=readrecf(fn);
-    PREDATATIME = rdat.tbefore;
+    if strcmp(CHANSPEC,'obs0')
+        rdat=readrecf(fn);
+        PREDATATIME = rdat.tbefore;
+    end
     
     [dat,fs]=evsoundin('',fn,CHANSPEC);
     datFull = dat;
-    dat=dat(fix(PREDATATIME*fs):end);
+    if strcmp(CHANSPEC,'obs0')
+        dat=dat(fix(PREDATATIME*fs):end);
+    end
     vals=evtafsim(dat,fs,template,EVMODE);
     
 
@@ -142,7 +146,11 @@ while (1)
         
         if (trig)
             if (abs(ii-lasttrig)>refracsam)
-                tt=[tt;((ii*NFFT*2/fs)+rdat.tbefore)*1e3];
+                if strcmp(CHANSPEC,'obs0')
+                     tt=[tt;((ii*NFFT*2/fs)+rdat.tbefore)*1e3];
+                else
+                    tt=[tt;((ii*NFFT*2/fs))*1e3];
+                end
                 lasttrig=ii;
             end
         end

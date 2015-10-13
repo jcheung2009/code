@@ -1,0 +1,14 @@
+ff = load_batchf('batchnaspm');
+repnaspm = struct();
+
+trialcnt = 0;
+for i = 1:2:length(ff)
+    trialcnt = trialcnt+1;
+    load(['analysis/data_structures/fv_repA_',ff(i).name]);
+    load(['analysis/data_structures/fv_repA_',ff(i+1).name]);
+    rep1 = ['fv_repA_',ff(i).name];
+    rep2 = ['fv_repA_',ff(i+1).name];
+    [repnaspm(trialcnt).rep repnaspm(trialcnt).sdur ...
+        repnaspm(trialcnt).gdur] = jc_plotrepeatsummary(...
+        eval(rep1),eval(rep2),'r.','r');
+end

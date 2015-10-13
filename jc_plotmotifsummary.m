@@ -1,4 +1,4 @@
-function jc_plotmotifsummary(motif_sal, motif_cond, marker, linecolor, excludewashin)
+function [mdur sdur gdur mcv] = jc_plotmotifsummary(motif_sal, motif_cond, marker, linecolor, excludewashin,rawplot)
 
 if iscell(motif_sal)
      tb_sal=[];
@@ -135,7 +135,7 @@ end
 delete(h);
 clf;
 
-rawplot = input('plot raw summary?:(y/n)','s');
+%rawplot = input('plot raw summary?:(y/n)','s');
 if rawplot == 'y'
     fignum = input('figure number for motif summary:');
     figure(fignum);hold on;
@@ -253,6 +253,7 @@ else
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
     ylabel({'Change in motif duration', 'relative to saline'});
     title('Motif duration changes');
+    mdur = mn2;
     
     subtightplot(1,4,2,0.07,0.08,0.05);hold on;
     [hi lo mn1] = mBootstrapCI(sylldur);
@@ -263,6 +264,7 @@ else
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
     ylabel({'Change in mean syllable duration','relative to saline'});
     title('Syllable duration changes');
+    sdur = mn2;
     
     subtightplot(1,4,3,0.07,0.08,0.05);hold on;
     [hi lo mn1] = mBootstrapCI(gapdur);
@@ -273,6 +275,7 @@ else
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
     ylabel({'Change in mean gap duration', 'relative to saline'});
     title('Gap duration changes');
+    gdur = mn2;
     
     subtightplot(1,4,4,0.07,0.08,0.05);hold on;
     [mn1 hi lo] = mBootstrapCI_CV(motifdur);
@@ -289,4 +292,5 @@ else
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
     ylabel({'Change in motif duration CV', 'relative to saline'});
     title('Motif duration CV changes');
+    mcv = mn3;
 end

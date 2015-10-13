@@ -1,9 +1,9 @@
-function [rep sdur gdur] = jc_plotrepeatsummary(fv_rep_sal,fv_rep_cond,marker,linecolor,excludewashin)
+function [rep sdur gdur] = jc_plotrepeatsummary(fv_rep_sal,fv_rep_cond,marker,linecolor)
 %plots summary data for changes in repeat length, gap duration, and
 %syllable duration for target repeat
 %gap durations and syllable durations are matched by repeat position before
 %normalizing 
-
+%for blocked design
 
 if iscell(fv_rep_sal)
      tb_sal=[];
@@ -30,14 +30,23 @@ end
 if ~iscell(fv_rep_cond)
     tb_cond = jc_tb([fv_rep_cond(:).datenm]',7,0);
 end
-if excludewashin == 1
-    ind = find(tb_cond<tb_sal(end)+1800); %exclude first half hour of wash in 
-    fv_rep_cond(ind) = [];
-    tb_cond(ind) = [];
-end
 
 runlength = [fv_rep_sal(:).runlength];
 runlength2 = [fv_rep_cond(:).runlength];
+fignum = input('figure number for checking time course:');
+figure(fignum);hold on;
+plot(tb_cond/3600,runlength2,'k.');hold on;
+timewindow = input('how many hours from the end:');
+cla;
+ind = find(tb_cond >= tb_cond(end)-timewindow*3600 & tb_cond <= tb_cond(end));
+tb_cond = tb_cond(ind);
+indsal = find(tb_sal >= tb_cond(1) & tb_sal <= tb_cond(end));
+tb_sal = tb_sal(indsal);
+runlength = runlength(indsal);
+runlength2 = runlength2(ind);
+
+fv_rep_sal = fv_rep_sal(indsal);
+fv_rep_cond = fv_rep_cond(ind);
 gapdur = [];
 sylldur = [];
 for i = 1:length(fv_rep_sal)
@@ -51,8 +60,7 @@ for i = 1:length(fv_rep_cond)
     sylldur2 = [sylldur2; [1:length(fv_rep_cond(i).sylldurations)]' fv_rep_cond(i).sylldurations];
 end
 
-fignum = input('figure number for checking outliers:');
-figure(fignum);
+figure(fignum);hold on
 h = plot(1,gapdur(:,2),'k.');
 removeoutliers = input('remove outliers (y/n):','s');
 while removeoutliers == 'y'
@@ -139,14 +147,14 @@ for i = 1:maxlength
 end
 
 fignum = input('figure number for plotting repeat summary:');
-figure(fignum);
+figure(fignum);hold on;
 runlength2 = runlength2/mean(runlength);
 %subtightplot(3,1,1,0.07,0.08,0.15);hold on;
 [hi lo mn2] = mBootstrapCI(runlength2);
 jitter = (-1+2*rand)/20;
-xpt = 0.75+jitter;
+xpt = 0.5+jitter;
 plot(xpt,mn2,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-set(gca,'xlim',[0.4 .85],'xtick',[0.5,.75],'xticklabel',{'saline','NASPM'});
+set(gca,'xlim',[0.4 .85],'xtick',[0.5,0.75],'xticklabel',{'saline','NASPM'});
 ylabel('Repeat length relative to saline');
 title('Change in repeat length');
 rep = mn2;

@@ -1,4 +1,4 @@
-function jc_resegment(batch,min_int2,min_dur2,threshold2)
+function jc_resegment(batch,min_int2,min_dur2,threshold2,filetype)
 %resegment cbin files but keep old labels 
 %threshold on log scale, get from evsonganaly
 ff = load_batchf(batch);
@@ -9,7 +9,11 @@ for i = 1:length(ff)
         continue
     end
     load([fn,'.not.mat']);
-    [dat Fs] = evsoundin('',fn,'obs0');
+    if strcmp(filetype,'obs0')
+        [dat Fs] = evsoundin('',fn,'obs0');
+    else strcmp(filetype, 'wav')
+        [dat Fs] = evsoundin('',fn,'w');
+    end
     sm = evsmooth(dat,Fs);
     [ons offs] = SegmentNotes(log10(sm),Fs,min_int2,min_dur2,threshold2);%in seconds
     labels2 = char(ones([1,length(ons)])*fix('-'));
