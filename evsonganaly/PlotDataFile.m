@@ -114,7 +114,7 @@ sptemp = uint8(((2^8) - 1)*(sptemp./max(max(sptemp)))); % SAVE SOME MEMORY 8X le
 
 SPECT_HNDL=image(t,f,sptemp);set(gca,'YD','n');m=colormap;
 set(SPECT_HNDL,'CDataMapping','Scaled');
-axis([t(1) t(end) 0 1e4]);vv=axis;
+axis([t(1) t(end) 0 1.5e4]);vv=axis;
 
 vtmpmin = get(handles.MinSpecValSlider,'Value');
 vtmpmax = get(handles.MaxSpecValSlider,'Value');

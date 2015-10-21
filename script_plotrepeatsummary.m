@@ -1,14 +1,14 @@
-ff = load_batchf('batchnaspm');
-repnaspm = struct();
+ff = load_batchf('batchiem');
+repiem = struct();
 
 trialcnt = 0;
 for i = 1:2:length(ff)
     trialcnt = trialcnt+1;
-    load(['analysis/data_structures/fv_repA_',ff(i).name]);
-    load(['analysis/data_structures/fv_repA_',ff(i+1).name]);
-    rep1 = ['fv_repA_',ff(i).name];
-    rep2 = ['fv_repA_',ff(i+1).name];
-    [repnaspm(trialcnt).rep repnaspm(trialcnt).sdur ...
-        repnaspm(trialcnt).gdur] = jc_plotrepeatsummary(...
-        eval(rep1),eval(rep2),'rs','r',1);
+    load(['analysis/data_structures/fv_repB_',ff(i).name]);
+    load(['analysis/data_structures/fv_repB_',ff(i+1).name]);
+    rep1 = ['fv_repB_',ff(i).name];
+    rep2 = ['fv_repB_',ff(i+1).name];
+    [repiem(trialcnt).rep repiem(trialcnt).sdur ...
+        repiem(trialcnt).gdur] = jc_plotrepeatsummary2(...
+        eval(rep1),eval(rep2),'rs','r');
 end

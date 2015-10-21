@@ -134,7 +134,7 @@ for i = 1:length(ff)
         if jitter == 'n'
             minint = 3;%gap
             mindur = 20;%syllable
-            thresholdforsegmentation = {0.3,minint,mindur};%{graythresh(sm2),minint,mindur};%otsu's method
+            thresholdforsegmentation = {0.5,minint,mindur};%{graythresh(sm2),minint,mindur};%otsu's method
             [ons offs] = SegmentNotes(sm2,fs,thresholdforsegmentation{2},...
                 thresholdforsegmentation{3},thresholdforsegmentation{1});
             disp([num2str(length(ons)),' syllables detected']);

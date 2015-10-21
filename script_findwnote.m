@@ -2,13 +2,13 @@
 %load up fv_parameters
 
 %start in the directory with all data folders
-ff = load_batchf('batchsal');
+ff = load_batchf('batch');
 tic
 for i = 1:length(ff)
     cd(ff(i).name);
-    cmd1 = ['fv_syllA_',ff(i).name,'=','jc_findwnote5(''batch.keep'',''a'','''','''',0.03,fvalbnd_syllA,512,1,''obs0'',0,0)'];
-    cmd2 = ['fv_syllW_',ff(i).name,'=','jc_findwnote5(''batch.keep'',''w'','''','''',0.03,fvalbnd_syllW,512,1,''obs0'',0,0)'];
-    cmd3 = ['fv_syllY_',ff(i).name,'=','jc_findwnote5(''batch.keep'',''y'','''','''',0.04,fvalbnd_syllY,512,1,''obs0'',0,0)'];
+    cmd1 = ['fv_syllA_',ff(i).name,'=','jc_findwnote5(''batch.keep'',''a'','''','''',[0.04 0.08],fvalbnd_syllA,512,1,''obs0'',0,0)'];
+    cmd2 = ['fv_syllB_',ff(i).name,'=','jc_findwnote5(''batch.keep'',''b'',''a'','''',0.035,fvalbnd_syllB,512,1,''obs0'',0,0)'];
+    cmd3 = ['fv_syllC_',ff(i).name,'=','jc_findwnote5(''batch.keep'',''c'','''','''',[0.02 0.04],fvalbnd_syllC,512,1,''obs0'',0,0)'];
     %cmd4 = ['fv_syllW1_',ff(i).name,'=','jc_findwnote5(''batch.keep'',''w'',''r'','''',0.04,fvalbnd_syllW1,512,1,''obs0'',0,0)'];
     %cmd5 = ['fv_syllW2_',ff(i).name,'=','jc_findwnote5(''batch.keep'',''w'',''w'','''',0.04,fvalbnd_syllW2,512,1,''obs0'',0,0)'];
     eval(cmd1);
@@ -18,8 +18,8 @@ for i = 1:length(ff)
     %eval(cmd5);
     cd ../analysis/data_structures
     varname1 = ['''fv_syllA_',ff(i).name,''''];
-    varname2 = ['''fv_syllW_',ff(i).name,''''];
-    varname3 = ['''fv_syllY_',ff(i).name,''''];
+    varname2 = ['''fv_syllB_',ff(i).name,''''];
+    varname3 = ['''fv_syllC_',ff(i).name,''''];
     %varname4 = ['''fv_syllW1_',ff(i).name,''''];
     %varname5 = ['''fv_syllW2_',ff(i).name,''''];
     savecmd1 = ['save(',varname1,',',varname1,',','''-v7.3'')'];
@@ -32,7 +32,7 @@ for i = 1:length(ff)
     eval(savecmd3);
     %eval(savecmd4);
     %eval(savecmd5);
-    clearvars -except fvalbnd_syllA fvalbnd_syllW fvalbnd_syllY ff
+    clearvars -except fvalbnd_syllA fvalbnd_syllB fvalbnd_syllC ff
     cd ../../
 end
 toc

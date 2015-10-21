@@ -1,7 +1,7 @@
-ff = load_batchf('batchsal');
-fvsal = struct();
+ff = load_batchf('batchiem');
+fviem = struct();
 
-syllables = {'A','W','Y'};
+syllables = {'A','B','C'};
 trialcnt = 0;
 for i = 1:2:length(ff)
     for ii = 1:length(syllables)
@@ -10,9 +10,9 @@ for i = 1:2:length(ff)
         load(['analysis/data_structures/fv_syll',syllables{ii},'_',ff(i+1).name]);
         fv1 = ['fv_syll',syllables{ii},'_',ff(i).name];
         fv2 = ['fv_syll',syllables{ii},'_',ff(i+1).name];
-        [fvsal(trialcnt).fv fvsal(trialcnt).vol fvsal(trialcnt).ent ...
-            fvsal(trialcnt).pcv] = jc_plotfvsummary(eval(fv1),eval(fv2),'k.','k',0,'n');
-        clearvars -except ff fvsal syllables trialcnt i 
+        [fviem(trialcnt).fv fviem(trialcnt).vol fviem(trialcnt).ent ...
+            fviem(trialcnt).pcv] = jc_plotfvsummary2(eval(fv1),eval(fv2),'k.','k');
+        clearvars -except ff fviem syllables trialcnt i 
     end
 end
 
@@ -28,8 +28,8 @@ end
 %         fv2 = ['fv_syll',syllables{ii},'_',ff(i).name,'_noon'];
 %         %fv1 = ['fv_syll',syllables{ii},'_',ff(i).name];
 %         %fv2 = ['fv_syll',syllables{ii},'_',ff(i+1).name];
-%         [fvsal(trialcnt).fv fvsal(trialcnt).vol fvsal(trialcnt).ent ...
-%             fvsal(trialcnt).pcv] = jc_plotfvsummary(eval(fv1),eval(fv2),'k.','k',0,'n');
-%         clearvars -except ff fvsal syllables trialcnt i 
+%         [fviem(trialcnt).fv fviem(trialcnt).vol fviem(trialcnt).ent ...
+%             fviem(trialcnt).pcv] = jc_plotfvsummary(eval(fv1),eval(fv2),'k.','k',0,'n');
+%         clearvars -except ff fviem syllables trialcnt i 
 %     end
 % end

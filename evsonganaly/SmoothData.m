@@ -10,7 +10,7 @@ if (~exist('F_low','var'))
 	F_low  = 500.0;
 end
 if (~exist('F_high','var'))
-	F_high = 10000.0;
+	F_high = 15000.0;
 end
 if (~exist('nfft','var'))
 	nfft = 512;

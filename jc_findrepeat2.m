@@ -133,29 +133,29 @@ for ifn=1:length(ff)
         
         minint = 3;
         mindur = 30;
-        thresholdforsegmentation = {0.3,minint,mindur};
+        thresholdforsegmentation = {0.5,minint,mindur};
         [ons offs] = SegmentNotes(sm,fs,thresholdforsegmentation{2},...
             thresholdforsegmentation{3},thresholdforsegmentation{1});
         disp([num2str(length(ons)),' syllables detected']);
-        if length(ons) ~= runlength(i) | floor(ons(1)*fs) == 1
-            figure;hold on;
-        end
-        
-        while length(ons)~=runlength(i) | floor(ons(1)*fs) == 1
-            clf
-            plot(sm,'k');hold on;%plot([floor(ons(1)*fs) ceil(offs(end)*fs)],...
-                %[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');
-                plot([floor(ons*fs) ceil(offs*fs)],[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');hold on;
-            disp([num2str(length(ons)),' syllables detected']);
-            accept_or_not = input('accept segmentation? (y/n):','s');
-            if accept_or_not=='y'
-                break
-            else
-                thresholdforsegmentation=input('try new {threshold,minint,mindur}:');
-                [ons offs] = SegmentNotes(sm,fs,thresholdforsegmentation{2},...
-                    thresholdforsegmentation{3},thresholdforsegmentation{1});
-            end
-        end
+%         if length(ons) ~= runlength(i) | floor(ons(1)*fs) == 1
+%             figure;hold on;
+%         end
+%         
+%         while length(ons)~=runlength(i) | floor(ons(1)*fs) == 1
+%             clf
+%             plot(sm,'k');hold on;%plot([floor(ons(1)*fs) ceil(offs(end)*fs)],...
+%                 %[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');
+%                 plot([floor(ons*fs) ceil(offs*fs)],[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');hold on;
+%             disp([num2str(length(ons)),' syllables detected']);
+%             accept_or_not = input('accept segmentation? (y/n):','s');
+%             if accept_or_not=='y'
+%                 break
+%             else
+%                 thresholdforsegmentation=input('try new {threshold,minint,mindur}:');
+%                 [ons offs] = SegmentNotes(sm,fs,thresholdforsegmentation{2},...
+%                     thresholdforsegmentation{3},thresholdforsegmentation{1});
+%             end
+%         end
         if length(ons) ~= runlength(i) | floor(ons(1)*fs) == 1
             continue
         end
@@ -174,7 +174,7 @@ for ifn=1:length(ff)
                     datsyll = filtsong(floor(ons(ii)*fs)-128:ceil(offs(ii)*fs)+128);
                 else
                     if ceil(offs(ii)*fs)+128 > length(filtsong)
-                        offs(ii) = (length(filtsong)-128)/fs;
+                        offs(ii) = (length(filtsong)-129)/fs;
                     end
                     datsyll = filtsong(floor(ons(ii)*fs)-128:ceil(offs(ii)*fs)+128);
                     [corr lag] = xcorr(abs(filtsong(floor(ons(1)*fs):ceil(offs(1)*fs))),...
