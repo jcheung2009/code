@@ -340,7 +340,9 @@ for ifn=1:length(ff)
                 datenm = addtodate(tm_st, round(ton), 'millisecond');%add time to onset of syllable
                 [yr mon dy hr minutes sec] = datevec(datenm);
              elseif strcmp(CHANSPEC,'w')
-                 datenm = fn2datenum(fn);
+                 formatIn = 'yyyymmddHHMMSS';
+                 datenm = datenum(datevec(fn(end-17:end-4),formatIn));
+                 %datenm = fn2datenum(fn);
              end
 %    
                  fvalsstr(note_cnt).fn     = fn;

@@ -3,7 +3,7 @@
 %load up fv_parameters
 tic
 %start in directory with all data folders
-ff = load_batchf('batch');
+ff = load_batchf('batch2');
 
 for i = 1:length(ff)
     cd(ff(i).name);

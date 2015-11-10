@@ -132,30 +132,30 @@ for ifn=1:length(ff)
         sm = sm./max(sm);
         
         minint = 3;
-        mindur = 30;
+        mindur = 20;
         thresholdforsegmentation = {0.5,minint,mindur};
         [ons offs] = SegmentNotes(sm,fs,thresholdforsegmentation{2},...
             thresholdforsegmentation{3},thresholdforsegmentation{1});
         disp([num2str(length(ons)),' syllables detected']);
-%         if length(ons) ~= runlength(i) | floor(ons(1)*fs) == 1
-%             figure;hold on;
-%         end
-%         
-%         while length(ons)~=runlength(i) | floor(ons(1)*fs) == 1
-%             clf
-%             plot(sm,'k');hold on;%plot([floor(ons(1)*fs) ceil(offs(end)*fs)],...
-%                 %[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');
-%                 plot([floor(ons*fs) ceil(offs*fs)],[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');hold on;
-%             disp([num2str(length(ons)),' syllables detected']);
-%             accept_or_not = input('accept segmentation? (y/n):','s');
-%             if accept_or_not=='y'
-%                 break
-%             else
-%                 thresholdforsegmentation=input('try new {threshold,minint,mindur}:');
-%                 [ons offs] = SegmentNotes(sm,fs,thresholdforsegmentation{2},...
-%                     thresholdforsegmentation{3},thresholdforsegmentation{1});
-%             end
-%         end
+        if length(ons) ~= runlength(i) | floor(ons(1)*fs) == 1
+            figure;hold on;
+        end
+        
+        while length(ons)~=runlength(i) | floor(ons(1)*fs) == 1
+            clf
+            plot(sm,'k');hold on;%plot([floor(ons(1)*fs) ceil(offs(end)*fs)],...
+                %[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');
+                plot([floor(ons*fs) ceil(offs*fs)],[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');hold on;
+            disp([num2str(length(ons)),' syllables detected']);
+            accept_or_not = input('accept segmentation? (y/n):','s');
+            if accept_or_not=='y'
+                break
+            else
+                thresholdforsegmentation=input('try new {threshold,minint,mindur}:');
+                [ons offs] = SegmentNotes(sm,fs,thresholdforsegmentation{2},...
+                    thresholdforsegmentation{3},thresholdforsegmentation{1});
+            end
+        end
         if length(ons) ~= runlength(i) | floor(ons(1)*fs) == 1
             continue
         end
@@ -260,7 +260,9 @@ for ifn=1:length(ff)
             datenm = addtodate(tm_st, round(ton), 'millisecond');%add time to onset of syllable
             [yr mon dy hr minutes sec] = datevec(datenm);
          elseif strcmp(CHANSPEC,'w')
-             datenm = fn2datenum(fn);
+              formatIn = 'yyyymmddHHMMSS';
+                 datenm = datenum(datevec(fn(end-17:end-4),formatIn));
+             %datenm = fn2datenum(fn);
          end
         run_count=run_count+1;
         fvalsstr(run_count).fn = fn;    

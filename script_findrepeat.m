@@ -1,6 +1,6 @@
 %script to run jc_findrepeat2 in batch
 
-ff = load_batchf('batch');
+ff = load_batchf('batch2');
 
 for i = 1:length(ff)
     cd(ff(i).name);

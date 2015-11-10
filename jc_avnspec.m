@@ -3,7 +3,7 @@ function [avn, tm, f pcstruct] = jc_avnspec(fv)
 %also plots pitch contour
 
 NFFT = 512;
-fs = 32000;
+fs = 44100;
 
 overlap = NFFT-2;
 t=-NFFT/2+1:NFFT/2;
