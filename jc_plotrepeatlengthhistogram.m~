@@ -3,8 +3,8 @@ function [fstat tstat] = jc_plotrepeatlengthhistogram(fv_rep_sal, fv_rep_cond)
 %matches time in condition and saline
 
 tb_sal = jc_tb([fv_rep_sal(:).datenm]',7,0);
-tb_cond = jc_tb([fv_rep_cond(:).datenm]',7,0);
-ind = find(tb_sal >= tb_cond(1) & tb_sal <= tb_cond(end));
+tb_cond = jc_tb([fv_rep_cond(:).datenm]',7,0):
+ind = find(tb_sal >=tb_cond(1) & tb_sal <= tb_cond(end));
 
 runlength1 = [fv_rep_sal(ind).runlength]';
 runlength2 = [fv_rep_cond(:).runlength]';
@@ -19,14 +19,10 @@ stairs(b,n/sum(n),'r','linewidth',2);hold on;
 %h = findobj(gca,'Type','patch');set(h,'edgecolor','none');
 %bar(b,n/sum(n),1,'edgecolor','none','facecolor',linecolor);
 %h = findobj(gca,'Type','patch');set(h,'FaceAlpha',0.5);
-[h p1 ci tstat] = ttest2(runlength1,runlength2);
-[h p2 ci fstat] = vartest2(runlength1,runlength2);
-xlabel('Repeat length (number of syllables)','FontWeight','bold')
-ylabel('Probability','FontWeight','bold');
+[h p ci tstat] = ttest2(runlength1,runlength2);
+[h p ci fstat] = vartest2(runlength1,runlength2);
+xlabel('Repeat length (number of syllables)')
+ylabel('Probability');
 title('Probability distribution of repeat length');
-xlim([1 maxlength]);
-
-str = {['tstat = ',num2str(tstat.tstat),' ; p = ',num2str(p1)], ...
-    ['fstat = ',num2str(fstat.fstat),' ; p = ',num2str(p2)]}
-annotation('textbox',[0.5 0.8 .1 .1],'String',str);
+text(mean
 

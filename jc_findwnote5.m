@@ -294,7 +294,7 @@ for ifn=1:length(ff)
                 if length(TIMESHIFT) == 1
                     spent = -sum(pxx(:,ti1).*log(pxx(:,ti1)));
                 elseif length(TIMESHIFT) == 2
-                    spent = mean(-sum(pxx(:,ti1).*log(pxx(:,ti1))));
+                    spent = nanmean(-sum(pxx(:,ti1).*log(pxx(:,ti1))));
                 end
 %                 spent = [];%spectral entropy
 %                 for qq = 1:size(pxx,2)

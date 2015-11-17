@@ -103,9 +103,9 @@ for ifn=1:length(ff)
             onind = pp + 1; %start index for each repeat run
             offind = pp + runlength; %end index for each repeat run
         else
-            pp = find(diff(p)==1);
-            onind = pp+1;
-            offind = pp+runlength;
+            pp = find(diff([0 p])==1);
+            onind = pp;
+            offind = pp+runlength-1;
         end
     end
     
@@ -131,9 +131,9 @@ for ifn=1:length(ff)
         sm = sm-min(sm);
         sm = sm./max(sm);
         
-        minint = 3;
-        mindur = 20;
-        thresholdforsegmentation = {0.5,minint,mindur};
+        minint = 5;
+        mindur = 30;
+        thresholdforsegmentation = {0.3,minint,mindur};
         [ons offs] = SegmentNotes(sm,fs,thresholdforsegmentation{2},...
             thresholdforsegmentation{3},thresholdforsegmentation{1});
         disp([num2str(length(ons)),' syllables detected']);
@@ -157,93 +157,105 @@ for ifn=1:length(ff)
             end
         end
         if length(ons) ~= runlength(i) | floor(ons(1)*fs) == 1
-            continue
-        end
-        sylldurations = offs-ons;%in seconds
-        gapdurations = ons(2:end)-offs(1:end-1);
+            sylldurations = NaN;
+            gapdurations = NaN;
+            pitchest = NaN;
+            amp = NaN;
+            we = NaN;
+            pitchcontours_all_syllables = NaN;
+            ons = NaN;
+            offs = NaN;
+            spent = NaN;
+        else
+                sylldurations = offs-ons;%in seconds
+                gapdurations = ons(2:end)-offs(1:end-1);
 
-        %pitch,volume, entropy measurement for each syllable in repeat
-        if computespec == 'y'
-            pitchest = []; amp = []; we= [];pitchcontours_all_syllables = cell(length(ons),1);
-            for ii = 1:length(ons) %for each syllable in repeat run
-                filtsong = bandpass(smtemp,fs,300,15000,'hanningffir');%band pass filter required for good entropy estimates
-                if ii == 1
-                    if floor(ons(ii)*fs) <= 128
-                        ons(ii) = 129/fs;
-                    end
-                    datsyll = filtsong(floor(ons(ii)*fs)-128:ceil(offs(ii)*fs)+128);
-                else
-                    if ceil(offs(ii)*fs)+128 > length(filtsong)
-                        offs(ii) = (length(filtsong)-129)/fs;
-                    end
-                    datsyll = filtsong(floor(ons(ii)*fs)-128:ceil(offs(ii)*fs)+128);
-                    [corr lag] = xcorr(abs(filtsong(floor(ons(1)*fs):ceil(offs(1)*fs))),...
-                        abs(datsyll));
-                    [mx mxshft] = max(corr);
-                    shft = lag(mxshft);
-                    if shft > 0 %shift second signal to right
-                        datsyll = [zeros(shft,1);datsyll];
-                    elseif shft < 0 %shift second signal to left
-                        datsyll = [datsyll(abs(shft)+1:end)];
-                    end
-                end
-
-                %volume
-                amp = cat(1,amp,mean(datsyll.^2));
-
-                N = 512; %window size for spectrogram segments
-                overlap = N-2;
-                t=-N/2+1:N/2;
-                sigma=(1/1000)*fs;
-                w=exp(-(t/sigma).^2);%gaussian window for spectrogram
-
-                [sp f tm pxx] = spectrogram(datsyll,w,overlap,N,fs);
-                %use weighted average of power and fft values from sp
-                pc = [];
-                for m = 1:size(sp,2)
-                    fdat = abs(sp(:,m));
-                    mxtmpvec = zeros([1,size(fvalbnd,1)]);
-                    for kk = 1:size(fvalbnd,1)
-                        tmpinds = find((f>=fvalbnd(kk,1))&(f<=fvalbnd(kk,2)));
-                        NPNTS = 10;
-                        [tmp pf] = max(fdat(tmpinds));
-                        pf = pf+tmpinds(1)-1;
-                        if (USEFIT==1)%weighted average 
-                            tmpxv=pf + [-NPNTS:NPNTS];
-                            tmpxv=tmpxv(find((tmpxv>0)&(tmpxv<=length(f))));
-                            mxtmpvec(kk)=f(tmpxv)'*fdat(tmpxv);
-                            mxtmpvec(kk)=mxtmpvec(kk)./sum(fdat(tmpxv));
+                %pitch,volume, entropy measurement for each syllable in repeat
+                if computespec == 'y'
+                    pitchest = []; amp = []; we= [];pitchcontours_all_syllables = cell(length(ons),1);
+                    for ii = 1:length(ons) %for each syllable in repeat run
+                        filtsong = bandpass(smtemp,fs,300,15000,'hanningffir');%band pass filter required for good entropy estimates
+                        if ii == 1
+                            if floor(ons(ii)*fs) <= 128
+                                ons(ii) = 129/fs;
+                            end
+                            if ceil(offs(ii)*fs)+128 > length(filtsong)
+                                offs(ii) = (length(filtsong)-129)/fs;
+                            end
+                            datsyll = filtsong(floor(ons(ii)*fs)-128:ceil(offs(ii)*fs)+128);
                         else
-                            mxtmpvec(kk) = f(pf);
+                            if ceil(offs(ii)*fs)+128 > length(filtsong)
+                                offs(ii) = (length(filtsong)-129)/fs;
+                            end
+                            datsyll = filtsong(floor(ons(ii)*fs)-128:ceil(offs(ii)*fs)+128);
+                            [corr lag] = xcorr(abs(filtsong(floor(ons(1)*fs):ceil(offs(1)*fs))),...
+                                abs(datsyll));
+                            [mx mxshft] = max(corr);
+                            shft = lag(mxshft);
+                            if shft > 0 %shift second signal to right
+                                datsyll = [zeros(shft,1);datsyll];
+                            elseif shft < 0 %shift second signal to left
+                                datsyll = [datsyll(abs(shft)+1:end)];
+                            end
                         end
-                    end
-                    pc = cat(1,pc,mean(diff([0,mxtmpvec])));
-                end
-                pitchcontours_all_syllables{ii} = pc;
-                if length(timeshift) == 1
-                    ti1 = find(tm<=timeshift);
-                    ti1 = ti1(end);
-                    pitchest = cat(1,pitchest,pc(ti1));%pitch estimate at timeshift 
-                elseif length(timeshift) == 2
-                    ti1 = find(tm>=timeshift(1) & tm<= timeshift(2));
-                    pitchest = cat(1,pitchest,mean(pc(ti1)));
-                end
 
-                %entropy
-                %we = cat(1,we,mean(log(geomean(abs(sp),1))));%wiener ent for each syll by averaging across all we values in every time bin of sp
-                pxx = bsxfun(@rdivide,pxx,sum(pxx));
-                spent = -sum(pxx(:,ti1).*log(pxx(:,ti1)));
-%                 spent = [];%spectral entropy
-%                 for qq = 1:size(pxx,2)
-%                     spent = [spent; -sum(pxx(:,qq).*log(pxx(:,qq)))];
-%                 end
-%                 spent = mean(spent);
-            end
-            maxpclength = max(cellfun(@length,pitchcontours_all_syllables));
-            pitchcontours_all_syllables = cell2mat(cellfun(@(x) [x;NaN(maxpclength-length(x),1)]',...
-                pitchcontours_all_syllables,'UniformOutput',false));
-            timebins_for_pc = N/2/fs+([0:maxpclength-1]*(N-overlap)/fs);
-            pitchcontours_all_syllables = [timebins_for_pc;pitchcontours_all_syllables];
+                        %volume
+                        amp = cat(1,amp,mean(datsyll.^2));
+
+                        N = 512; %window size for spectrogram segments
+                        overlap = N-2;
+                        t=-N/2+1:N/2;
+                        sigma=(1/1000)*fs;
+                        w=exp(-(t/sigma).^2);%gaussian window for spectrogram
+
+                        [sp f tm pxx] = spectrogram(datsyll,w,overlap,N,fs);
+                        %use weighted average of power and fft values from sp
+                        pc = [];
+                        for m = 1:size(sp,2)
+                            fdat = abs(sp(:,m));
+                            mxtmpvec = zeros([1,size(fvalbnd,1)]);
+                            for kk = 1:size(fvalbnd,1)
+                                tmpinds = find((f>=fvalbnd(kk,1))&(f<=fvalbnd(kk,2)));
+                                NPNTS = 10;
+                                [tmp pf] = max(fdat(tmpinds));
+                                pf = pf+tmpinds(1)-1;
+                                if (USEFIT==1)%weighted average 
+                                    tmpxv=pf + [-NPNTS:NPNTS];
+                                    tmpxv=tmpxv(find((tmpxv>0)&(tmpxv<=length(f))));
+                                    mxtmpvec(kk)=f(tmpxv)'*fdat(tmpxv);
+                                    mxtmpvec(kk)=mxtmpvec(kk)./sum(fdat(tmpxv));
+                                else
+                                    mxtmpvec(kk) = f(pf);
+                                end
+                            end
+                            pc = cat(1,pc,mean(diff([0,mxtmpvec])));
+                        end
+                        pitchcontours_all_syllables{ii} = pc;
+                        if length(timeshift) == 1
+                            ti1 = find(tm<=timeshift);
+                            ti1 = ti1(end);
+                            pitchest = cat(1,pitchest,pc(ti1));%pitch estimate at timeshift 
+                        elseif length(timeshift) == 2
+                            ti1 = find(tm>=timeshift(1) & tm<= timeshift(2));
+                            pitchest = cat(1,pitchest,mean(pc(ti1)));
+                        end
+
+                        %entropy
+                        %we = cat(1,we,mean(log(geomean(abs(sp),1))));%wiener ent for each syll by averaging across all we values in every time bin of sp
+                        pxx = bsxfun(@rdivide,pxx,sum(pxx));
+                        spent = -sum(pxx(:,ti1).*log(pxx(:,ti1)));
+        %                 spent = [];%spectral entropy
+        %                 for qq = 1:size(pxx,2)
+        %                     spent = [spent; -sum(pxx(:,qq).*log(pxx(:,qq)))];
+        %                 end
+        %                 spent = mean(spent);
+                    end
+                    maxpclength = max(cellfun(@length,pitchcontours_all_syllables));
+                    pitchcontours_all_syllables = cell2mat(cellfun(@(x) [x;NaN(maxpclength-length(x),1)]',...
+                        pitchcontours_all_syllables,'UniformOutput',false));
+                    timebins_for_pc = N/2/fs+([0:maxpclength-1]*(N-overlap)/fs);
+                    pitchcontours_all_syllables = [timebins_for_pc;pitchcontours_all_syllables];
+                end
         end
  
         %compute datenum from rec file by adding repeat ton in milliseconds
@@ -269,7 +281,7 @@ for ifn=1:length(ff)
         fvalsstr(run_count).datenm = datenm;
         fvalsstr(run_count).ons = ons; %in ms, onset of each syllable in run into smtemp
         fvalsstr(run_count).off = offs;% in ms, offset of each syllable in run into smtemp
-        fvalsstr(run_count).runlength = length(ons); %number of syllables in run
+        fvalsstr(run_count).runlength = runlength(i); %number of syllables in run
         fvalsstr(run_count).sylldurations = sylldurations; %duration of each syllable in run
         fvalsstr(run_count).syllgaps = gapdurations; %gaps between each adjacent syllable in run
         fvalsstr(run_count).smtmp = smtemp; %unfiltered amp env of repeat run

@@ -1,4 +1,4 @@
-function [pc_sal pc_cond avn1 tm1 f1 avn2 tm2 f2] = jc_avnspec(fv_sal,fv_cond)
+function [pc_sal pc_cond avn tm f avn2 tm2 f2] = jc_avnspec(fv_sal,fv_cond)
 %fv is structure from jc_findwnote5
 %produces pitch contours for matched time windows in fv_cond and fv_sal
 
@@ -30,9 +30,9 @@ for ii = 1:length(spec)
     pad = maxlength-length(spec(ii).tm);
     avgspec = avgspec+[spec(ii).sp,zeros(size(spec(ii).sp,1),pad)];
 end
-avn1 = avgspec./length(spec);
-tm1 = spec(ind1).tm;
-f1 = spec(ind1).f; 
+avn = avgspec./length(spec);
+tm = spec(ind1).tm;
+f = spec(ind1).f; 
 
 spec = [];
 for i = 1:length(fv_cond)
@@ -44,7 +44,7 @@ for i = 1:length(fv_cond)
 end
 
 [maxlength ind1] = max(arrayfun(@(x) length(x.tm),spec));
-freqlength = max(arrayfun(@(x) length(x.f),spec));
+freqlength = max(arrayfun(@(x) length(x.f),spec));avn
 avgspec = zeros(freqlength,maxlength);
 for ii = 1:length(spec)
     pad = maxlength-length(spec(ii).tm);

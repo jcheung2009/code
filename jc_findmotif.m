@@ -1,11 +1,11 @@
-function motifinfo = jc_findmotif(batch,motif,syllables,fvalbnd,timeshifts,varseq,jitter)
+function motifinfo = jc_findmotif(batch,motif,syllables,fvalbnd,timeshifts,varseq,jitter,CHANSPEC)
 %syllables = {'a','b','c'}
 %fvalbnds = {[fvalbnd for syllable A], [fvalbnd for syllable C],...}
 %timeshifts = {timeshift for A, timeshift for B, timeshift for C}
 %if using a variable motif, motif should be for regexp ( ex: 'j[abc]+')
 %varseq = 'y' or 'n', jitter = 'y' or 'n'
 %** MUST CHECK REGULAR EXPRESSION MATCHES ONSET AND OFFSET
-CHANSPEC = 'obs0';
+%CHANSPEC = 'obs0';
 % varseq = input('motif is variable (y/n):','s');
 % jitter = input('Were syllables manually edited?:','s');
 
@@ -132,9 +132,9 @@ for i = 1:length(ff)
         end
         
         if jitter == 'n'
-            minint = 3;%gap
-            mindur = 20;%syllable
-            thresholdforsegmentation = {0.5,minint,mindur};%{graythresh(sm2),minint,mindur};%otsu's method
+            minint = 5;%gap
+            mindur = 30;%syllable
+            thresholdforsegmentation = {0.4,minint,mindur};%{graythresh(sm2),minint,mindur};%otsu's method
             [ons offs] = SegmentNotes(sm2,fs,thresholdforsegmentation{2},...
                 thresholdforsegmentation{3},thresholdforsegmentation{1});
             disp([num2str(length(ons)),' syllables detected']);
@@ -157,24 +157,24 @@ for i = 1:length(ff)
                     end 
                 end
             else
-%                 if length(ons) ~= length(motif)
-%                     figure;hold on;
-%                 end
-%                 while length(ons) ~= length(motif) 
-%                     clf
-%                     plot(sm2,'k');hold on;%plot([floor(ons(1)*fs) ceil(offs(end)*fs)],...
-%                         %[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');
-%                         plot([floor(ons*fs) ceil(offs*fs)],[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');hold on;
-%                     accept_or_not = input('accept segmentation? (y/n):','s');
-%                     if accept_or_not == 'y'
-%                         break
-%                     else
-%                         thresholdforsegmentation = input('try new {thresholdhold,minint,mindur}:');
-%                             [ons offs] = SegmentNotes(sm2,fs,thresholdforsegmentation{2},...
-%                                 thresholdforsegmentation{3},thresholdforsegmentation{1});
-%                             disp([num2str(length(ons)),' syllables detected']);
-%                     end
-%                 end
+                if length(ons) ~= length(motif)
+                    figure;hold on;
+                end
+                while length(ons) ~= length(motif) 
+                    clf
+                    plot(sm2,'k');hold on;%plot([floor(ons(1)*fs) ceil(offs(end)*fs)],...
+                        %[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');
+                        plot([floor(ons*fs) ceil(offs*fs)],[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');hold on;
+                    accept_or_not = input('accept segmentation? (y/n):','s');
+                    if accept_or_not == 'y'
+                        break
+                    else
+                        thresholdforsegmentation = input('try new {thresholdhold,minint,mindur}:');
+                            [ons offs] = SegmentNotes(sm2,fs,thresholdforsegmentation{2},...
+                                thresholdforsegmentation{3},thresholdforsegmentation{1});
+                            disp([num2str(length(ons)),' syllables detected']);
+                    end
+                end
                 if length(ons) ~= length(motif)
                     continue
                 end
@@ -290,7 +290,9 @@ for i = 1:length(ff)
             datenm = addtodate(tm_st, round(ton), 'millisecond');%add time to onset of syllable
             [yr mon dy hr minutes sec] = datevec(datenm);
          elseif strcmp(CHANSPEC,'w')
-             datenm = fn2datenum(fn);
+             %datenm = fn2datenum(fn);
+             formatIn = 'yyyymmddHHMMSS';
+             datenm = datenum(datevec(fn(end-17:end-4),formatIn));
          end
          
        motif_cnt = motif_cnt+1;

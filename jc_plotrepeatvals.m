@@ -24,7 +24,7 @@ replength = [jc_tb([fv_rep(:).datenm]',7,0) [fv_rep(:).runlength]'];
 subtightplot(3,1,1,0.07,0.08,0.15);hold on;
 plot(replength(:,1),replength(:,2),marker);
 ylabel({'Repeat Length', '(number of syllables)'});
-xlabel('Time (hours since 7 AM)');
+%xlabel('Time (hours since 7 AM)');
 title('Number of syllables in repeat');
 set(gca,'xtick',xtick,'xticklabel',xticklabel);
 
@@ -67,9 +67,9 @@ while removeoutliers == 'y'
     h = plot(tb_sylldur, sylldur,marker);
     removeoutliers = input('remove outliers?:','s');
 end
-ylabel('Average syllable duration (s)');
+ylabel('Syllable duration (s)');
 %xlabel('Time (hours since 7 AM)');
-title('Syllable duration (s)');
+title('Average syllable duration in repeat');
 set(gca,'xtick',xtick,'xticklabel',xticklabel);
 
 subtightplot(3,1,3,0.07,0.08,0.15);hold on;
@@ -84,7 +84,7 @@ while removeoutliers == 'y'
     h = plot(tb_gapdur, gapdur,marker);
     removeoutliers = input('remove outliers?:','s');
 end
-ylabel('Average gap duration (s)');
-%xlabel('Time (hours since 7 AM)');
-title('Gap duration (s)');
+title('Average gap duration (s)');
+xlabel('Time (hours since 7 AM)');
+ylabel('Gap duration (s)');
 set(gca,'xtick',xtick,'xticklabel',xticklabel);
