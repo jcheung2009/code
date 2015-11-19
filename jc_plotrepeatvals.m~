@@ -30,20 +30,18 @@ set(gca,'xtick',xtick,'xticklabel',xticklabel);
 %plot average syllable and gap duration
 sylldur = [];
 gapdur = [];
-firstpeakdistance = [[fv_rep(:).datenm]',[fv_rep(:).firstpeakdistance]'];
+firstpeakdistance = [fv_rep(:).firstpeakdistance]';
 tb_sylldur = jc_tb([fv_rep(:).datenm]',7,0);
 tb_gapdur = jc_tb([fv_rep(:).datenm]',7,0);
-firstpeakdistance(:,1) = jc_tb(firstpeakdistance(:,1),7,0);
+tb_firstpeak = jc_tb([fv_rep(:).datenm]',7,0);
 
 if tbshift == -1
         tb_sylldur = tb_sylldur - (24*3600);
         tb_gapdur = tb_gapdur-(24*3600);
-        firstpeakdistance(:,1) = firstpeakdistance(:,1) - (24*3600);
         xticklabel = [-24:4:38];
  elseif tbshift == 1
      tb_sylldur = tb_sylldur + (24*3600);
         tb_gapdur = tb_gapdur+(24*3600);
-        firstpeakdistance(:,1) = firstpeakdistance(:,1)+(24*3600);
       xticklabel = [-24:4:38];
  elseif tbshift == 0
      xticklabel = [-24:4:38];
@@ -99,12 +97,13 @@ removeoutliers = input('remove outliers?:','s');
 while removeoutliers == 'y'
     nstd = input('use nstd:');
     delete(h);
-    ind = jc_findoutliers(firstpeakdistance,nstd);
-    firstpeakdistance(ind,:) = [];
-    h = plot(firstpeakdistance(:,1), firstpeakdistance(:,2),marker);
+    ind = jc_findoutliers(gapdur,nstd);
+    tb_gapdur(ind) = [];
+    gapdur(ind) = [];
+    h = plot(tb_gapdur, gapdur,marker);
     removeoutliers = input('remove outliers?:','s');
 end
-title('Average syllable-gap duration (autocorrelation)');
+title('Average gap duration (s)');
 xlabel('Time (hours since 7 AM)');
-ylabel('Duration (s)');
+ylabel('Gap duration (s)');
 set(gca,'xtick',xtick,'xticklabel',xticklabel);

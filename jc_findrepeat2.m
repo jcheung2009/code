@@ -71,7 +71,7 @@ for ifn=1:length(ff)
     %load raw song data
     [pthstr,tnm,ext] = fileparts(fn);
     if (strcmp(CHANSPEC,'w'))
-            [dat,fs] = wavread(fn);
+            [dat,fs] = audioread(fn);
     elseif (strcmp(ext,'.ebin'))
         [dat,fs]=readevtaf(fn,CHANSPEC);
     else
@@ -130,6 +130,21 @@ for ifn=1:length(ff)
         sm = log(sm);%better for segmentation
         sm = sm-min(sm);
         sm = sm./max(sm);
+        
+        if runlength(i) >= 3
+            [c lag] = xcorr(sm,'coeff');
+            c = c(ceil(length(lag)/2):end);
+            lag = lag(ceil(length(lag)/2):end);
+            %peakdistance = 0.05*fs; %50 ms 
+            [pks locs] = findpeaks(c);
+            if isempty(locs)%when number of syllables in motif < 4
+                firstpeakdistance = [];
+            else
+                firstpeakdistance = locs(1)/fs;%average time in seconds between adjacent syllables from autocorr
+            end
+        else
+            firstpeakdistance = NaN;
+        end
         
         minint = 5;
         mindur = 30;
@@ -279,6 +294,7 @@ for ifn=1:length(ff)
         run_count=run_count+1;
         fvalsstr(run_count).fn = fn;    
         fvalsstr(run_count).datenm = datenm;
+        fvalsstr(run_count).firstpeakdistance = firstpeakdistance;
         fvalsstr(run_count).ons = ons; %in ms, onset of each syllable in run into smtemp
         fvalsstr(run_count).off = offs;% in ms, offset of each syllable in run into smtemp
         fvalsstr(run_count).runlength = runlength(i); %number of syllables in run

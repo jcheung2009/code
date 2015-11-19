@@ -5,7 +5,7 @@ function [sp t f]=mplotcbin_fast(cbin,bnds,normfreqs)
 if(strcmpi(fileext,'.cbin'))
     [plainsong,fs] = ReadCbinFile(cbin);
 elseif(strcmpi(fileext,'.wav'))
-    [plainsong,fs] = wavread(cbin);
+    [plainsong,fs] = audioread(cbin);
     plainsong = plainsong *10e3; % boost amplitude to cbin levels
 elseif(strcmpi(fileext,'.rhd'))
     [plainsong,fs]=IntanRHDReadSong('',cbin);

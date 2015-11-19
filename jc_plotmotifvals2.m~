@@ -12,19 +12,19 @@ if tbshift == -1
     motifdur(:,1) = jc_tb(motifdur(:,1),7,0)-(24*3600);
     sylldur(:,1) = jc_tb(sylldur(:,1),7,0)-(24*3600);
     gapdur(:,1) = jc_tb(gapdur(:,1),7,0)-(24*3600);
-    firstpeakdistance(:,1) = jc_tb(firstpeakdistance(:,1),7,0)-(24*3600);
+    firstpeakdistance = jc_tb(firstpeakdistance(:,1),7,0)-(24*3600);
     xticklabel = [-24:4:38];
 elseif tbshift == 1
     motifdur(:,1) = jc_tb(motifdur(:,1),7,0)+(24*3600);
     sylldur(:,1) = jc_tb(sylldur(:,1),7,0)+(24*3600);
     gapdur(:,1) = jc_tb(gapdur(:,1),7,0)+(24*3600);
-    firstpeakdistance(:,1) = jc_tb(firstpeakdistance(:,1),7,0)+(24*3600);
+    firstpeakdistance = jc_tb(firstpeakdistance(:,1),7,0)+(24*3600);
     xticklabel = [-24:4:38];
 elseif tbshift == 0
     motifdur(:,1) = jc_tb(motifdur(:,1),7,0);
     sylldur(:,1) = jc_tb(sylldur(:,1),7,0);
     gapdur(:,1) = jc_tb(gapdur(:,1),7,0);
-    firstpeakdistance(:,1) = jc_tb(firstpeakdistance(:,1),7,0);
+    firstpeakdistance = jc_tb(firstpeakdistance(:,1),7,0);
     xticklabel = [-24:4:38];
 end
 xtick = xticklabel*3600;
@@ -79,8 +79,7 @@ xlabel('Time (hours since 7 AM on Day 0)');
 ylabel('Duration (seconds)');
 title('Gap duration');
 
-fignum2 = input('figure for acorr:');
-figure(fignum2);hold on;
+figure;hold on;
 h = plot(firstpeakdistance(:,1),firstpeakdistance(:,2),marker);hold on;
 removeoutliers = input('remove outliers?:','s');
 while removeoutliers == 'y'

@@ -89,7 +89,7 @@ for ifn=1:length(ff)
     %load raw song data
     [pthstr,tnm,ext] = fileparts(fn);
     if (strcmp(CHANSPEC,'w'))
-            [dat,fs] = wavread(fn);
+            [dat,fs] = audioread(fn);
     elseif (strcmp(ext,'.ebin'))
         [dat,fs]=readevtaf(fn,CHANSPEC);
     else
