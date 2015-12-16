@@ -1,4 +1,4 @@
-ff = load_batchf('batchiem');
+ff = load_batchf('batch2');
 fviem = struct();
 
 syllables = {'A','B','C'};
@@ -11,7 +11,7 @@ for i = 1:2:length(ff)
         fv1 = ['fv_syll',syllables{ii},'_',ff(i).name];
         fv2 = ['fv_syll',syllables{ii},'_',ff(i+1).name];
         [fviem(trialcnt).fv fviem(trialcnt).vol fviem(trialcnt).ent ...
-            fviem(trialcnt).pcv] = jc_plotfvsummary2(eval(fv1),eval(fv2),'k.','k');
+            fviem(trialcnt).pcv] = jc_plotfvsummary2(eval(fv1),eval(fv2),'ro','r',3.5);
         clearvars -except ff fviem syllables trialcnt i 
     end
 end

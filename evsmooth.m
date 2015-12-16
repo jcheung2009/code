@@ -3,22 +3,22 @@ function [smooth,spec,t,f]=evsmooth(rawsong,Fs,SPTH,nfft,olap,sm_win,F_low,F_Hig
 % returns the smoothed waveform/envelope + the spectrum
 %
 
-if (~exist('F_low'))
+if (~exist('F_low')) | isempty('F_low')
     F_low  = 750.0; %750, 300 from evsonganaly
 end
-if (~exist('F_High'))
+if (~exist('F_High')) | isempty('F_High')
     F_High = 15000.0;%15000, 8000 from evsonganaly
 end
-if (~exist('nfft'))
+if (~exist('nfft')) | isempty('nfft')
     nfft = 512;
 end
-if (~exist('olap'))
+if (~exist('olap')) | isempty('olap')
     olap = 0.8;
 end
-if (~exist('sm_win'))
+if (~exist('sm_win')) | isempty('sm_win')
     sm_win = 2.0;%ms
 end
-if(~exist('SPTH'))
+if(~exist('SPTH')) | isempty('SPTH')
     SPTH=0.01;
 end
 

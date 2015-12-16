@@ -250,7 +250,7 @@ else
     [hi lo mn2] = mBootstrapCI(motifdur2);
     plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
     plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
+    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'probe 1','probe 2','probe 3','probe 4'});
     ylabel({'Change in motif duration', 'relative to saline'});
     title('Motif duration changes');
     mdur = mn2;
@@ -261,7 +261,7 @@ else
     [hi lo mn2] = mBootstrapCI(sylldur2);
     plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
     plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
+    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'probe 1','probe 2','probe 3','probe 4'});
     ylabel({'Change in mean syllable duration','relative to saline'});
     title('Syllable duration changes');
     sdur = mn2;
@@ -272,7 +272,7 @@ else
     [hi lo mn2] = mBootstrapCI(gapdur2);
     plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
     plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
+    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'probe 1','probe 2','probe 3','probe 4'});
     ylabel({'Change in mean gap duration', 'relative to saline'});
     title('Gap duration changes');
     gdur = mn2;
@@ -289,7 +289,7 @@ else
     lo = mn3-((mn2-lo)/mn1);
     plot(1.5,mn3,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
     plot([0.5 1.5],[mn mn3],linecolor,'linewidth',1);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
+    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'probe 1','probe 2','probe 3','probe 4'});
     ylabel({'Change in motif duration CV', 'relative to saline'});
     title('Motif duration CV changes');
     mcv = mn3;

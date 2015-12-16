@@ -1,0 +1,42 @@
+ff = load_batchf('batch2');
+
+for i = 1:length(ff)
+    load(['data_structures/fv_syllA_',ff(i).name]);
+    load(['data_structures/fv_syllB_',ff(i).name]);
+    load(['data_structures/fv_syllC_',ff(i).name]);
+    load(['data_structures/motif_cab_',ff(i).name]);
+    load(['data_structures/bout_',ff(i).name]);
+    load(['data_structures/fv_repB_',ff(i).name]);
+    if i == 1
+        jc_plotrawdata(['fv_syllA_',ff(i).name],'k.',-1);
+        jc_plotrawdata(['fv_syllB_',ff(i).name],'k.',-1);
+        jc_plotrawdata(['fv_syllC_',ff(i).name],'k.',-1);
+        jc_plotmotifvals(['motif_cab_',ff(i).name],'k.',-1);
+        jc_plotrepeatvals(['fv_repB_',ff(i).name],'k.',-1);
+        jc_plotboutvals(['bout_',ff(i).name],'k.',-1);
+    elseif i == 2
+        jc_plotrawdata(['fv_syllA_',ff(i).name],'k.',0);
+        jc_plotrawdata(['fv_syllB_',ff(i).name],'k.',0);
+        jc_plotrawdata(['fv_syllC_',ff(i).name],'k.',0);
+        jc_plotmotifvals(['motif_cab_',ff(i).name],'k.',0);
+        jc_plotrepeatvals(['fv_repB_',ff(i).name],'k.',0);
+        jc_plotboutvals(['bout_',ff(i).name],'k.',0);
+    elseif i == 3
+        jc_plotrawdata(['fv_syllA_',ff(i).name],'r.',0);
+        jc_plotrawdata(['fv_syllB_',ff(i).name],'r.',0);
+        jc_plotrawdata(['fv_syllC_',ff(i).name],'r.',0);
+        jc_plotmotifvals(['motif_cab_',ff(i).name],'r.',0);
+        jc_plotrepeatvals(['fv_repB_',ff(i).name],'r.',0);
+        jc_plotboutvals(['bout_',ff(i).name],'r.',0);
+    elseif i == 4
+        jc_plotrawdata(['fv_syllA_',ff(i).name],'k.',1);
+        jc_plotrawdata(['fv_syllB_',ff(i).name],'k.',1);
+        jc_plotrawdata(['fv_syllC_',ff(i).name],'k.',1);
+        jc_plotmotifvals(['motif_cab_',ff(i).name],'k.',1);
+        jc_plotrepeatvals(['fv_repB_',ff(i).name],'k.',1);
+        jc_plotboutvals(['bout_',ff(i).name],'k.',1);
+    end
+    clearvars -except fvalbnd_syllA fvalbnd_syllB fvalbnd_syllC ff 
+end
+
+    

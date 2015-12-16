@@ -222,11 +222,11 @@ for ifn=1:length(ff)
             if offsamp + 256 < length(dat)
                 note_cnt = note_cnt+1;
                 smtemp=dat(onsamp-256:offsamp+256);%unfiltered amplitude envelop of syllable
-                filtsong = bandpass(smtemp,fs,300,15000,'hanningffir');
+                filtsong = bandpass(smtemp,fs,300,10000,'hanningffir');
                 
                 %resegment based on normalized smooth amp env, important if
                 %segmentation was done manually because of jitter
-                len = round(fs*2/1000);%2 ms window for smoothing
+                len = round(fs*5/1000);%2 ms window for smoothing
                 h   = ones(1,len)/len;
                 sm = conv(h,filtsong.^2);
                 offset = round((length(sm)-length(filtsong))/2);
@@ -245,7 +245,7 @@ for ifn=1:length(ff)
                 
                 %recompute filtsong with new onsamp and offsamp 
                 smtemp = dat(onsamp-256:offsamp+256);
-                filtsong = bandpass(smtemp,fs,300,15000,'hanningffir');
+                filtsong = bandpass(smtemp,fs,300,10000,'hanningffir');
                 
             else
                 error([fn,' time cutoff at end of syllable exceeds file length']);
@@ -288,20 +288,13 @@ for ifn=1:length(ff)
                 end
                 
 
-                %entropy measurements
-    %             we = mean(log(geomean(abs(sp),1))); %wiener entropy by averaging all WE values in every timebin of spec
-                pxx = bsxfun(@rdivide,pxx,sum(pxx));
-                if length(TIMESHIFT) == 1
-                    spent = -sum(pxx(:,ti1).*log(pxx(:,ti1)));
-                elseif length(TIMESHIFT) == 2
-                    spent = nanmean(-sum(pxx(:,ti1).*log(pxx(:,ti1))));
-                end
-%                 spent = [];%spectral entropy
-%                 for qq = 1:size(pxx,2)
-%                     spent = [spent; -sum(pxx(:,qq).*log(pxx(:,qq)))];
-%                 end
-%                 spent = mean(spent);
-    
+                %Spectral temporal entropy
+                indf = find(f>=300 & f <= 10000);
+                pxx = pxx(indf,:);
+                pxx = bsxfun(@rdivide,pxx,sum(sum(pxx)));
+                
+                spent = -sum(sum(pxx.*log2(pxx)))/log2(length(pxx(:)));
+
                  %evtaf pitch estimates based on tmp detection
                  if evtaf == 1
                     evtafv = []; tmpttime = [];

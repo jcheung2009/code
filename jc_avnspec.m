@@ -3,7 +3,7 @@ function [pc_sal pc_cond avn1 tm1 f1 avn2 tm2 f2] = jc_avnspec(fv_sal,fv_cond)
 %produces pitch contours for matched time windows in fv_cond and fv_sal
 
 NFFT = 512;
-fs = 44100;
+fs = 32000;
 
 overlap = NFFT-2;
 t=-NFFT/2+1:NFFT/2;

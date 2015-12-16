@@ -115,7 +115,7 @@ for i = 1:length(ff)
         end
 
         smtemp = dat(onsamp:offsamp);%amplitude envelope of motif
-        sm = evsmooth(smtemp,fs);%smoothed amplitude envelop
+        sm = evsmooth(smtemp,fs,'','','',5);%smoothed amplitude envelop
         sm2 = log(sm);%to better see amplitude envelop and to better segment
         sm2 = sm2-min(sm2);
         sm2 = sm2./max(sm2);
@@ -126,15 +126,15 @@ for i = 1:length(ff)
         %peakdistance = 0.05*fs; %50 ms 
         [pks locs] = findpeaks(c);
         if isempty(locs)%when number of syllables in motif < 4
-            firstpeakdistance = [];
+            firstpeakdistance = NaN;
         else
             firstpeakdistance = locs(1)/fs;%average time in seconds between adjacent syllables from autocorr
         end
         
         if jitter == 'n'
-            minint = 5;%gap
-            mindur = 30;%syllable
-            thresholdforsegmentation = {0.4,minint,mindur};%{graythresh(sm2),minint,mindur};%otsu's method
+            minint = 3;%gap
+            mindur = 20;%syllable
+            thresholdforsegmentation = {0.3,minint,mindur};%{graythresh(sm2),minint,mindur};%otsu's method
             [ons offs] = SegmentNotes(sm2,fs,thresholdforsegmentation{2},...
                 thresholdforsegmentation{3},thresholdforsegmentation{1});
             disp([num2str(length(ons)),' syllables detected']);
@@ -157,24 +157,24 @@ for i = 1:length(ff)
                     end 
                 end
             else
-                if length(ons) ~= length(motif)
-                    figure;hold on;
-                end
-                while length(ons) ~= length(motif) 
-                    clf
-                    plot(sm2,'k');hold on;%plot([floor(ons(1)*fs) ceil(offs(end)*fs)],...
-                        %[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');
-                        plot([floor(ons*fs) ceil(offs*fs)],[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');hold on;
-                    accept_or_not = input('accept segmentation? (y/n):','s');
-                    if accept_or_not == 'y'
-                        break
-                    else
-                        thresholdforsegmentation = input('try new {thresholdhold,minint,mindur}:');
-                            [ons offs] = SegmentNotes(sm2,fs,thresholdforsegmentation{2},...
-                                thresholdforsegmentation{3},thresholdforsegmentation{1});
-                            disp([num2str(length(ons)),' syllables detected']);
-                    end
-                end
+%                 if length(ons) ~= length(motif)
+%                     figure;hold on;
+%                 end
+%                 while length(ons) ~= length(motif) 
+%                     clf
+%                     plot(sm2,'k');hold on;%plot([floor(ons(1)*fs) ceil(offs(end)*fs)],...
+%                         %[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');
+%                         plot([floor(ons*fs) ceil(offs*fs)],[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');hold on;
+%                     accept_or_not = input('accept segmentation? (y/n):','s');
+%                     if accept_or_not == 'y'
+%                         break
+%                     else
+%                         thresholdforsegmentation = input('try new {thresholdhold,minint,mindur}:');
+%                             [ons offs] = SegmentNotes(sm2,fs,thresholdforsegmentation{2},...
+%                                 thresholdforsegmentation{3},thresholdforsegmentation{1});
+%                             disp([num2str(length(ons)),' syllables detected']);
+%                     end
+%                 end
                 if length(ons) ~= length(motif)
                     continue
                 end
@@ -231,9 +231,11 @@ for i = 1:length(ff)
            entropyestimates(syllind) = NaN;
            
            if ceil(offs(syllind)*fs) <= length(smtemp)
-               filtsong = bandpass(smtemp,fs,300,15000,'hanningffir'); 
-           
-               [sp f tm pxx] = spectrogram(filtsong(ceil(ons(syllablepositions{syllind})*fs):ceil(offs(syllablepositions{syllind})*fs)),w,overlap,spNFFT,fs);
+               filtsong = bandpass(smtemp,fs,300,10000,'hanningffir'); 
+               if floor(offs(syllablepositions{syllind})*fs) > length(filtsong)
+                   offs(syllablepositions{syllind}) = (length(filtsong)-129)/fs;
+               end
+               [sp f tm pxx] = spectrogram(filtsong(ceil(ons(syllablepositions{syllind})*fs):floor(offs(syllablepositions{syllind})*fs)),w,overlap,spNFFT,fs);
                pc = [];
                for m = 1:size(sp,2)
                    fdat = abs(sp(:,m));
@@ -253,7 +255,8 @@ for i = 1:length(ff)
                             end
                         end
                         pc = cat(1,pc,mean(diff([0,mxtmpvec])));
-                end
+               end
+                %pitch
                 pc = [tm' pc];
                 if length(timeshifts{syllind})==1
                     ti1 = find(tm<=timeshifts{syllind});
@@ -263,12 +266,14 @@ for i = 1:length(ff)
                     ti1 = find(tm>=timeshifts{syllind}(1)&tm<=timeshifts{syllind}(2));
                     pitchestimates(syllind) = mean(pc(ti1,2));%pitch estimate at timeshift
                 end
-                pxx = bsxfun(@rdivide,pxx,sum(pxx));
-                if length(timeshifts{syllind})==1
-                    entropyestimates(syllind) = -sum(pxx(:,ti1).*log(pxx(:,ti1)));
-                elseif length(timeshifts{syllind}) == 2
-                    entropyestimates(syllind) = mean(-sum(pxx(:,ti1).*log(pxx(:,ti1))));
-                end
+                
+                %Spectral temporal entropy
+                indf = find(f>=300 & f <= 10000);
+                pxx = pxx(indf,:);
+                pxx = bsxfun(@rdivide,pxx,sum(sum(pxx)));
+                entropyestimates(syllind) = -sum(sum(pxx.*log2(pxx)))/log2(length(pxx(:)));
+                
+                %volume
                 volumeestimates(syllind)=mean(filtsong(ceil(ons(syllablepositions{syllind})*fs):ceil(offs(syllablepositions{syllind})*fs)-1).^2);
            else
                continue

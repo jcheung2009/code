@@ -126,7 +126,7 @@ for ifn=1:length(ff)
         end
         
         smtemp = dat(onsamp:offsamp);
-        sm = evsmooth(smtemp,fs);
+        sm = evsmooth(smtemp,fs,'','','',5);
         sm = log(sm);%better for segmentation
         sm = sm-min(sm);
         sm = sm./max(sm);
@@ -146,31 +146,31 @@ for ifn=1:length(ff)
             firstpeakdistance = NaN;
         end
         
-        minint = 5;
-        mindur = 30;
+        minint = 3;
+        mindur = 20;
         thresholdforsegmentation = {0.3,minint,mindur};
         [ons offs] = SegmentNotes(sm,fs,thresholdforsegmentation{2},...
             thresholdforsegmentation{3},thresholdforsegmentation{1});
         disp([num2str(length(ons)),' syllables detected']);
-        if length(ons) ~= runlength(i) | floor(ons(1)*fs) == 1
-            figure;hold on;
-        end
-        
-        while length(ons)~=runlength(i) | floor(ons(1)*fs) == 1
-            clf
-            plot(sm,'k');hold on;%plot([floor(ons(1)*fs) ceil(offs(end)*fs)],...
-                %[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');
-                plot([floor(ons*fs) ceil(offs*fs)],[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');hold on;
-            disp([num2str(length(ons)),' syllables detected']);
-            accept_or_not = input('accept segmentation? (y/n):','s');
-            if accept_or_not=='y'
-                break
-            else
-                thresholdforsegmentation=input('try new {threshold,minint,mindur}:');
-                [ons offs] = SegmentNotes(sm,fs,thresholdforsegmentation{2},...
-                    thresholdforsegmentation{3},thresholdforsegmentation{1});
-            end
-        end
+%         if length(ons) ~= runlength(i) | floor(ons(1)*fs) == 1
+%             figure;hold on;
+%         end
+%         
+%         while length(ons)~=runlength(i) | floor(ons(1)*fs) == 1
+%             clf
+%             plot(sm,'k');hold on;%plot([floor(ons(1)*fs) ceil(offs(end)*fs)],...
+%                 %[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');
+%                 plot([floor(ons*fs) ceil(offs*fs)],[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');hold on;
+%             disp([num2str(length(ons)),' syllables detected']);
+%             accept_or_not = input('accept segmentation? (y/n):','s');
+%             if accept_or_not=='y'
+%                 break
+%             else
+%                 thresholdforsegmentation=input('try new {threshold,minint,mindur}:');
+%                 [ons offs] = SegmentNotes(sm,fs,thresholdforsegmentation{2},...
+%                     thresholdforsegmentation{3},thresholdforsegmentation{1});
+%             end
+%         end
         if length(ons) ~= runlength(i) | floor(ons(1)*fs) == 1
             sylldurations = NaN;
             gapdurations = NaN;
@@ -187,7 +187,7 @@ for ifn=1:length(ff)
 
                 %pitch,volume, entropy measurement for each syllable in repeat
                 if computespec == 'y'
-                    pitchest = []; amp = []; we= [];pitchcontours_all_syllables = cell(length(ons),1);
+                    pitchest = []; amp = [];spent = [];pitchcontours_all_syllables = cell(length(ons),1);
                     for ii = 1:length(ons) %for each syllable in repeat run
                         filtsong = bandpass(smtemp,fs,300,15000,'hanningffir');%band pass filter required for good entropy estimates
                         if ii == 1
@@ -255,15 +255,13 @@ for ifn=1:length(ff)
                             pitchest = cat(1,pitchest,mean(pc(ti1)));
                         end
 
-                        %entropy
-                        %we = cat(1,we,mean(log(geomean(abs(sp),1))));%wiener ent for each syll by averaging across all we values in every time bin of sp
-                        pxx = bsxfun(@rdivide,pxx,sum(pxx));
-                        spent = -sum(pxx(:,ti1).*log(pxx(:,ti1)));
-        %                 spent = [];%spectral entropy
-        %                 for qq = 1:size(pxx,2)
-        %                     spent = [spent; -sum(pxx(:,qq).*log(pxx(:,qq)))];
-        %                 end
-        %                 spent = mean(spent);
+                         %Spectral temporal entropy
+                        indf = find(f>=300 & f <= 10000);
+                        pxx = pxx(indf,:);
+                        pxx = bsxfun(@rdivide,pxx,sum(sum(pxx)));
+                        spent = cat(1,spent,-sum(sum(pxx.*log2(pxx)))/log2(length(pxx(:))));
+
+  
                     end
                     maxpclength = max(cellfun(@length,pitchcontours_all_syllables));
                     pitchcontours_all_syllables = cell2mat(cellfun(@(x) [x;NaN(maxpclength-length(x),1)]',...
