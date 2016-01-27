@@ -136,9 +136,9 @@ for ifn=1:length(ff)
             c = c(ceil(length(lag)/2):end);
             lag = lag(ceil(length(lag)/2):end);
             %peakdistance = 0.05*fs; %50 ms 
-            [pks locs] = findpeaks(c);
+            [pks locs] = findpeaks(c,'minpeakwidth',256);
             if isempty(locs)%when number of syllables in motif < 4
-                firstpeakdistance = [];
+                firstpeakdistance = NaN;
             else
                 firstpeakdistance = locs(1)/fs;%average time in seconds between adjacent syllables from autocorr
             end
@@ -146,12 +146,13 @@ for ifn=1:length(ff)
             firstpeakdistance = NaN;
         end
         
-        minint = 3;
+        minint = 5;
         mindur = 20;
-        thresholdforsegmentation = {0.3,minint,mindur};
+        thresholdforsegmentation = {0.4,minint,mindur};
         [ons offs] = SegmentNotes(sm,fs,thresholdforsegmentation{2},...
             thresholdforsegmentation{3},thresholdforsegmentation{1});
         disp([num2str(length(ons)),' syllables detected']);
+        %% comment this part if don't want to see segmentation
 %         if length(ons) ~= runlength(i) | floor(ons(1)*fs) == 1
 %             figure;hold on;
 %         end
@@ -171,6 +172,8 @@ for ifn=1:length(ff)
 %                     thresholdforsegmentation{3},thresholdforsegmentation{1});
 %             end
 %         end
+        %%
+       
         if length(ons) ~= runlength(i) | floor(ons(1)*fs) == 1
             sylldurations = NaN;
             gapdurations = NaN;

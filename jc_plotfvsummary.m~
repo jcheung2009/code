@@ -44,11 +44,8 @@ end
 
 if ~isempty(matchtm)
     indsal = find(tb_sal>=tb_cond(1) & tb_sal <= tb_cond(end)); 
-    tb_sal = tb_sal(indsal);
-    pitch = pitch(indsal);
-    vol = vol(indsal);
-    ent = ent(indsal);
-end 
+    
+
 
 pitch2 = [fv_syll_cond(:).mxvals];
     vol2 = log([fv_syll_cond(:).maxvol]);
@@ -306,7 +303,7 @@ else
     [hi lo mn2] = mBootstrapCI(pitchn);
     plot(xpt,mn2,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',...
-        {'NASPM/IEM','saline'},'fontweight','bold');
+        {'NASPM','saline'},'fontweight','bold');
     ylabel('z-score');;
     title('Change in pitch relative to saline');
     fv = mn2;
@@ -315,7 +312,7 @@ else
     [hi lo mn2] = mBootstrapCI(voln);
     plot(xpt,mn2,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',...
-        {'NASPM/IEM','saline'},'fontweight','bold');
+        {'NASPM','saline'},'fontweight','bold');
     ylabel('z-score');;
     title('Change in volume relative to saline');
     v = mn2;
@@ -324,7 +321,7 @@ else
     [hi lo mn2] = mBootstrapCI(entn);
     plot(xpt,mn2,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',...
-        {'NASPM/IEM','saline'},'fontweight','bold');
+        {'NASPM','saline'},'fontweight','bold');
     ylabel('z-score');
     title('Change in entropy relative to saline');
     et = mn2;
@@ -337,7 +334,7 @@ else
     lo = mn3-((mn2-lo)/mn1);
     plot(xpt,mn3,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',...
-        {'NASPM/IEM','saline'},'fontweight','bold');
+        {'NASPM','saline'},'fontweight','bold');
     ylabel('Pitch CV change');
     title('Change in pitch CV relative to saline');
     pcv = mn3;

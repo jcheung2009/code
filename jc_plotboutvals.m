@@ -85,7 +85,7 @@ fignum = input('fig number for singing rate:');
 figure(fignum);hold on;
 bar(numsongs(:,1),numsongs(:,2),1,'edgecolor','none','facecolor',linecolor);
 h=findobj(gca,'Type','patch');set(h,'facealpha',0.5);
-set(gca,'xtick',xtick,'xticklabel',xticklabel);
+set(gca,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
     xlabel('Time in hours since 7 AM');
 ylabel('Number of songs per hour');
 title('Singing Rate')

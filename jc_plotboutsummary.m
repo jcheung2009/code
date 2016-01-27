@@ -1,64 +1,78 @@
-function singingrate2 = jc_plotboutsummary(bout_sal, bout_cond, marker,linecolor,excludewashin)
+function singingrate = jc_plotboutsummary(bout_sal, bout_cond, marker,linecolor,...
+    xpt,excludewashin,startpt,matchtm,fignum)
 %bout_sal from jc_findboutvals
 %generate summary plots for changes in motif number and singing rate
+%for saline morn vs drug noon
 
-if iscell(bout_sal)
-    tb_sal=[];
-    bout = [];
-    for i = 1:length(bout_sal)
-        tb_sal = [tb_sal; jc_tb([bout_sal{i}(:).datenm]',7,0)];
-        bout = [bout bout_sal{i}];
-    end
-    bout_sal = bout;
-end
-if iscell(bout_cond)
-    tb_cond=[];
-    bout = [];
-    for i = 1:length(bout_cond)
-        tb_cond = [tb_cond; jc_tb([bout_cond{i}(:).datenm]',7,0)];
-        bout =[bout bout_cond{i}];
-    end
-    bout_cond = bout;
-end
+tb_sal = jc_tb([bout_sal(:).datenm]',7,0);
+tb_cond = jc_tb([bout_cond(:).datenm]',7,0);
 
-if ~iscell(bout_sal) 
-    tb_sal = jc_tb([bout_sal(:).datenm]',7,0);
-end
-if ~iscell(bout_cond)
-    tb_cond = jc_tb([bout_cond(:).datenm]',7,0);
-end
-if excludewashin == 1
+if excludewashin == 1 & ~isempty(startpt)
+    ind = find(tb_cond < startpt);
+    tb_cond(ind) = [];
+    bout_cond(ind) = [];
+elseif excludewashin == 1
     ind = find(tb_cond<tb_sal(end)+1800); %exclude first half hour of wash in 
     bout_cond(ind) = [];
     tb_cond(ind) = [];
 end
 
-nummotifs = [bout_sal(:).nummotifs]';
-nummotifs2 = [bout_sal(:).nummotifs]';
-nummotifs2 = nummotifs2/mean(nummotifs);
-nummotifs = nummotifs/mean(nummotifs);
+if ~isempty(matchtm)
+    indsal = find(tb_sal>=tb_cond(1) & tb_sal <= tb_cond(end)); 
+    tb_sal = tb_sal(indsal);
+end 
 
-fignum = input('figure for plotting bout summary:');
+%singing rate for sal
+numseconds = tb_sal(end)-tb_sal(1);
+timewindow = 1800;
+jogsize = 900;
+numtimewindows = 2*floor(numseconds/timewindow)-1;
+if numtimewindows < 0
+    numtimewindows = 1;
+end
+
+timept1 = tb_sal(1);
+numsongs = [];
+for i = 1:numtimewindows
+    timept2 = timept1+timewindow;
+    numsongs(i,:) = [timept1+jogsize length(find(tb_sal>= timept1 & tb_sal < timept2))];
+    timept1 = timept1+jogsize;
+end
+if numtimewindows == 1
+    numsongs = [numsongs; timept1+jogsize 0];
+end
+
+%singing rate for cond
+numseconds = tb_cond(end)-tb_cond(1);
+timewindow = 1800;
+jogsize = 900;
+numtimewindows = 2*floor(numseconds/timewindow)-1;
+if numtimewindows < 0
+    numtimewindows = 1;
+end
+
+timept1 = tb_cond(1);
+numsongs2 = [];
+for i = 1:numtimewindows
+    timept2 = timept1+timewindow;
+    numsongs2(i,:) = [timept1+jogsize length(find(tb_cond>= timept1 & tb_cond < timept2))];
+    timept1 = timept1+jogsize;
+end
+if numtimewindows == 1
+    numsongs2 = [numsongs2; timept1+jogsize 0];
+end
+
+
+%change in peak singing rate
+singingrate = max(numsongs2(:,2))/max(numsongs(:,2));
+
 figure(fignum);hold on;
-% subtightplot(1,2,1,0.07,0.05,0.08);hold on;
-% [hi lo mn1] = mBootstrapCI(nummotifs);
-% plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-% [hi lo mn2] = mBootstrapCI(nummotifs2);
-% plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
-% plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
-% set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
-% ylabel('Change in number of motifs');
-% title('Normalized change in bout length');
-% 
-% subtightplot(1,2,2,0.07,0.05,0.08);hold on;
-singingrate = length(tb_sal)/(tb_sal(end)-tb_sal(1));
-singingrate2 = length(tb_cond)/(tb_cond(end)-tb_cond(1));
-singingrate2 = singingrate2/singingrate;
 jitter = (-1+2*rand)/10;
-xpt = 0.5 + jitter;
-plot(xpt,singingrate2,marker,'markersize',15);hold on;
-set(gca,'xlim',[0 2],'xtick',[0.5 1.5],'xticklabel',{'NASPM','saline'});
-ylabel('Change in singing rate relative to saline');
+xpt = xpt + jitter;
+plot(xpt,singingrate,marker,'markersize',12);hold on;
+set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',...
+        {'NASPM','saline'},'fontweight','bold');
+ylabel('Change in peak singing rate');
 title('Singing rate');
 
 

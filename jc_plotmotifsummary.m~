@@ -1,5 +1,5 @@
 function [mdur sdur gdur mcv macorr] = jc_plotmotifsummary(motif_sal, motif_cond, ...
-    marker, linecolor, xpt,excludewashin,startpt,matchtm,checkoutliers,rawplot,fignum)
+    marker, linecolor, xpt,excludewashin,startpt,matcheckoutliers,rawplot,fignum)
 %for experiment design saline morning vs drug afternoon
 
 if iscell(motif_sal)

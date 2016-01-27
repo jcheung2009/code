@@ -1,5 +1,5 @@
 function jc_plotmotifsummary2b(motif_sal, motif_cond,marker,linecolor,excludewashin,sdurind,gdurind,syllables)
-
+%regression
     tb_sal = jc_tb([motif_sal(:).datenm]',7,0);
     tb_cond = jc_tb([motif_cond(:).datenm]',7,0);
 

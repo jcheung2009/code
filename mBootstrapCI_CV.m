@@ -21,6 +21,11 @@ end
 hithresh = alpha;
 lothresh = 1-alpha;
 
+if ~isempty(find(isnan(invect)))
+    removeind = find(isnan(invect));
+    invect(removeind) = [];
+end
+
 if(length(invect)<40)
     numsamps = 5;
 else

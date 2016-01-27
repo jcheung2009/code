@@ -9,7 +9,7 @@ function ptchs = createPatches(x,y,offset,c,FaceAlpha)
 % Ensure x and y are numeric vectors
 validateattributes(x,{'numeric'},{'vector'});
 validateattributes(y,{'numeric'},{'vector'});
-validateattributes(c,{'char'},{'scalar'});
+%validateattributes(c,{'char'},{'scalar'});
 %#TODO Allow use of vector c
 
 % Check size(x) is same as size(y)

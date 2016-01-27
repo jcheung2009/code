@@ -1,4 +1,4 @@
-function [pc_sal pc_cond avn1 tm1 f1 avn2 tm2 f2] = jc_avnspec(fv_sal,fv_cond)
+function [pc_sal pc_cond avn1 tm1 f1 avn2 tm2 f2] = jc_avnspec(fv_sal,fv_cond,timematch,plothandle)
 %fv is structure from jc_findwnote5
 %produces pitch contours for matched time windows in fv_cond and fv_sal
 
@@ -10,12 +10,16 @@ t=-NFFT/2+1:NFFT/2;
 sigma=(1/1000)*fs;
 w=exp(-(t/sigma).^2);%gaussian window for spectrogram
 
-tb_cond = jc_tb([fv_cond(:).datenm]',7,0);
-tb_sal = jc_tb([fv_sal(:).datenm]',7,0);
-
-ind = find(tb_sal >= tb_cond(1) & tb_sal <= tb_cond(end));
-                
-% for i = 1:length(ind)
+if timematch == 'y'
+    tb_cond = jc_tb([fv_cond(:).datenm]',7,0);
+    tb_sal = jc_tb([fv_sal(:).datenm]',7,0);
+    ind = find(tb_sal >= tb_cond(1) & tb_sal <= tb_cond(end));
+    pc_sal = jc_getpc(fv_sal(ind));
+else
+    pc_sal = jc_getpc(fv_sal);
+end
+pc_cond = jc_getpc(fv_cond);              
+% for i = 1:length(ind)fill
 %     filtsong = bandpass(fv_sal(ind(i)).smtmp,fs,300,15000,'hanningffir');
 %     [sp f tm pxx] = spectrogram(filtsong,w,overlap,NFFT,fs);
 %     spec(i).sp = abs(sp);
@@ -54,10 +58,12 @@ ind = find(tb_sal >= tb_cond(1) & tb_sal <= tb_cond(end));
 % tm2 = spec(ind1).tm;
 % f2 = spec(ind1).f; 
 
-pc_sal = jc_getpc(fv_sal(ind));
-pc_cond = jc_getpc(fv_cond);
 
-figure;hold on;
+if ~isempty(plothandle);
+    hold(plothandle,'on');
+else
+    figure;hold on;
+end
 xbins = linspace(pc_sal.tm(1),pc_sal.tm(end),length(pc_sal.tm));
 fill([xbins fliplr(xbins)],...
     [nanmean(pc_sal.pc,2)'-nanstderr(pc_sal.pc,2)',...
@@ -68,7 +74,7 @@ fill([xbins2 fliplr(xbins2)],...
     [nanmean(pc_cond.pc,2)'-nanstderr(pc_cond.pc,2)',...
     fliplr(nanmean(pc_cond.pc,2)'+nanstderr(pc_cond.pc,2)')],'r','edgecolor','none',...
     'FaceAlpha',0.5); hold on;
-
+set(gca,'fontweight','bold')
 ylabel('Frequency (Hz)','FontWeight','bold');
 xlabel('Time (s)','FontWeight','bold');
 

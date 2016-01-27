@@ -42,7 +42,7 @@ while removeoutliers == 'y'
     h = plot(motifdur(:,1),motifdur(:,2),marker);hold on;
     removeoutliers = input('remove outliers?:','s');
 end
-set(gca,'xtick',xtick,'xticklabel',xticklabel);
+set(gca,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
 xlabel('');
 ylabel('Duration (seconds)');
 title('Motif duration');
@@ -58,7 +58,7 @@ while removeoutliers == 'y'
     h = plot(sylldur(:,1),sylldur(:,2),marker);hold on;
     removeoutliers = input('remove outliers?:','s');
 end
-set(gca,'xtick',xtick,'xticklabel',xticklabel);
+set(gca,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
 xlabel('');
 ylabel('Duration (seconds)');
 title('Syllable duration');
@@ -74,7 +74,7 @@ while removeoutliers == 'y'
     h = plot(gapdur(:,1),gapdur(:,2),marker);hold on;
     removeoutliers = input('remove outliers?:','s');
 end
-set(gca,'xtick',xtick,'xticklabel',xticklabel);
+set(gca,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
 xlabel('Time (hours since 7 AM on Day 0)');
 ylabel('Duration (seconds)');
 title('Gap duration');
@@ -91,7 +91,7 @@ while removeoutliers == 'y'
     h = plot(firstpeakdistance(:,1),firstpeakdistance(:,2),marker);hold on;
     removeoutliers = input('remove outliers?:','s');
 end
-set(gca,'xtick',xtick,'xticklabel',xticklabel);
+set(gca,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
 xlabel('Time (hours since 7 AM on Day 0)');
 ylabel('Duration (seconds)');
 title('Average syllable-gap duration (autocorrelation)');

@@ -1,0 +1,35 @@
+ff = load_batchf('naspm_birds');
+bcolor = hsv(length(ff));
+
+barind = 1;
+figure;hold on;
+h1 = subtightplot(4,1,1
+xlblcenter = [];
+for i = 1:length(ff)
+     load([ff(i).name,'/analysis/data_structures/summary']);
+     
+     if exist(['fvnaspm_',ff(i).name])
+         x = eval(['fvnaspm_',ff(i).name]);
+     elseif exist(['fviem_',ff(i).name]) 
+        x = eval(['fviem_',ff(i).name]);
+     end
+     
+     syllables = fieldnames(x);
+     numbars = length(syllables);
+     xlblcenter = [xlblcenter,mean([barind:barind+numbars-1])];
+     for ii = 1:numbars
+         xdata = barind;
+         ydata = [x(:).([syllables{ii}])];
+         ydata = [ydata(:).fv];
+         hold(ax,'on');
+         createPatches(xdata,nanmean(ydata),0.45,bcolor(i,:),0.5);
+         plot(ax,xdata,ydata,'color',bcolor(i,:),'marker','o','markersize',8);
+         
+         barind = barind + 1;
+     end
+end
+xticklbl = {ff(:).name};
+set(ax,'xtick',xlblcenter,'xticklabel',xticklbl,'fontweight','bold');
+ylabel('z-score');
+title('Pitch');
+     

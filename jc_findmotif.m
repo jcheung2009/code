@@ -124,7 +124,7 @@ for i = 1:length(ff)
         c = c(ceil(length(lag)/2):end);
         lag = lag(ceil(length(lag)/2):end);
         %peakdistance = 0.05*fs; %50 ms 
-        [pks locs] = findpeaks(c);
+        [pks locs] = findpeaks(c,'minpeakwidth',256);
         if isempty(locs)%when number of syllables in motif < 4
             firstpeakdistance = NaN;
         else
@@ -134,7 +134,7 @@ for i = 1:length(ff)
         if jitter == 'n'
             minint = 3;%gap
             mindur = 20;%syllable
-            thresholdforsegmentation = {0.3,minint,mindur};%{graythresh(sm2),minint,mindur};%otsu's method
+            thresholdforsegmentation = {0.6,minint,mindur};%{graythresh(sm2),minint,mindur};%otsu's method
             [ons offs] = SegmentNotes(sm2,fs,thresholdforsegmentation{2},...
                 thresholdforsegmentation{3},thresholdforsegmentation{1});
             disp([num2str(length(ons)),' syllables detected']);
@@ -157,6 +157,7 @@ for i = 1:length(ff)
                     end 
                 end
             else
+                %%uncomment this section if want to see segmentation
 %                 if length(ons) ~= length(motif)
 %                     figure;hold on;
 %                 end
@@ -175,9 +176,10 @@ for i = 1:length(ff)
 %                             disp([num2str(length(ons)),' syllables detected']);
 %                     end
 %                 end
-                if length(ons) ~= length(motif)
-                    continue
-                end
+%                 if length(ons) ~= length(motif)
+%                     continue
+%                 end
+                %%
             end
         else
             if varseq == 'y'
@@ -197,7 +199,7 @@ for i = 1:length(ff)
             end
         end
         
-        if length(ons) > length(motif)
+        if length(ons) ~= length(motif)
             continue
         end
         if length(ons) < length(syllablepositions) 

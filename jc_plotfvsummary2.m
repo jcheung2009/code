@@ -222,27 +222,27 @@ subtightplot(4,1,1,0.07,0.07,0.1);hold on;
 jitter = (-1+2*rand)/4;
 xpt = xpt+jitter;
 plot(xpt,mn1,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-set(gca,'xlim',[0 4],'xtick',[0.5,1.5,2.5,3.5],'xticklabel',...
-    {'probe 1','probe 2','probe 3','probe 4'});
-ylabel('Pitch change');
+set(gca,'xlim',[0 1],'xtick',[0.5],'xticklabel',...
+    {'control'},'fontweight','bold');
+ylabel('z-score');
 title('Change in pitch relative to saline');
 fv = mn1;
 
 subtightplot(4,1,2,0.07,0.07,0.1);hold on;
 [hi lo mn1] = mBootstrapCI(voln);
 plot(xpt,mn1,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-set(gca,'xlim',[0 4],'xtick',[0.5,1.5,2.5,3.5],'xticklabel',...
-    {'probe 1','probe 2','probe 3','probe 4'});
-ylabel('Volume change');
+set(gca,'xlim',[0 1],'xtick',[0.5],'xticklabel',...
+    {'control'},'fontweight','bold');
+ylabel('z-score');
 title('Change in volume relative to saline');
 v = mn1;
 
 subtightplot(4,1,3,0.07,0.07,0.1);hold on;
 [hi lo mn1] = mBootstrapCI(entn);
 plot(xpt,mn1,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-set(gca,'xlim',[0 4],'xtick',[0.5,1.5,2.5,3.5],'xticklabel',...
-    {'probe 1','probe 2','probe 3','probe 4'});
-ylabel('Entropy change');
+set(gca,'xlim',[0 1],'xtick',[0.5],'xticklabel',...
+    {'control'},'fontweight','bold');
+ylabel('z-score');
 title('Change in entropy relative to saline');
 et = mn1;
 
@@ -254,9 +254,9 @@ mn3 = mn2/mn1;
 hi = mn3+((hi-mn2)/mn1);
 lo = mn3-((mn2-lo)/mn1);
 plot(xpt,mn3,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-set(gca,'xlim',[0 4],'xtick',[0.5,1.5,2.5,3.5],'xticklabel',...
-    {'probe 1','probe 2','probe 3', 'probe 4'});
-ylabel('Pitch CV change');
+set(gca,'xlim',[0 1],'xtick',[0.5],'xticklabel',...
+    {'control'},'fontweight','bold');
+ylabel('pitch CV change');
 title('Change in pitch CV relative to saline');
 pcv = mn3;
 

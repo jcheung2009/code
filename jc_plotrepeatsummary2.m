@@ -1,4 +1,4 @@
-function [rep sdur gdur] = jc_plotrepeatsummary(fv_rep_sal,fv_rep_cond,marker,linecolor,xpt)
+function [rep reptempo sdur gdur] = jc_plotrepeatsummary(fv_rep_sal,fv_rep_cond,marker,linecolor,xpt)
 %plots summary data for changes in repeat length, gap duration, and
 %syllable duration for target repeat
 %gap durations and syllable durations are matched by repeat position before
@@ -33,6 +33,9 @@ end
 
 runlength = [fv_rep_sal(:).runlength];
 runlength2 = [fv_rep_cond(:).runlength];
+firstpeakdistance = [fv_rep_sal(:).firstpeakdistance];
+firstpeakdistance2 = [fv_rep_cond(:).firstpeakdistance];
+
 fignum = input('figure number for checking time course:');
 figure(fignum);hold on;
 plot(tb_cond/3600,runlength2,'k.');hold on;
@@ -44,6 +47,8 @@ indsal = find(tb_sal >= tb_cond(1) & tb_sal <= tb_cond(end));
 tb_sal = tb_sal(indsal);
 runlength = runlength(indsal);
 runlength2 = runlength2(ind);
+firstpeakdistance = firstpeakdistance(indsal);
+firstpeakdistance2 = firstpeakdistance2(ind);
 
 % fv_rep_sal = fv_rep_sal(indsal);
 % fv_rep_cond = fv_rep_cond(ind);
@@ -148,16 +153,29 @@ runlength2 = runlength2(ind);
 
 fignum = input('figure number for plotting repeat summary:');
 figure(fignum);hold on;
-runlength2 = runlength2/mean(runlength);
-%subtightplot(3,1,1,0.07,0.08,0.15);hold on;
+%z-score
+runlength2 = (runlength2-mean(runlength))./std(runlength);
+firstpeakdistance2 = (firstpeakdistance2-nanmean(firstpeakdistance))./nanstd(firstpeakdistance);
+firstpeakdistance2 = firstpeakdistance2(~isnan(firstpeakdistance2));
+subtightplot(2,1,1,0.07,0.08,0.15);hold on;
 [hi lo mn2] = mBootstrapCI(runlength2);
 jitter = (-1+2*rand)/20;
 xpt = xpt+jitter;
 plot(xpt,mn2,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-set(gca,'xlim',[0 4],'xtick',[0.5,1.5,2.5,3.5],'xticklabel',{'probe 1','probe 2','probe 3','probe 4'});
-ylabel('Repeat length relative to saline');
+set(gca,'xlim',[0 1],'xtick',[0.5],'xticklabel',...
+    {'control'},'fontweight','bold');
+ylabel('z-score');
 title('Change in repeat length');
 rep = mn2;
+
+subtightplot(2,1,2,0.07,0.08,0.15);hold on;
+[hi lo mn2] = mBootstrapCI(firstpeakdistance2);
+plot(xpt,mn2,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
+set(gca,'xlim',[0 1],'xtick',[0.5],'xticklabel',...
+    {'control'},'fontweight','bold');
+ylabel('z-score');
+title('Change in repeat tempo');
+reptempo = mn2;
 
 % subtightplot(3,1,2,0.07,0.08,0.15);hold on;
 %  [hi lo mn2] = mBootstrapCI(gapdur2(:,2));

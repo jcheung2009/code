@@ -25,7 +25,7 @@ plot(replength(:,1),replength(:,2),marker);
 ylabel({'Repeat Length', '(number of syllables)'});
 %xlabel('Time (hours since 7 AM)');
 title('Number of syllables in repeat');
-set(gca,'xtick',xtick,'xticklabel',xticklabel);
+set(gca,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
 
 %plot average syllable and gap duration
 sylldur = [];
@@ -73,7 +73,7 @@ end
 ylabel('Syllable duration (s)');
 %xlabel('Time (hours since 7 AM)');
 title('Average syllable duration in repeat');
-set(gca,'xtick',xtick,'xticklabel',xticklabel);
+set(gca,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
 
 subtightplot(3,1,3,0.07,0.08,0.15);hold on;
 h = plot(tb_gapdur,gapdur,marker);hold on;
@@ -90,7 +90,7 @@ end
 title('Average gap duration (s)');
 xlabel('Time (hours since 7 AM)');
 ylabel('Gap duration (s)');
-set(gca,'xtick',xtick,'xticklabel',xticklabel);
+set(gca,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
 
 fignum2 = input('figure number for acorr:');
 figure(fignum2);hold on;
@@ -107,4 +107,4 @@ end
 title('Average syllable-gap duration (autocorrelation)');
 xlabel('Time (hours since 7 AM)');
 ylabel('Duration (s)');
-set(gca,'xtick',xtick,'xticklabel',xticklabel);
+set(gca,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');

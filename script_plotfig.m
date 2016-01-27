@@ -1,65 +1,119 @@
-% ff = load_batchf('batch');
-% daycnt = 1;
-% figure;
-% h = subtightplot(3,1,1,0.07,0.08,0.15);hold on;
-% h2 = subtightplot(3,1,2,0.07,0.08,0.15);hold on;
-% h3 = subtightplot(3,1,3,0.07,0.08,0.15);hold on;
-% for i = 1:length(ff)
-%     if ~isempty(strfind(ff(i).name,'saline'))
-%         mcolor = 'k';
-%         mrk = 'ok';
-%     else
-%         mcolor = 'r';
-%         mrk = 'or';
-%     end
-%     
-%     cmd1 = ['load(''analysis/data_structures/fv_syllA_',ff(i).name,''')'];
-%     eval(cmd1);
-%     cmd2 = ['mBootstrapCI([fv_syllA_',ff(i).name,'(:).mxvals])'];
-%     [hi lo mn] = eval(cmd2);
-%     plot(h,[daycnt daycnt],[hi lo],mcolor,'linewidth',2);hold on;
-%     plot(h,daycnt,mn,mrk,'MarkerSize',4);hold on;
-%     
-%     cmd3 = ['mBootstrapCI([fv_syllA_',ff(i).name,'(:).maxvol])'];
-%     [hi lo mn] = eval(cmd3);
-%     plot(h2,[daycnt daycnt],[hi lo],mcolor,'linewidth',2);hold on;
-%     plot(h2,daycnt,mn,mrk,'MarkerSize',4);hold on;
-%     
-%     cmd4 = ['mBootstrapCI_CV([fv_syllA_',ff(i).name,'(:).mxvals])'];
-%      [mn hi lo] = eval(cmd4);
-%     plot(h3,[daycnt daycnt],[hi lo],mcolor,'linewidth',2);hold on;
-%     plot(h3,daycnt,mn,mrk,'MarkerSize',4);hold on;
-%     
-%     daycnt = daycnt+1;
-% end
-% title(h,'Mean pitch with CI');
-% xlabel(h,'Day');
-% ylabel(h,'Frequency (Hz)');
-% 
-% title(h2,'Mean volume with CI');
-% xlabel(h2,'Day');
-% ylabel(h2,'Amplitude');
-% 
-% title(h3,'Mean pitch CV with CI');
-% xlabel(h3,'Day');
-% ylabel(h3,'CV');
 
- ff = load_batchf('batch2');
- xpt = 3.5;
- marker = 'ro';
- linecolor = 'r';
- fignum = input('figure number for plotting repeat:');
- figure(fignum);hold on;
- for i = 1:length(ff)
-     cmd1 = ['load(''analysis/data_structures/fv_repB_',ff(i).name,''')'];
+%plotting for different naspm conditions, spectral measurements for syllJble
+%each trial has pre-day, treat-day, post-day (matched to time window
+%of treat-day) 
+
+ff = load_batchf('batchnaspm');
+load('analysis/data_structures/naspmpitchlatency.mat');
+daycnt = 1;
+fignum = input('figure number:');
+if isnumeric(fignum)
+    figure(fignum);hold on;
+    h = get(gcf,'children');
+    h2 = h(2);
+    h3 = h(1);
+    h = h(3);
+else
+    figure;
+    h = subtightplot(3,1,1,0.07,0.08,0.15);hold on;
+    h2 = subtightplot(3,1,2,0.07,0.08,0.15);hold on;
+    h3 = subtightplot(3,1,3,0.07,0.08,0.15);hold on;
+end
+mcolor = 'r';
+mrk = 'or';
+for i = 1:2:length(ff)
+    spc = 0.15; 
+    
+    cmd1 = ['load(''analysis/data_structures/fv_syllR_',ff(i).name,''')'];
+    cmd3 = ['load(''analysis/data_structures/fv_syllR_',ff(i+1).name,''')'];
+    %cmd4 = ['load(''analysis/data_structures/fv_syllJ_',ff(i+3).name,''')'];
     eval(cmd1);
-    cmd2 = ['runlength=[fv_repB_',ff(i).name,'(:).runlength];']
+    eval(cmd3);
+    %eval(cmd4);
+    
+    %cmd1 = ['tb_sal = jc_tb([fv_syllJ_',ff(i).name,'(:).datenm]'',7,0);'];
+    cmd2 = ['tb_cond = jc_tb([fv_syllR_',ff(i+1).name,'(:).datenm]'',7,0);'];
+    %cmd3 = ['tb_sal2 = jc_tb([fv_syllJ_',ff(i+3).name,'(:).datenm]'',7,0);'];
+    %eval(cmd1);
     eval(cmd2);
-    jitter = (-1+2*rand)/20;
-    xpt = xpt+jitter;
-    plot(xpt,mean(runlength),marker,[xpt xpt],[mean(runlength)+std(runlength),...
-        mean(runlength)-std(runlength)],linecolor,'linewidth',1,'markersize',12);hold on;
- end
- set(gca,'xlim',[0 4],'xtick',[0.5,1.5,2.5,3.5],'xticklabel',{'probe 1','probe 2','probe 3','probe 4'});
-ylabel('Repeat length');
+    %eval(cmd3);
+    
+    drugtime = naspmpitchlatency.(['tr_',ff(i+1).name]).treattime;
+    startpt = (drugtime+0.97)*3600;%change latency time!
+    ind = find(tb_cond >= startpt);
+
+%     ind = find(tb_sal >= tb_cond(1) & tb_sal <= tb_cond(end));
+%     ind2 = find(tb_sal2 >= tb_cond(1) & tb_sal2 <= tb_cond(end));
+    
+    cmd2 = ['mBootstrapCI([fv_syllR_',ff(i).name,'(:).mxvals])'];
+    [hi lo mn] = eval(cmd2);
+    plot(h,[daycnt daycnt],[hi lo],'k','linewidth',2);hold on;
+    plot(h,daycnt,mn,'ok','MarkerSize',8);hold on;
+    
+    cmd3 = ['mBootstrapCI([fv_syllR_',ff(i).name,'(:).maxvol])'];
+    [hi lo mn] = eval(cmd3);
+    plot(h2,[daycnt daycnt],[hi lo],'k','linewidth',2);hold on;
+    plot(h2,daycnt,mn,'ok','MarkerSize',8);hold on;
+    
+    cmd4 = ['mBootstrapCI_CV([fv_syllR_',ff(i).name,'(:).mxvals])'];
+     [mn hi lo] = eval(cmd4);
+    plot(h3,[daycnt daycnt],[hi lo],'k','linewidth',2);hold on;
+    plot(h3,daycnt,mn,'ok','MarkerSize',8);hold on;
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    if ~isempty(strfind(ff(i+1).name,'naspm'))
+        mrk = 'or';
+        mcolor = 'r';
+    elseif ~isempty(strfind(ff(i+1).name,'iem'))
+        mrk = 'om';
+        mcolor = 'm';
+    end
+    
+    cmd2 = ['mBootstrapCI([fv_syllR_',ff(i+1).name,'(ind).mxvals])'];
+    [hi lo mn] = eval(cmd2);
+    plot(h,[daycnt+spc daycnt+spc],[hi lo],mcolor,'linewidth',2);hold on;
+    plot(h,daycnt+spc,mn,mrk,'MarkerSize',8);hold on;
+    
+    cmd3 = ['mBootstrapCI([fv_syllR_',ff(i+1).name,'(ind).maxvol])'];
+    [hi lo mn] = eval(cmd3);
+    plot(h2,[daycnt+spc daycnt+spc],[hi lo],mcolor,'linewidth',2);hold on;
+    plot(h2,daycnt+spc,mn,mrk,'MarkerSize',8);hold on;
+    
+    cmd4 = ['mBootstrapCI_CV([fv_syllR_',ff(i+1).name,'(ind).mxvals])'];
+     [mn hi lo] = eval(cmd4);
+    plot(h3,[daycnt+spc daycnt+spc],[hi lo],mcolor,'linewidth',2);hold on;
+    plot(h3,daycnt+spc,mn,mrk,'MarkerSize',8);hold on;
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%     cmd2 = ['mBootstrapCI([fv_syllJ_',ff(i+3).name,'(:).mxvals])'];
+%     [hi lo mn] = eval(cmd2);
+%     plot(h,[daycnt+spc*2 daycnt+spc*2],[hi lo],'k','linewidth',2);hold on;
+%     plot(h,daycnt+spc*2,mn,'ok','MarkerSize',8);hold on;
+%     
+%     cmd3 = ['mBootstrapCI([fv_syllJ_',ff(i+3).name,'(:).maxvol])'];
+%     [hi lo mn] = eval(cmd3);
+%     plot(h2,[daycnt+spc*2 daycnt+spc*2],[hi lo],'k','linewidth',2);hold on;
+%     plot(h2,daycnt+spc*2,mn,'ok','MarkerSize',8);hold on;
+%     
+%     cmd4 = ['mBootstrapCI_CV([fv_syllJ_',ff(i+3).name,'(:).mxvals])'];
+%      [mn hi lo] = eval(cmd4);
+%     plot(h3,[daycnt+spc*2 daycnt+spc*2],[hi lo],'k','linewidth',2);hold on;
+%     plot(h3,daycnt+spc*2,mn,'ok','MarkerSize',8);hold on;
+    
+    daycnt = daycnt+1;
+end
+title(h,'syllable B1 Mean pitch with CI');
+ylabel(h,'Frequency (Hz)');
+set(h,'fontweight','bold');
+
+title(h2,'Mean volume with CI');
+ylabel(h2,'Amplitude');
+set(h2,'fontweight','bold');
+
+title(h3,'Mean pitch CV with CI');
+xlabel(h3,'Day');
+ylabel(h3,'CV');
+set(h3,'fontweight','bold');
+
+
 

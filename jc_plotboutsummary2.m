@@ -67,6 +67,7 @@ figure(fignum);hold on;
 jitter = (-1+2*rand)/10;
 xpt = xpt+jitter;
 plot(xpt,singingrate,marker,'markersize',12);hold on;
-set(gca,'xlim',[0 4],'xtick',[0.5,1.5,2.5,3.5],'xticklabel',{'probe 1','probe 2','probe 3','probe 4'});
+set(gca,'xlim',[0 6],'xtick',[0.5,1.5,2.5,3.5,4.5,5.5],'xticklabel',...
+    {'NASPM','NASPM R','NASPM L','NASPM R+L','NASPM RLdep', 'control'},'fontweight','bold');
 ylabel('Change in peak singing rate relative to saline');
 title('Singing rate');

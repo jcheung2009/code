@@ -98,10 +98,10 @@ if length(ind) < 20 | length(indsal) < 20
     return
 end
 %percent change
-motifacorrn = motifacorr2(ind)./mean(motifacorr(indsal));
+%motifacorrn = motifacorr2(ind)./mean(motifacorr(indsal));
  
 %z-score
-%motifacorrn = (motifacorr2(ind)-mean(motifacorr(indsal)))./std(motifacorr(indsal));
+motifacorrn = (motifacorr2(ind)-nanmean(motifacorr(indsal)))./nanstd(motifacorr(indsal));
 
 
 
@@ -111,9 +111,9 @@ figure(fignum);hold on;
 jitter = (-1+2*rand)/4;
 xpt = xpt+jitter;
 plot(xpt,mn1,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-set(gca,'xlim',[0 4],'xtick',[0.5,1.5,2.5,3.5,4.5],'xticklabel',...
-    {'probe 1','probe 2','probe 3','probe 4'});
-ylabel('Duration change');
+set(gca,'xlim',[0 1],'xtick',[0.5],'xticklabel',...
+    {'control'},'fontweight','bold');
+ylabel('Duration z-score change');
 title('Change in tempo relative to saline');
 macorr = mn1;
 

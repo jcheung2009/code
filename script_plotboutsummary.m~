@@ -1,0 +1,34 @@
+ff = load_batchf('batch_probe1_all');
+boutsal = struct();
+
+trialcnt = 0;
+for i = 1:4:length(ff)
+    trialcnt = trialcnt+1;
+    load(['analysis/data_structures/bout_',ff(i).name]);
+    load(['analysis/data_structures/bout_',ff(i+2).name]);
+    motif1 = ['bout_',ff(i).name];
+    motif2 = ['bout_',ff(i+2).name];
+    if ~isempty(strfind(ff(i+2).name,'naspm'))
+            mcolor = 'r';
+            mrk = 'ro';
+        elseif ~isempty(strfind(ff(i+2).name,'iem'))
+            mcolor = 'm';
+            mrk = 'mo';
+        elseif ~isempty(strfind(ff(i+2).name,'apv'))
+            mcolor = 'b';
+            mrk = 'bo';
+        else
+            mcolor = 'k';
+            mrk = 'ko';
+    end
+        
+     if ~isempty(strfind(ff(i+2).name,'sal'))
+        startpt = '';
+    else
+        drugtime = naspmpitchlatency.(['tr_',ff(i+2).name]).treattime;
+        startpt = (drugtime+1.88)*3600;
+     end
+    
+    boutsal(trialcnt).singrate = jc_plotboutsummary(eval(motif1),eval(motif2),mrk,mcolor,0.5,1,startpt,19);
+    %boutsal(trialcnt).singrate = jc_plotboutsummary2(eval(motif1),eval(motif2),'ko','k',5.5);
+end

@@ -1,0 +1,116 @@
+%plots figure for each treatment day of running average of mean pitch,
+%indicates when it exceeds 1 std of pitch during saline morning of same day
+%generates data structure storing time of treatment and latency until drug
+%effect for each trial 
+
+
+ff = load_batchf('batchnaspm');
+if exist('naspmtreatmenttime')
+    ff2 = load_batchf('naspmtreatmenttime');
+else
+    ff2 = '';
+end
+naspmpitchlatency = struct();
+syllables = {'A','C','R'};
+for i = 1:2:length(ff)
+    cmd1 = ['load(''analysis/data_structures/fv_syllA_',ff(i).name,''');'];
+    cmd2 = ['load(''analysis/data_structures/fv_syllA_',ff(i+1).name,''');'];
+    cmd3 = ['load(''analysis/data_structures/fv_syllC_',ff(i).name,''');'];
+    cmd4 = ['load(''analysis/data_structures/fv_syllC_',ff(i+1).name,''');'];
+    cmd5 = ['load(''analysis/data_structures/fv_syllR_',ff(i).name,''');'];
+    cmd6 = ['load(''analysis/data_structures/fv_syllR_',ff(i+1).name,''');'];
+%     cmd7 = ['load(''analysis/data_structures/fv_syllW1_',ff(i).name,''');'];
+%     cmd8 = ['load(''analysis/data_structures/fv_syllW1_',ff(i+1).name,''');'];
+%     cmd9 = ['load(''analysis/data_structures/fv_syllW2_',ff(i).name,''');'];
+%     cmd10 = ['load(''analysis/data_structures/fv_syllW2_',ff(i+1).name,''');'];
+    eval(cmd1);
+    eval(cmd2);
+    eval(cmd3);
+    eval(cmd4);
+    eval(cmd5);
+    eval(cmd6);
+%     eval(cmd7);
+%     eval(cmd8);
+%     eval(cmd9);
+%     eval(cmd10);
+
+
+    figure;hold on;
+    ax = gca;
+    mcolor = hsv(length(syllables));
+    naspmpitchlatency.(['tr_',ff(i+1).name]).latency = [];
+    for ii = 1:length(syllables)
+        cmd = ['fv_sal = fv_syll',syllables{ii},'_',ff(i).name,';'];
+        cmd2 = ['fv_cond = fv_syll',syllables{ii},'_',ff(i+1).name,';'];
+        eval(cmd);
+        eval(cmd2);
+        
+        pitch_sal = [fv_sal(:).mxvals];
+        pitch_cond = [fv_cond(:).mxvals];
+        pitch_cond = (pitch_cond - nanmean(pitch_sal))./nanstd(pitch_sal);
+
+        tb_cond = jc_tb([fv_cond(:).datenm]',7,0);
+        numseconds = tb_cond(end)-tb_cond(1);
+        timewindow = 1800; %half hr in seconds
+        jogsize = 900;%15 minutes
+        numtimewindows = 2*floor(numseconds/timewindow)-1;
+        if numtimewindows < 0
+            numtimewindows = 1;
+        end
+
+        timept1 = tb_cond(1);
+        fv_cond_avg = [];
+        for p = 1:numtimewindows
+            timept2 = timept1+timewindow;
+            ind = find(tb_cond >= timept1 & tb_cond < timept2);
+            fv_cond_avg = [fv_cond_avg;timept1 nanmean([pitch_cond(ind)])];
+            timept1 = timept1+jogsize;
+        end
+        
+        fv_cond_avg(:,1) = fv_cond_avg(:,1)/3600;
+        hold(ax,'on');
+        plot(ax,[0 12],[1 1],'k','linewidth',2);hold on;
+        plot(ax,[0 12],[-1 -1],'k','linewidth',2);hold on;
+        plot(ax,fv_cond_avg(:,1),fv_cond_avg(:,2),'color',mcolor(ii,:),'marker','o');hold on;
+        
+        set(ax,'fontweight','bold');
+        title(ff(i+1).name,'interpreter','none');
+        xlim([0 12]);
+        ylim('auto');
+        ylabel('z-score');
+        xlabel('Hours since 7 AM');
+        
+        ind_1std = find(abs(fv_cond_avg(:,2)) >= 1);
+        if isempty(ind_1std) | length(ind_1std) < 2
+            naspmpitchlatency.(['tr_',ff(i+1).name]).(['syll',syllables{ii}]) = NaN
+        else
+            naspmpitchlatency.(['tr_',ff(i+1).name]).(['syll',syllables{ii}]) = fv_cond_avg(ind_1std(1),1);
+        end
+        
+        if ~isempty(ff2)
+            [a b] = regexp(ff2(i+1).name,'[0-9]+:[0-9]+');
+            st_time = ff2(i+1).name(a:b);
+            st_time = datevec(st_time,'HH:MM');
+            day_st = datevec('07:00','HH:MM');
+            st_time = etime(st_time,day_st);
+        else
+            st_time = tb_cond(1);
+        end
+        naspmpitchlatency.(['tr_',ff(i+1).name]).treattime = st_time/3600;   
+        if isempty(ind_1std) | length(ind_1std) < 2
+            naspmpitchlatency.(['tr_',ff(i+1).name]).latency = [naspmpitchlatency.(['tr_',...
+                ff(i+1).name]).latency; NaN];
+        else
+            naspmpitchlatency.(['tr_',ff(i+1).name]).latency = [naspmpitchlatency.(['tr_',...
+                ff(i+1).name]).latency; fv_cond_avg(ind_1std(1),1)-st_time/3600];%time between treatment start and drug effect in hours
+        end 
+    end
+    
+    plot(ax,naspmpitchlatency.(['tr_',ff(i+1).name]).treattime,1,'r*','markersize',12);
+    hold(ax,'off');
+    
+    clearvars -except ff ff2 syllables naspmpitchlatency
+end
+        
+        
+        

@@ -7,18 +7,18 @@ ff = load_batchf('batch');
 
 for i = 1:length(ff)
     cd(ff(i).name);
-    cmd = ['motif_bcd_',ff(i).name,'=','jc_findmotif(''batch.keep'',''bcd'',{''b'',''d''},{fvalbnd_syllB fvalbnd_syllD},{[0.02 0.03],[0.02 0.04]},''n'',''n'',''w'')'];
+    cmd = ['motif_aabb_',ff(i).name,'=','jc_findmotif(''batch.keep.rand'',''aabb'',{''a'',''b''},{fvalbnd_syllA,fvalbnd_syllB},{[0.03 0.05],[0.025 0.035]},''n'',''n'',''obs0'')'];
     eval(cmd);
-    cmd2 = ['bout_',ff(i).name,'=','jc_findbout(''batch.keep'',motif_bcd_',ff(i).name,',''bcd'',0,0,''w'')'];
+    cmd2 = ['bout_',ff(i).name,'=','jc_findbout(''batch.keep.rand'',motif_aabb_',ff(i).name,',''aabb'',0,0,''obs0'')'];
     eval(cmd2);
     cd ../analysis/data_structures
-    varname = ['''motif_bcd_',ff(i).name,''''];
+    varname = ['''motif_aabb_',ff(i).name,''''];
     varname2 = ['''bout_',ff(i).name,''''];
     savecmd = ['save(',varname,',',varname,',','''-v7.3'')'];
     savecmd2 = ['save(',varname2,',',varname2,',','''-v7.3'')'];
     eval(savecmd);
     eval(savecmd2);
-    clearvars -except fvalbnd_syllA fvalbnd_syllB fvalbnd_syllD ff
+    clearvars -except fvalbnd_syllA fvalbnd_syllB ff
     cd ../../
 end
 toc

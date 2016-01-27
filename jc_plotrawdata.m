@@ -5,7 +5,7 @@ voldat = [[fv(:).datenm]',log([fv(:).maxvol]')];
 entdat = [[fv(:).datenm]',[fv(:).spent]'];
 
 changetb = input('change time to seconds from day start:','s');
-if changetb == 'y'
+if changetb ~= 'n'
     if tbshift == -1
         pitchdat(:,1) = jc_tb(pitchdat(:,1),7,0)-(24*3600);
         voldat(:,1) = jc_tb(voldat(:,1),7,0)-(24*3600);
@@ -40,13 +40,13 @@ while removeoutliers == 'y'
     removeoutliers = input('remove outliers?:','s');
 end
 if changetb == 'y'
-    set(gca,'xtick',xtick,'xticklabel',xticklabel);
-    xlabel('');
+    set(gca,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
+    xlabel('','fontweight','bold');
 else
-   xlabel('Time') 
+   xlabel('Time','fontweight','bold') 
 end
 
-ylabel('Frequency (Hz)')
+ylabel('Frequency (Hz)','fontweight','bold')
 
 subtightplot(3,1,2,0.07,0.08,0.15);hold on;
 h = plot(voldat(:,1),voldat(:,2),marker);hold on
@@ -60,12 +60,12 @@ while removeoutliers == 'y'
     removeoutliers = input('remove outliers?:','s');
 end
 if changetb == 'y'
-    set(gca,'xtick',xtick,'xticklabel',xticklabel);
-    xlabel('')
+    set(gca,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
+    xlabel('','fontweight','bold')
 else
-    xlabel('Time');
+    xlabel('Time','fontweight','bold');
 end
-ylabel('Amplitude (log)')
+ylabel('Amplitude (log)','fontweight','bold')
 
 subtightplot(3,1,3,0.07,0.08,0.15);hold on;
 h = plot(entdat(:,1),entdat(:,2),marker);hold on
@@ -79,9 +79,9 @@ while removeoutliers == 'y'
     removeoutliers = input('remove outliers?:','s');
 end
 if changetb == 'y'
-    set(gca,'xtick',xtick,'xticklabel',xticklabel);
-    xlabel('Time in hours since 7 AM');
+    set(gca,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
+    xlabel('Time in hours since 7 AM','fontweight','bold');
 else
-    xlabel('');
+    xlabel('','fontweight','bold');
 end
-ylabel('Entropy');
+ylabel('Entropy','fontweight','bold');
