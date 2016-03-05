@@ -17,7 +17,7 @@ for i = 1:length(ff)
      xlblcenter = [xlblcenter,barind];
 
      xdata = barind;
-     ydata = [x(:).singrate]-1;
+     ydata = 100*([x(:).singrate]-1);
      hold(ax,'on');
      createPatches(xdata,nanmean(ydata),0.45,bcolor(i,:),0.5);
      plot(ax,xdata,ydata,'color',bcolor(i,:),'marker','o','markersize',8);
@@ -29,4 +29,3 @@ xticklbl = {ff(:).name};
 set(ax,'xtick',xlblcenter,'xticklabel',xticklbl,'fontweight','bold');
 ylabel('percent change');
 title('peak singing rate');
-

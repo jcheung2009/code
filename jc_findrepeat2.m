@@ -148,7 +148,7 @@ for ifn=1:length(ff)
         
         minint = 5;
         mindur = 20;
-        thresholdforsegmentation = {0.4,minint,mindur};
+        thresholdforsegmentation = {0.3,minint,mindur};
         [ons offs] = SegmentNotes(sm,fs,thresholdforsegmentation{2},...
             thresholdforsegmentation{3},thresholdforsegmentation{1});
         disp([num2str(length(ons)),' syllables detected']);
@@ -225,7 +225,14 @@ for ifn=1:length(ff)
                         t=-N/2+1:N/2;
                         sigma=(1/1000)*fs;
                         w=exp(-(t/sigma).^2);%gaussian window for spectrogram
-
+                        
+                        if length(w) > length(datsyll)%syllable too short
+                            pitchest = cat(1,pitchest,NaN);
+                            pitchcontours_all_syllables{ii} = NaN;
+                            spent = cat(1,spent,NaN);
+                            continue
+                        end
+                            
                         [sp f tm pxx] = spectrogram(datsyll,w,overlap,N,fs);
                         %use weighted average of power and fft values from sp
                         pc = [];

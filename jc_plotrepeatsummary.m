@@ -6,31 +6,10 @@ function [rep sdur gdur temp] = jc_plotrepeatsummary(fv_rep_sal,fv_rep_cond,...
 %normalizing 
 %for saline morn vs drug noon
 
-if iscell(fv_rep_sal)
-     tb_sal=[];
-    fv_rep = [];
-    for i = 1:length(fv_rep_sal)
-        tb_sal = [tb_sal; jc_tb([fv_rep_sal{i}(:).datenm]',7,0)];
-        fv_rep = [fv_rep fv_rep_sal{i}];
-    end
-    fv_rep_sal = fv_rep;
-end
-if iscell(fv_rep_cond)
-    tb_cond=[];
-    fv_rep = [];
-    for i = 1:length(fv_rep_cond)
-        tb_cond = [tb_cond; jc_tb([fv_rep_cond{i}(:).datenm]',7,0)];
-        fv_rep =[fv_rep fv_rep_cond{i}];
-    end
-    fv_rep_cond = fv_rep;
-end
 
-if ~iscell(fv_rep_sal) 
-    tb_sal = jc_tb([fv_rep_sal(:).datenm]',7,0);
-end
-if ~iscell(fv_rep_cond)
-    tb_cond = jc_tb([fv_rep_cond(:).datenm]',7,0);
-end
+
+tb_sal = jc_tb([fv_rep_sal(:).datenm]',7,0);
+tb_cond = jc_tb([fv_rep_cond(:).datenm]',7,0);
 
 if excludewashin == 1 & ~isempty(startpt)
     ind = find(tb_cond < startpt);
@@ -181,7 +160,7 @@ set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',...
         {'NASPM','saline'},'fontweight','bold');
 ylabel('z-score');
 title('Change in repeat length');
-rep = mn2;
+rep.zsc = mn2;
 
 subtightplot(4,1,2,0.07,0.08,0.15);hold on;
 [hi lo mn2] = mBootstrapCI(gapdurn);
@@ -190,7 +169,7 @@ set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',...
         {'NASPM','saline'},'fontweight','bold');
 ylabel('z-score');
 title('Change in gap duration');
- gdur = mn2;
+ gdur.zsc = mn2;
  
  subtightplot(4,1,3,0.07,0.08,0.15);hold on;
  [hi lo mn2] = mBootstrapCI(sylldurn);
@@ -199,7 +178,7 @@ set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',...
         {'NASPM','saline'},'fontweight','bold');
 ylabel('z-score');
 title('Change in syllable duration');
- sdur = mn2;
+ sdur.zsc = mn2;
  
 subtightplot(4,1,4,0.07,0.08,0.15);hold on;
  [hi lo mn2] = mBootstrapCI(acorrn);
@@ -208,5 +187,24 @@ set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',...
         {'NASPM','saline'},'fontweight','bold');
 ylabel('z-score');
 title('Change in tempo');
-temp = mn2;
+temp.zsc = mn2;
+
+%absolute values
+rep.abs = mean(runlength2)-mean(runlength);
+gdur.abs = nanmean(gapdur2)-nanmean(gapdur);
+sdur.abs = nanmean(sylldur2)-nanmean(sylldur);
+temp.abs = nanmean(acorr2)-nanmean(acorr);
+
+%relative values
+runlength2 = runlength2/nanmean(runlength);
+gapdur2 = gapdur2/nanmean(gapdur);
+sylldur2 = sylldur2/nanmean(sylldur);
+acorr2 = acorr2/nanmean(acorr);
+
+rep.rel = nanmean(runlength2);
+gdur.rel = nanmean(gapdur2);
+sdur.rel = nanmean(sylldur2);
+temp.rel = nanmean(acorr2);
+
+
  

@@ -4,42 +4,25 @@
 %effect for each trial 
 
 
-ff = load_batchf('batchnaspm');
+ff = load_batchf('batchapviem');
 if exist('naspmtreatmenttime')
-    ff2 = load_batchf('naspmtreatmenttime');
+    ff2 = load_batchf('apviemtreatmenttime');
 else
     ff2 = '';
 end
 naspmpitchlatency = struct();
 syllables = {'A','C','R'};
 for i = 1:2:length(ff)
-    cmd1 = ['load(''analysis/data_structures/fv_syllA_',ff(i).name,''');'];
-    cmd2 = ['load(''analysis/data_structures/fv_syllA_',ff(i+1).name,''');'];
-    cmd3 = ['load(''analysis/data_structures/fv_syllC_',ff(i).name,''');'];
-    cmd4 = ['load(''analysis/data_structures/fv_syllC_',ff(i+1).name,''');'];
-    cmd5 = ['load(''analysis/data_structures/fv_syllR_',ff(i).name,''');'];
-    cmd6 = ['load(''analysis/data_structures/fv_syllR_',ff(i+1).name,''');'];
-%     cmd7 = ['load(''analysis/data_structures/fv_syllW1_',ff(i).name,''');'];
-%     cmd8 = ['load(''analysis/data_structures/fv_syllW1_',ff(i+1).name,''');'];
-%     cmd9 = ['load(''analysis/data_structures/fv_syllW2_',ff(i).name,''');'];
-%     cmd10 = ['load(''analysis/data_structures/fv_syllW2_',ff(i+1).name,''');'];
-    eval(cmd1);
-    eval(cmd2);
-    eval(cmd3);
-    eval(cmd4);
-    eval(cmd5);
-    eval(cmd6);
-%     eval(cmd7);
-%     eval(cmd8);
-%     eval(cmd9);
-%     eval(cmd10);
-
 
     figure;hold on;
     ax = gca;
     mcolor = hsv(length(syllables));
     naspmpitchlatency.(['tr_',ff(i+1).name]).latency = [];
     for ii = 1:length(syllables)
+        cmd1 = ['load(''analysis/data_structures/fv_syll',syllables{ii},'_',ff(i).name,''');'];
+        cmd2 = ['load(''analysis/data_structures/fv_syll',syllables{ii},'_',ff(i+1).name,''');'];
+        eval(cmd1);
+        eval(cmd2);
         cmd = ['fv_sal = fv_syll',syllables{ii},'_',ff(i).name,';'];
         cmd2 = ['fv_cond = fv_syll',syllables{ii},'_',ff(i+1).name,';'];
         eval(cmd);

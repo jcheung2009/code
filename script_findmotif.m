@@ -3,11 +3,11 @@
 %load up fv_parameters
 tic
 %start in directory with all data folders
-ff = load_batchf('batch');
+ff = load_batchf('batchapv');
 
 for i = 1:length(ff)
     cd(ff(i).name);
-    cmd = ['motif_aabb_',ff(i).name,'=','jc_findmotif(''batch.keep.rand'',''aabb'',{''a'',''b''},{fvalbnd_syllA,fvalbnd_syllB},{[0.03 0.05],[0.025 0.035]},''n'',''n'',''obs0'')'];
+    cmd = ['motif_aabb_',ff(i).name,'=','jc_findmotif(''batch.keep.rand'',''aabb'',{''a'',''b''},{fvalbnd_syllA fvalbnd_syllB},{[0.03 0.05],[0.025 0.035]},''n'',''n'',''obs0'')'];
     eval(cmd);
     cmd2 = ['bout_',ff(i).name,'=','jc_findbout(''batch.keep.rand'',motif_aabb_',ff(i).name,',''aabb'',0,0,''obs0'')'];
     eval(cmd2);

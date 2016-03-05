@@ -2,36 +2,15 @@ function [mdur sdur gdur mcv macorr] = jc_plotmotifsummary(motif_sal, motif_cond
     marker, linecolor, xpt,excludewashin,startpt,matchtm,checkoutliers,rawplot,fignum)
 %for experiment design saline morning vs drug afternoon
 
-if iscell(motif_sal)
-     tb_sal=[];
-    motif = [];
-    for i = 1:length(motif_sal)
-        tb_sal = [tb_sal; jc_tb([motif_sal{i}(:).datenm]',7,0)];
-        motif = [motif motif_sal{i}];
-    end
-    motif_sal = motif;
-end
-if iscell(motif_cond)
-    tb_cond=[];
-    motif = [];
-    for i = 1:length(motif_cond)
-        tb_cond = [tb_cond; jc_tb([motif_cond{i}(:).datenm]',7,0)];
-        motif =[motif motif_cond{i}];
-    end
-    motif_cond = motif;
-end
-
 motifdur = [motif_sal(:).motifdur];
 sylldur = mean([motif_sal(:).durations],1);
 gapdur = mean([motif_sal(:).gaps],1);
 motifacorr = [motif_sal(:).firstpeakdistance];
 
-if ~iscell(motif_sal) 
-    tb_sal = jc_tb([motif_sal(:).datenm]',7,0);
-end
-if ~iscell(motif_cond)
-    tb_cond = jc_tb([motif_cond(:).datenm]',7,0);
-end
+tb_sal = jc_tb([motif_sal(:).datenm]',7,0);
+tb_cond = jc_tb([motif_cond(:).datenm]',7,0);
+
+
 if excludewashin == 1 & ~isempty(startpt)
     ind = find(tb_cond < startpt);
     tb_cond(ind) = [];
@@ -158,7 +137,7 @@ end
 %rawplot = input('plot raw summary?:(y/n)','s');
 if rawplot == 'y'
     figure(fignum);hold on;
-    subtightplot(2,4,1,0.07,0.04,0.1);hold on;
+    subtightplot(1,4,1,0.07,0.04,0.1);hold on;
     [hi lo mn1] = mBootstrapCI(motifdur);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
     [hi lo mn2] = mBootstrapCI(motifdur2);
@@ -169,7 +148,7 @@ if rawplot == 'y'
     title('Raw motif duration changes');
     
 
-    subtightplot(2,4,2,0.07,0.04,0.1);hold on;
+    subtightplot(1,4,2,0.07,0.04,0.1);hold on;
     [hi lo mn1] = mBootstrapCI(sylldur);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
     [hi lo mn2] = mBootstrapCI(sylldur2);
@@ -179,7 +158,7 @@ if rawplot == 'y'
     ylabel('Mean syllable duration (s)');
     title('Raw syllable duration changes');
 
-    subtightplot(2,4,3,0.07,0.04,0.1);hold on;
+    subtightplot(1,4,3,0.07,0.04,0.1);hold on;
     [hi lo mn1] = mBootstrapCI(gapdur);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
     [hi lo mn2] = mBootstrapCI(gapdur2);
@@ -189,7 +168,7 @@ if rawplot == 'y'
     ylabel('Mean gap duration (s)');
     title('Raw gap duration changes');
     
-    subtightplot(2,4,4,0.07,0.04,0.1);hold on;
+    subtightplot(1,4,4,0.07,0.04,0.1);hold on;
     [mn1 hi lo] = mBootstrapCI_CV(motifdur);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
     [mn2 hi lo] = mBootstrapCI_CV(motifdur2);
@@ -199,58 +178,6 @@ if rawplot == 'y'
     ylabel('CV');
     title('Raw motif duration CV changes');
 
-    motifdur2 = motifdur2/mean(motifdur);
-    motifdur = motifdur/mean(motifdur);
-    sylldur2 = sylldur2/mean(sylldur);
-    sylldur = sylldur/mean(sylldur);
-    gapdur2 = gapdur2/mean(gapdur);
-    gapdur = gapdur/mean(gapdur);
-
-    subtightplot(2,4,5,0.07,0.04,0.1);hold on;
-    [hi lo mn1] = mBootstrapCI(motifdur);
-    plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [hi lo mn2] = mBootstrapCI(motifdur2);
-    plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
-    ylabel('Change in motif duration relative to saline');
-    title('Normalized motif duration changes');
-
-    subtightplot(2,4,6,0.07,0.04,0.1);hold on;
-    [hi lo mn1] = mBootstrapCI(sylldur);
-    plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [hi lo mn2] = mBootstrapCI(sylldur2);
-    plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
-    ylabel({'Change in mean syllable duration', 'relative to saline'});
-    title('Normalized syllable duration changes');
-
-    subtightplot(2,4,7,0.07,0.04,0.1);hold on;
-    [hi lo mn1] = mBootstrapCI(gapdur);motifacorrn
-    plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [hi lo mn2] = mBootstrapCI(gapdur2);
-    plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
-    ylabel({'Change in mean gap duration', 'relative to saline'});
-    title('Normalized gap duration changes');
-    
-    subtightplot(2,4,8,0.07,0.04,0.1);hold on;
-    [mn1 hi lo] = mBootstrapCI_CV(motifdur);
-    mn = mn1/mn1;
-    hi = mn+((hi-mn1)/mn1);
-    lo = mn-((mn1-lo)/mn1);
-    plot(0.5,mn,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [mn2 hi lo] = mBootstrapCI_CV(motifdur2);
-    mn3 = mn2/mn1;
-    hi = mn3+((hi-mn2)/mn1);
-    lo = mn3-((mn2-lo)/mn1);
-    plot(1.5,mn3,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    plot([0.5 1.5],[mn mn3],linecolor,'linewidth',1);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
-    ylabel({'Change in motif duration CV', 'relative to saline'});
-    title('Normalized motif duration CV changes');
     
 else
     figure(fignum);hold on;
@@ -270,7 +197,7 @@ else
         {'NASPM','saline'},'fontweight','bold');
     ylabel('z-score');
     title('Change in motif duration relative to saline');
-    mdur = mn2;
+    mdur.zsc = mn2;
     
     subtightplot(5,1,2,0.07,0.07,0.15);hold on;
     [hi lo mn2] = mBootstrapCI(sylldurn);
@@ -279,7 +206,7 @@ else
         {'NASPM','saline'},'fontweight','bold');
     ylabel('z-score');
     title('Change in syllable duration relative to saline');
-    sdur = mn2;
+    sdur.zsc = mn2;
 
     subtightplot(5,1,3,0.07,0.07,0.15);hold on;
     [hi lo mn2] = mBootstrapCI(gapdurn);
@@ -288,7 +215,7 @@ else
         {'NASPM','saline'},'fontweight','bold');
     ylabel('z-score');;
     title('Change in gap duration relative to saline');
-    gdur = mn2;
+    gdur.zsc = mn2;
 
     subtightplot(5,1,4,0.07,0.07,0.15);hold on;
     mn1 = mBootstrapCI_CV(motifdur);
@@ -301,7 +228,7 @@ else
         {'NASPM','saline'},'fontweight','bold');
     ylabel('CV change');
     title('Change in motif duration CV');
-    mcv = mn3;
+    mcv.zsc = mn3;
     
     subtightplot(5,1,5,0.07,0.07,0.15);hold on;
     [hi lo mn2] = mBootstrapCI(motifacorrn);
@@ -310,6 +237,28 @@ else
         {'NASPM','saline'},'fontweight','bold');
     ylabel('z-score');
     title('Change in motif tempo relative to saline');
-    macorr = mn2;
+    macorr.zsc = mn2;
+    
+    %absolute change values
+    mdur.abs = nanmean(motifdur2)-nanmean(motifdur);
+    sdur.abs = nanmean(sylldur2)-nanmean(sylldur);
+    gdur.abs = nanmean(gapdur2)-nanmean(gapdur);
+    macorr.abs = nanmean(motifacorr2)-nanmean(motifacorr);
+    
+    %relative change values
+    motifdur2 = motifdur2/nanmean(motifdur);
+    sylldur2 = sylldur2/nanmean(sylldur);
+    gapdur2 = gapdur2/nanmean(gapdur);
+    motifacorr2 = motifacorr2/nanmean(motifacorr);
+    
+    mdur.rel = mean(motifdur2);
+    sdur.rel = mean(sylldur2);
+    gdur.rel = mean(gapdur2);
+    macorr.rel = nanmean(motifacorr2);
+    
+    
+    
+   
+    
   
 end

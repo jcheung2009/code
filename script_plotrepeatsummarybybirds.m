@@ -29,6 +29,8 @@ for i = 1:length(ff)
          xdata = barind;
          ydata = [x(:).([repeats{ii}])];
          ydata = [ydata(:).rep];
+         ydata = [ydata(:).abs];
+         %ydata = 100*(([ydata(:).rel])-1);
          axes(h1);hold(h1,'on');
          createPatches(xdata,nanmean(ydata),0.45,bcolor(i,:),0.5);
          plot(h1,xdata,ydata,'color',bcolor(i,:),'marker','o','markersize',8);
@@ -36,6 +38,8 @@ for i = 1:length(ff)
          
          ydata = [x(:).([repeats{ii}])];
          ydata = [ydata(:).acorr];
+         ydata = [ydata(:).abs];
+         %ydata = 100*(([ydata(:).rel])-1);
          axes(h2);hold(h2,'on');
          createPatches(xdata,nanmean(ydata),0.45,bcolor(i,:),0.5);
          plot(h2,xdata,ydata,'color',bcolor(i,:),'marker','o','markersize',8);
@@ -43,6 +47,8 @@ for i = 1:length(ff)
          
          ydata = [x(:).([repeats{ii}])];
          ydata = [ydata(:).sdur];
+         ydata = [ydata(:).abs];
+         %ydata = 100*(([ydata(:).rel])-1);
          axes(h3);hold(h3,'on');
          createPatches(xdata,nanmean(ydata),0.45,bcolor(i,:),0.5);
          plot(h3,xdata,ydata,'color',bcolor(i,:),'marker','o','markersize',8);
@@ -50,6 +56,8 @@ for i = 1:length(ff)
          
          ydata = [x(:).([repeats{ii}])];
          ydata = [ydata(:).gdur];
+         ydata = [ydata(:).abs];
+         %ydata = 100*(([ydata(:).rel])-1);
          axes(h4);hold(h4,'on');
          createPatches(xdata,nanmean(ydata),0.45,bcolor(i,:),0.5);
          plot(h4,xdata,ydata,'color',bcolor(i,:),'marker','o','markersize',8);
@@ -60,17 +68,17 @@ for i = 1:length(ff)
 end
 
 set(h1,'xtick',xlblcenter,'xticklabel',xticklbl,'fontweight','bold');
-ylabel(h1,'z-score');
+ylabel(h1,'absolute change');
 title(h1,'repeat length');
 
 set(h2,'xtick',xlblcenter,'xticklabel',xticklbl,'fontweight','bold');
-ylabel(h2,'z-score');
+ylabel(h2,'absolute change');
 title(h2,'acorr');
 
 set(h3,'xtick',xlblcenter,'xticklabel',xticklbl,'fontweight','bold');
-ylabel(h3,'z-score');
+ylabel(h3,'absolute change');
 title(h3,'syll dur');
 
 set(h4,'xtick',xlblcenter,'xticklabel',xticklbl,'fontweight','bold');
-ylabel(h4,'z-score');
+ylabel(h4,'absolute change');
 title(h4,'gap dur');

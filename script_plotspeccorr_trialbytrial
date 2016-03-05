@@ -1,0 +1,30 @@
+ff = load_batchf('batchnaspm');
+speccorr = struct();
+load('analysis/data_structures/naspmpitchlatency');
+syllables = {'A','C','R'};
+trialcnt = 0;
+for i = 1:2:length(ff)
+    trialcnt = trialcnt+1;
+    for ii = 1:length(syllables)
+        
+        load(['analysis/data_structures/fv_syll',syllables{ii},'_',ff(i).name]);
+        load(['analysis/data_structures/fv_syll',syllables{ii},'_',ff(i+1).name]);
+        fv1 = ['fv_syll',syllables{ii},'_',ff(i).name];
+        fv2 = ['fv_syll',syllables{ii},'_',ff(i+1).name];
+        
+        if ~isempty(strfind(ff(i+1).name,'sal'))
+            startpt = '';
+        else
+            drugtime = naspmpitchlatency.(['tr_',ff(i+1).name]).treattime;
+            startpt = (drugtime+0.83)*3600;%change latency time
+        end
+        
+        [speccorr(trialcnt).(['syll',syllables{ii}]).fv_vol ...
+            speccorr(trialcnt).(['syll',syllables{ii}]).fv_ent ...
+            speccorr(trialcnt).(['syll',syllables{ii}]).vol_ent ...
+            speccorr(trialcnt).(['syll',syllables{ii}]).fv_vol_sal ...
+            speccorr(trialcnt).(['syll',syllables{ii}]).fv_ent_sal ...
+            speccorr(trialcnt).(['syll',syllables{ii}]).vol_ent_sal] = ...
+            jc_plotspeccorr(eval(fv1),eval(fv2),1,startpt,'',1);
+    end
+end

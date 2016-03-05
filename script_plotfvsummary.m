@@ -1,7 +1,7 @@
-ff = load_batchf('batchnaspm');
+ff = load_batchf('batchapviem');
 fvnaspm = struct();
-load('analysis/data_structures/naspmpitchlatency');
-syllables = {'A','B','D'};
+load('analysis/data_structures/apviempitchlatency');
+syllables = {'A','C','R'};
 trialcnt = 0;
 for i = 1:2:length(ff)
     trialcnt = trialcnt+1;
@@ -28,8 +28,8 @@ for i = 1:2:length(ff)
         if ~isempty(strfind(ff(i+1).name,'sal'))
             startpt = '';
         else
-            drugtime = naspmvolumelatency.(['tr_',ff(i+1).name]).treattime;
-            startpt = (drugtime+0.57)*3600;%change latency time
+            drugtime = apviempitchlatency.(['tr_',ff(i+1).name]).treattime;
+            startpt = (drugtime+0.83)*3600;%change latency time
         end
         
         %% for saline morn vs drug afternoon design 
@@ -41,7 +41,7 @@ for i = 1:2:length(ff)
         %% for blocked experiment design, drug day vs saline pre day
 %         [fvnaspm(trialcnt).fv fvnaspm(trialcnt).vol fvnaspm(trialcnt).ent ...
 %             fvnaspm(trialcnt).pcv] = jc_plotfvsummary2(eval(fv1),eval(fv2),mrk,mcolor,0.5);
-        clearvars -except ff fvnaspm syllables trialcnt naspmpitchlatency i 
+        clearvars -except ff fvnaspm syllables trialcnt apvlatency i 
     end
 end
 

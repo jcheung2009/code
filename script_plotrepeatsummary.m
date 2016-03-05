@@ -1,7 +1,7 @@
-ff = load_batchf('batch_sal');
-load('analysis/data_structures/naspmvolumelatency');
+ff = load_batchf('batchapv');
+load('analysis/data_structures/apvlatency');
 repsal = struct();
-repeats = {'A','B','D'};
+repeats = {'A','B'};
 trialcnt = 0;
 for i = 1:2:length(ff)
     trialcnt = trialcnt+1;
@@ -29,13 +29,13 @@ for i = 1:2:length(ff)
         if ~isempty(strfind(ff(i+1).name,'sal'))
             startpt = '';
         else
-            drugtime = naspmvolumelatency.(['tr_',ff(i+1).name]).treattime;
-            startpt = (drugtime+1.13)*3600;
+            drugtime = apvlatency.(['tr_',ff(i+1).name]).treattime;
+            startpt = (drugtime+1.4)*3600;
         end
 
         [repsal(trialcnt).([repeats{ii}]).rep repsal(trialcnt).([repeats{ii}]).sdur ...
             repsal(trialcnt).([repeats{ii}]).gdur repsal(trialcnt).([repeats{ii}]).acorr] ...
-            = jc_plotrepeatsummary(eval(rep1),eval(rep2),mrk,mcolor,1.5,0,startpt,'','n',12);
+            = jc_plotrepeatsummary(eval(rep1),eval(rep2),mrk,mcolor,0.5,1,startpt,'','n',12);
 
     end
 end

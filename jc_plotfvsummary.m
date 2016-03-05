@@ -6,34 +6,13 @@ function [fv v et pcv] = jc_plotfvsummary(fv_syll_sal, fv_syll_cond,marker,...
 %for experiment design saline morning vs drug afternoon
 
 
-if iscell(fv_syll_sal)
-    tb_sal=[];
-    fv_syll = [];
-    for i = 1:length(fv_syll_sal)
-        tb_sal = [tb_sal; jc_tb([fv_syll_sal{i}(:).datenm]',7,0)];
-        fv_syll = [fv_syll fv_syll_sal{i}];
-    end
-    fv_syll_sal = fv_syll;
-end
-if iscell(fv_syll_cond)
-    tb_cond=[];
-    fv_syll = [];
-    for i = 1:length(fv_syll_cond)
-        tb_cond = [tb_cond; jc_tb([fv_syll_cond{i}(:).datenm]',7,0)];
-        fv_syll =[fv_syll fv_syll_cond{i}];
-    end
-    fv_syll_cond = fv_syll;
-end
-
 pitch = [fv_syll_sal(:).mxvals];
 vol = log([fv_syll_sal(:).maxvol]);
 ent = [fv_syll_sal(:).spent];
-if ~iscell(fv_syll_sal) 
-    tb_sal = jc_tb([fv_syll_sal(:).datenm]',7,0);
-end
-if ~iscell(fv_syll_cond)
-    tb_cond = jc_tb([fv_syll_cond(:).datenm]',7,0);
-end
+
+tb_sal = jc_tb([fv_syll_sal(:).datenm]',7,0);
+tb_cond = jc_tb([fv_syll_cond(:).datenm]',7,0);
+
 if excludewashin == 1 & ~isempty(startpt)
     ind = find(tb_cond < startpt);
     tb_cond(ind) = [];
@@ -51,14 +30,14 @@ if ~isempty(matchtm)
 end 
 
 pitch2 = [fv_syll_cond(:).mxvals];
-    vol2 = log([fv_syll_cond(:).maxvol]);
-    ent2 = [fv_syll_cond(:).spent];
-    if excludewashin == 1
-        pitch2(ind) = [];
-        vol2(ind) = [];
-        ent2(ind) = [];
-    end
-    
+vol2 = log([fv_syll_cond(:).maxvol]);
+ent2 = [fv_syll_cond(:).spent];
+if excludewashin == 1
+    pitch2(ind) = [];
+    vol2(ind) = [];
+    ent2(ind) = [];
+end
+
 if checkoutliers == 'y'
     fignum = input('figure number for checking outliers:');
     figure(fignum);
@@ -239,59 +218,6 @@ if rawplot == 'y'
     ylabel('CV');
     title('Raw Pitch CV changes');
 
-    pitch2 = pitch2/mean(pitch);
-    pitch = pitch/mean(pitch);
-    vol2 = log(vol2)/mean(log(vol));
-    vol = log(vol)/mean(log(vol));
-    ent2 = ent2/mean(ent);
-    ent = ent/mean(ent);
-
-    subtightplot(2,4,5,0.07,0.04,0.1);hold on;
-    [hi lo mn1] = mBootstrapCI(pitch);
-    plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [hi lo mn2] = mBootstrapCI(pitch2);
-    plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
-    ylabel('Change in pitch relative to saline');
-    title('Normalized pitch changes');
-
-    subtightplot(2,4,6,0.07,0.04,0.1);hold on;
-    [hi lo mn1] = mBootstrapCI(vol);
-    plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [hi lo mn2] = mBootstrapCI(vol2);
-    plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
-    ylabel('Change in volume relative to saline');
-    title('Normalized volume changes');
-
-    subtightplot(2,4,7,0.07,0.04,0.1);hold on;
-    [hi lo mn1] = mBootstrapCI(ent);
-    plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [hi lo mn2] = mBootstrapCI(ent2);
-    plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
-    ylabel('Change in entropy relative to saline');
-    title('Normalized entropy changes');
-    
-    subtightplot(2,4,8,0.07,0.04,0.1);hold on;
-    [mn1 hi lo] = mBootstrapCI_CV(pitch);
-    mn = mn1/mn1;
-    hi = mn+((hi-mn1)/mn1);
-    lo = mn-((mn1-lo)/mn1);
-    plot(0.5,mn,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
-    [mn2 hi lo] = mBootstrapCI_CV(pitch2);
-    mn3 = mn2/mn1;
-    hi = mn3+((hi-mn2)/mn1);
-    lo = mn3-((mn2-lo)/mn1);
-    plot(1.5,mn3,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    plot([0.5 1.5],[mn mn3],linecolor,'linewidth',1);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
-    ylabel('Change in pitch CV relative to saline');
-    title('Normalized CV changes');
-    
 else
     figure(fignum);hold on;
     
@@ -309,7 +235,7 @@ else
         {'NASPM/IEM','saline'},'fontweight','bold');
     ylabel('z-score');;
     title('Change in pitch relative to saline');
-    fv = mn2;
+    fv.zsc = mn2;
     
     subtightplot(4,1,2,0.07,0.07,0.15);hold on;
     [hi lo mn2] = mBootstrapCI(voln);
@@ -318,7 +244,7 @@ else
         {'NASPM/IEM','saline'},'fontweight','bold');
     ylabel('z-score');;
     title('Change in volume relative to saline');
-    v = mn2;
+    v.zsc = mn2;
     
     subtightplot(4,1,3,0.07,0.07,0.15);hold on;
     [hi lo mn2] = mBootstrapCI(entn);
@@ -327,7 +253,7 @@ else
         {'NASPM/IEM','saline'},'fontweight','bold');
     ylabel('z-score');
     title('Change in entropy relative to saline');
-    et = mn2;
+    et.zsc = mn2;
     
     subtightplot(4,1,4,0.07,0.07,0.15);hold on;
     mn1 = mBootstrapCI_CV(pitch);
@@ -341,6 +267,19 @@ else
     ylabel('Pitch CV change');
     title('Change in pitch CV relative to saline');
     pcv = mn3;
+    
+    %absolute change
+    fv.abs = mean(pitch2)-mean(pitch);
+    v.abs = mean(vol2)-mean(vol);
+    et.abs = mean(ent2)-mean(ent);
+    
+    %relative change
+    
+    
+    fv.rel = (mean(pitch2)-mean(pitch))/mean(pitch);
+    v.rel = (mean(vol2)-mean(vol))/abs(mean(vol));
+    et.rel = (mean(ent2)-mean(ent))/mean(ent);
+
 end
     
 hold off 

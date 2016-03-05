@@ -134,7 +134,7 @@ for i = 1:length(ff)
         if jitter == 'n'
             minint = 3;%gap
             mindur = 20;%syllable
-            thresholdforsegmentation = {0.6,minint,mindur};%{graythresh(sm2),minint,mindur};%otsu's method
+            thresholdforsegmentation = {0.5,minint,mindur};%{graythresh(sm2),minint,mindur};%otsu's method
             [ons offs] = SegmentNotes(sm2,fs,thresholdforsegmentation{2},...
                 thresholdforsegmentation{3},thresholdforsegmentation{1});
             disp([num2str(length(ons)),' syllables detected']);
@@ -157,14 +157,15 @@ for i = 1:length(ff)
                     end 
                 end
             else
-                %%uncomment this section if want to see segmentation
+%                 %uncomment this section if want to see segmentation
 %                 if length(ons) ~= length(motif)
 %                     figure;hold on;
 %                 end
 %                 while length(ons) ~= length(motif) 
 %                     clf
-%                     plot(sm2,'k');hold on;%plot([floor(ons(1)*fs) ceil(offs(end)*fs)],...
-%                         %[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');
+%                     plot(sm2,'k');hold on;
+%                     plot([floor(ons(1)*fs) ceil(offs(end)*fs)],...
+%                         [thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');
 %                         plot([floor(ons*fs) ceil(offs*fs)],[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');hold on;
 %                     accept_or_not = input('accept segmentation? (y/n):','s');
 %                     if accept_or_not == 'y'

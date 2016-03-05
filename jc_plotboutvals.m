@@ -44,6 +44,7 @@ plotintronotes = input('plot intro notes measurements:','s');
 
 %% plot singing rate
 tb_singingrate = jc_tb([boutinfo(:).datenm]',7,0);
+nummotifs = [boutinfo(:).nummotifs]';
 
  if tbshift == -1
         tb_singingrate = tb_singingrate - (24*3600);
@@ -67,28 +68,36 @@ end
 
 timept1 = tb_singingrate(1);
 numsongs = [];
+nummotifs_per_window = [];
 for i = 1:numtimewindows
     timept2 = timept1+timewindow;
-    numsongs(i,:) = [timept1+jogsize length(find(tb_singingrate>= timept1 & tb_singingrate < timept2))];
+    ind = find(tb_singingrate >= timept1 & tb_singingrate < timept2);
+    numsongs(i,:) = [timept1+jogsize length(ind)];
+    nummotifs_per_window(i,:) = [timept1+jogsize  sum(nummotifs(ind))]
     timept1 = timept1+jogsize;
 end
 if numtimewindows == 1
     numsongs = [numsongs; timept1+jogsize 0];
+    nummotifs_per_window = [nummotifs_per_window; timept1+jogsize 0];
 end
 
-% if plotintronotes == 'y'
-%     subtightplot(3,1,3,0.07,0.05,0.08);hold on;
-% else
-%     subtightplot(2,1,2,0.07,0.05,0.08);hold on;
-% end
 fignum = input('fig number for singing rate:');
 figure(fignum);hold on;
+h1 = subtightplot(2,1,1,[0.08 0.08],0.08,0.1);hold on;
 bar(numsongs(:,1),numsongs(:,2),1,'edgecolor','none','facecolor',linecolor);
-h=findobj(gca,'Type','patch');set(h,'facealpha',0.5);
-set(gca,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
-    xlabel('Time in hours since 7 AM');
-ylabel('Number of songs per hour');
-title('Singing Rate')
+set(h1,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
+xlabel(h1,'Time in hours since 7 AM');
+ylabel(h1,'Number of songs per hour');
+title(h1,'Singing Rate')
+h2 = subtightplot(2,1,2,[0.08 0.08],0.08,0.1);hold on;
+bar(nummotifs_per_window(:,1),nummotifs_per_window(:,2),1,'edgecolor','none','facecolor',linecolor);
+set(h2,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
+xlabel(h2,'Time in hours since 7 AM');
+ylabel(h2,'Number of motifs per hour');
+
+
+
+
 
 %% plot within bout pitch,volume,entropy, and tempo patterns
 tempopattern = input('plot bout pattern?:','s');
