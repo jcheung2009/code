@@ -1,5 +1,5 @@
 %plot time course of pitch, volume, and acorr changes
-shiftsal = 0;
+shiftsal = 1;
 ff = load_batchf('batchnaspm');
 if exist('naspmtreatmenttime')
     ff2 = load_batchf('naspmtreatmenttime');
@@ -7,8 +7,8 @@ else
     ff2 = '';
 end
 
-syllables = {'A','C','R'};
-motif = 'abcdeeer';
+syllables = {'A','B1','B2','R'};
+motif = 'abcccb';
 
 
 fv_runavg = struct();
@@ -41,15 +41,18 @@ for i = 1:2:length(ff)
     tb_sal = jc_tb([motif_sal(:).datenm]',7,0);
     tb_cond = jc_tb([motif_cond(:).datenm]',7,0);
     if shiftsal == 1
-        tb_sal = tb_sal-(12*3600);
+        tb_sal = tb_sal-(24*3600);
+        numseconds = (48*3600);
+        timept1 = 0-(24*3600);
+    else
+        numseconds = (14*3600);
+        timept1 = 0;
     end
     tb = [tb_sal; tb_cond];
-   
-    numseconds = (14*3600);
+
     jogsize = 900;%15 mins
     windowsize = 1800;%half hour
     numtimewindows = 2*floor(numseconds/windowsize)-1;
-    timept1 = 0;
     run_avg_m = [];
     run_avg_s = [];
     timebase = [];
@@ -88,12 +91,15 @@ for i = 1:2:length(ff)
         vol= 100*((abs(vol)-nanmean(abs(vol_sal))))./nanmean(abs(vol_sal));
         
         if shiftsal == 1
-            tb = [jc_tb([fv_sal(:).datenm]',7,0)-(12*3600); jc_tb([fv_cond(:).datenm]',7,0)];
+            tb = [jc_tb([fv_sal(:).datenm]',7,0)-(48*3600); jc_tb([fv_cond(:).datenm]',7,0)];
+            numseconds = 48*3600;
+            timept1 = 0-(24*3600);
         else
             tb = [jc_tb([fv_sal(:).datenm]',7,0); jc_tb([fv_cond(:).datenm]',7,0)];
+            numseconds = (14*3600);
+            timept1 = 0;
         end
-    
-        numseconds = (14*3600);
+
         timewindow = 1800; %half hr in seconds
         jogsize = 900;%15 minutes
         numtimewindows = 2*floor(numseconds/timewindow)-1;
@@ -101,7 +107,6 @@ for i = 1:2:length(ff)
             numtimewindows = 1;
         end
 
-        timept1 = 0;
         run_avg_fv = [];
         run_avg_vol = [];
         for p = 1:numtimewindows
@@ -154,7 +159,7 @@ for i = 1:2:length(ff)
     legend([h1,h2,h3,h4],'pitch','volume','motif acorr','singing rate');
     
     if ~isempty(ff2)
-        [a b] = regexp(ff2(i).name,'[0-9]+:[0-9]+');
+        [a b] = regexp(ff2(i+1).name,'[0-9]+:[0-9]+');
         st_time = ff2(i+1).name(a:b);
         st_time = datevec(st_time,'HH:MM');
         day_st = datevec('07:00','HH:MM');
@@ -222,12 +227,18 @@ ylabel('absolute percent change');
 set(ax,'fontweight','bold');
 
 % compute pairwise cross correlation values
-crosscorr = {};
+crosscorrlatency = {};
 for i = 1:length(trial)
-    crosscorr.(trial{i}).fv_motif = nansum(fv_runavg
-    crosscorr.(trial{i}).vol_motif = 
-    crosscorr.(trial{i}).fv_singingrate = 
-    crosscorr.(trial{i}).vol_singingrate = 
+    r = corrcoef(fv_runavg.(trial{i}),motif_runavg.(trial{i}),'rows','complete');
+    crosscorrlatency.(trial{i}).fv_motif = r(2);
+    r = corrcoef(vol_runavg.(trial{i}),motif_runavg.(trial{i}),'rows','complete');
+    crosscorrlatency.(trial{i}).vol_motif = r(2);
+    r = corrcoef(fv_runavg.(trial{i}),singingrate_runavg.(trial{i}),'rows','complete');
+    crosscorrlatency.(trial{i}).fv_singingrate = r(2);
+    r = corrcoef(vol_runavg.(trial{i}),singingrate_runavg.(trial{i}),'rows','complete');
+    crosscorrlatency.(trial{i}).vol_singingrate = r(2);
+end
+
 
     
     

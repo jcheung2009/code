@@ -7,8 +7,8 @@ else
     ff2 = '';
 end
 
-syllables = {'A','W','Y'};
-motif = 'aqwerrry';
+syllables = {'A','B','D'};
+motif = 'bcd';
 
 
 fv_runavg = struct();
@@ -18,17 +18,17 @@ singingrate_runavg = struct();
 trialcnt = 1;
 
 
-for i = 1:2:length(ff)
+for i = 1:4:length(ff)
     
     fv_cond_avg = {};
     vol_cond_avg = {};
     motif_cond_avg = {};
     singingrate_cond_avg = {};
     
-    load(['analysis/data_structures/motif_',motif,'_',ff(i).name]);
     load(['analysis/data_structures/motif_',motif,'_',ff(i+1).name]);
-    cmd3 = ['motif_sal = motif_',motif,'_',ff(i).name,';'];
-    cmd4 = ['motif_cond = motif_',motif,'_',ff(i+1).name,';'];
+    load(['analysis/data_structures/motif_',motif,'_',ff(i+2).name]);
+    cmd3 = ['motif_sal = motif_',motif,'_',ff(i+1).name,';'];
+    cmd4 = ['motif_cond = motif_',motif,'_',ff(i+2).name,';'];
     eval(cmd3);
     eval(cmd4);    
     
@@ -41,15 +41,18 @@ for i = 1:2:length(ff)
     tb_sal = jc_tb([motif_sal(:).datenm]',7,0);
     tb_cond = jc_tb([motif_cond(:).datenm]',7,0);
     if shiftsal == 1
-        tb_sal = tb_sal-(12*3600);
+        tb_sal = tb_sal-(24*3600);
+        numseconds = (48*3600);
+        timept1 = 0-(24*3600);
+    else
+        numseconds = (14*3600);
+        timept1 = 0;
     end
     tb = [tb_sal; tb_cond];
-   
-    numseconds = (14*3600);
+
     jogsize = 900;%15 mins
     windowsize = 1800;%half hour
     numtimewindows = 2*floor(numseconds/windowsize)-1;
-    timept1 = 0;
     run_avg_m = [];
     run_avg_s = [];
     timebase = [];
@@ -69,11 +72,11 @@ for i = 1:2:length(ff)
     singingrate_cond_avg = [singingrate_cond_avg; {run_avg_s}];
    
     for ii = 1:length(syllables)
-        load(['analysis/data_structures/fv_syll',syllables{ii},'_',ff(i).name]);
         load(['analysis/data_structures/fv_syll',syllables{ii},'_',ff(i+1).name]);
+        load(['analysis/data_structures/fv_syll',syllables{ii},'_',ff(i+2).name]);
 
-        cmd = ['fv_sal = fv_syll',syllables{ii},'_',ff(i).name,';'];
-        cmd2 = ['fv_cond = fv_syll',syllables{ii},'_',ff(i+1).name,';'];
+        cmd = ['fv_sal = fv_syll',syllables{ii},'_',ff(i+1).name,';'];
+        cmd2 = ['fv_cond = fv_syll',syllables{ii},'_',ff(i+2).name,';'];
         eval(cmd);
         eval(cmd2);
 
@@ -88,12 +91,15 @@ for i = 1:2:length(ff)
         vol= 100*((abs(vol)-nanmean(abs(vol_sal))))./nanmean(abs(vol_sal));
         
         if shiftsal == 1
-            tb = [jc_tb([fv_sal(:).datenm]',7,0)-(12*3600); jc_tb([fv_cond(:).datenm]',7,0)];
+            tb = [jc_tb([fv_sal(:).datenm]',7,0)-(24*3600); jc_tb([fv_cond(:).datenm]',7,0)];
+            numseconds = 48*3600;
+            timept1 = 0-(24*3600);
         else
             tb = [jc_tb([fv_sal(:).datenm]',7,0); jc_tb([fv_cond(:).datenm]',7,0)];
+            numseconds = (14*3600);
+            timept1 = 0;
         end
-    
-        numseconds = (14*3600);
+
         timewindow = 1800; %half hr in seconds
         jogsize = 900;%15 minutes
         numtimewindows = 2*floor(numseconds/timewindow)-1;
@@ -101,7 +107,6 @@ for i = 1:2:length(ff)
             numtimewindows = 1;
         end
 
-        timept1 = 0;
         run_avg_fv = [];
         run_avg_vol = [];
         for p = 1:numtimewindows
@@ -154,8 +159,8 @@ for i = 1:2:length(ff)
     legend([h1,h2,h3,h4],'pitch','volume','motif acorr','singing rate');
     
     if ~isempty(ff2)
-        [a b] = regexp(ff2(i+1).name,'[0-9]+:[0-9]+');
-        st_time = ff2(i+1).name(a:b);
+        [a b] = regexp(ff2(i+2).name,'[0-9]+:[0-9]+');
+        st_time = ff2(i+2).name(a:b);
         st_time = datevec(st_time,'HH:MM');
         day_st = datevec('07:00','HH:MM');
         st_time = etime(st_time,day_st);
@@ -169,7 +174,7 @@ for i = 1:2:length(ff)
     set(ax,'fontweight','bold');
     xlabel('Hours since 7 AM');
     ylabel('absolute percent change');
-    title(ff(i+1).name,'interpreter','none');
+    title(ff(i+2).name,'interpreter','none');
     
     fv_runavg.(['trial',num2str(trialcnt)]) = fv;
     vol_runavg.(['trial',num2str(trialcnt)]) = vol;
@@ -180,11 +185,11 @@ for i = 1:2:length(ff)
 end
 
 %plot average rate trajectory
-load('analysis/data_structures/naspmpitchlatency.mat');
-trial = fieldnames(naspmpitchlatency);
+load('analysis/data_structures/naspmvolumelatency.mat');
+trial = fieldnames(naspmvolumelatency);
 newtimebases = [];
 for i = 1:length(trial)
-    st_time = naspmpitchlatency.(trial{i}).treattime;
+    st_time = naspmvolumelatency.(trial{i}).treattime;
     [c ind] = min(abs(timebase-st_time));
     newtimebases = [newtimebases timebase-timebase(ind)];
 end
@@ -233,6 +238,7 @@ for i = 1:length(trial)
     r = corrcoef(vol_runavg.(trial{i}),singingrate_runavg.(trial{i}),'rows','complete');
     crosscorrlatency.(trial{i}).vol_singingrate = r(2);
 end
+
 
 
     
