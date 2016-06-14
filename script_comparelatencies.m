@@ -1,8 +1,8 @@
 %plot time course of pitch, volume, and acorr changes
 shiftsal = 0;
-ff = load_batchf('batchnaspm');
+ff = load_batchf('batch2');
 if exist('naspmtreatmenttime')
-    ff2 = load_batchf('naspmtreatmenttime');
+    ff2 = load_batchf('treatmenttime');
 else
     ff2 = '';
 end

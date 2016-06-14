@@ -39,7 +39,7 @@ while (1)
         sm=evsmooth(dat,fs,100);
         disp('reading cbin');
     elseif (strcmp(ext,'.wav'))
-        [dat,fs,nBits] = wavread(fn);
+        [dat,fs] = audioread(fn);
         sm=evsmooth(dat,fs,100);
     else
         [dat,fs]=evsoundin('',fn,CHANSPEC);

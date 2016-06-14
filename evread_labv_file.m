@@ -12,8 +12,8 @@ function [outvect, adfreq] = evread_labv_file(filename, channel, orient)
 %   to 'normal' or 'n', then the retrieved channel is simply CHANNEL.
 %
 %   This function is for use with Observer and IO_Stream output files.
-
-error(nargchk(2,3,nargin));
+%error(nargchk(2,3,nargin));
+narginchk(2,3);
 
 if ~ischar(filename),
   error('filename must be a string');

@@ -59,7 +59,7 @@ if checkoutliers == 'y'
     plot(tb_sal,vol,'k.');
     removeoutliers = input('remove outliers:','s');
     while removeoutliers == 'y'
-        cla;
+        cla;jc_plotfvsummary
         nstd = input('nstd:');
         removeind = jc_findoutliers(vol',nstd);
         pitch(removeind) = [];
@@ -202,7 +202,7 @@ if rawplot == 'y'
     [hi lo mn1] = mBootstrapCI(ent);
     plot(0.5,mn1,marker,[0.5 0.5],[hi,lo],linecolor,'linewidth',1,'markersize',12);
     [hi lo mn2] = mBootstrapCI(ent2);
-    plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linecolor,'linewidth',1,'markersize',12);
+    plot(1.5,mn2,marker,[1.5 1.5],[hi lo],linefvnaspmcolor,'linewidth',1,'markersize',12);
     plot([0.5 1.5],[mn1 mn2],linecolor,'linewidth',1);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',{'saline','drug'});
     ylabel('Entropy');
@@ -242,7 +242,7 @@ else
     plot(xpt,mn2,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
     set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',...
         {'NASPM/IEM','saline'},'fontweight','bold');
-    ylabel('z-score');;
+    ylabel('z-score');
     title('Change in volume relative to saline');
     v.zsc = mn2;
     

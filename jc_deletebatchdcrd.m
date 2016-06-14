@@ -9,7 +9,7 @@ for i = 1:length(ff)
 %     else
         delete(ff(i).name);
         delete(notmat);
-        if strcmp(cspec,'cbin')
+        if strcmp(cspec,'obs0')
             delete([ff(i).name(1:end-4) 'rec']);
             delete([ff(i).name(1:end-4) 'tmp']);
         end

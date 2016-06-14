@@ -4,20 +4,20 @@
 %effect for each trial 
 
 
-ff = load_batchf('batchapv');
-if exist('apvtreatmenttime')
-    ff2 = load_batchf('apvtreatmenttime');
+ff = load_batchf('batchmusc');
+if exist('musctreatmenttime')
+    ff2 = load_batchf('musctreatmenttime');
 else
     ff2 = '';
 end
-apvlatency = struct();
+musclatency = struct();
 syllables = {'A1','A2','B1','B2'};
 for i = 1:2:length(ff)
 
     figure;hold on;
     ax = gca;
     mcolor = hsv(length(syllables));
-    apvlatency.(['tr_',ff(i+1).name]).latency = [];
+    musclatency.(['tr_',ff(i+1).name]).latency = [];
     for ii = 1:length(syllables)
         cmd1 = ['load(''analysis/data_structures/fv_syll',syllables{ii},'_',ff(i).name,''');'];
         cmd2 = ['load(''analysis/data_structures/fv_syll',syllables{ii},'_',ff(i+1).name,''');'];
@@ -32,10 +32,11 @@ for i = 1:2:length(ff)
         pitch_cond = [fv_cond(:).mxvals];
 
         tb_cond = jc_tb([fv_cond(:).datenm]',7,0);
+        tb_sal = jc_tb([fv_sal(:).datenm]',7,0);
         numseconds = tb_cond(end)-tb_cond(1);
-        timewindow = 1800; %half hr in seconds
+        timewindow = 3600; % hr in seconds
         jogsize = 900;%15 minutes
-        numtimewindows = 2*floor(numseconds/timewindow)-1;
+        numtimewindows = floor(numseconds/jogsize)-(timewindow/jogsize)/2;
         if numtimewindows < 0
             numtimewindows = 1;
         end
@@ -45,7 +46,9 @@ for i = 1:2:length(ff)
         for p = 1:numtimewindows
             timept2 = timept1+timewindow;
             ind = find(tb_cond >= timept1 & tb_cond < timept2);
-            fv_cond_avg = [fv_cond_avg;timept1 100*((cv(pitch_cond(ind))-cv(pitch_sal))/cv(pitch_sal))];
+            indsal = 1:length(pitch_sal);
+            %indsal = find(tb_sal >= timept1 & tb_sal < timept2);
+            fv_cond_avg = [fv_cond_avg;timept1 100*((cv(pitch_cond(ind))-cv(pitch_sal(indsal)))/cv(pitch_sal(indsal)))];
             timept1 = timept1+jogsize;
         end
         
@@ -64,9 +67,9 @@ for i = 1:2:length(ff)
         
         ind_1std = find(fv_cond_avg(:,2) <= -10);
         if isempty(ind_1std) | length(ind_1std) < 2
-            apvlatency.(['tr_',ff(i+1).name]).(['syll',syllables{ii}]) = NaN
+            musclatency.(['tr_',ff(i+1).name]).(['syll',syllables{ii}]) = NaN
         else
-            apvlatency.(['tr_',ff(i+1).name]).(['syll',syllables{ii}]) = fv_cond_avg(ind_1std(1),1);
+            musclatency.(['tr_',ff(i+1).name]).(['syll',syllables{ii}]) = fv_cond_avg(ind_1std(1),1);
         end
         
         if ~isempty(ff2)
@@ -78,18 +81,18 @@ for i = 1:2:length(ff)
         else
             st_time = tb_cond(1);
         end
-        apvlatency.(['tr_',ff(i+1).name]).treattime = st_time/3600;   
+        musclatency.(['tr_',ff(i+1).name]).treattime = st_time/3600;   
         if isempty(ind_1std) | length(ind_1std) < 2
-            apvlatency.(['tr_',ff(i+1).name]).latency = [apvlatency.(['tr_',...
+            musclatency.(['tr_',ff(i+1).name]).latency = [musclatency.(['tr_',...
                 ff(i+1).name]).latency; NaN];
         else
-            apvlatency.(['tr_',ff(i+1).name]).latency = [apvlatency.(['tr_',...
+            musclatency.(['tr_',ff(i+1).name]).latency = [musclatency.(['tr_',...
                 ff(i+1).name]).latency; fv_cond_avg(ind_1std(1),1)-st_time/3600];%time between treatment start and drug effect in hours
         end 
     end
     
-    plot(ax,apvlatency.(['tr_',ff(i+1).name]).treattime,10,'r*','markersize',12);
+    plot(ax,musclatency.(['tr_',ff(i+1).name]).treattime,10,'r*','markersize',12);
     hold(ax,'off');
     
-    clearvars -except ff ff2 syllables apvlatency
+    clearvars -except ff ff2 syllables musclatency
 end

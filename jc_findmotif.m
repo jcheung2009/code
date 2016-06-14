@@ -12,7 +12,7 @@ function motifinfo = jc_findmotif(batch,motif,syllables,fvalbnd,timeshifts,varse
 if varseq ~= 'y'
     for i = 1:length(syllables)
         k = strfind(motif,syllables{i});
-        syllablepositions{i} = k(1);
+        syllablepositions{i} = k;
     end 
 end
     
@@ -229,58 +229,62 @@ for i = 1:length(ff)
        volumeestimates = [];
        entropyestimates = [];
        for syllind = 1:length(syllablepositions)
-           pitchestimates(syllind) = NaN;
-           volumeestimates(syllind) = NaN;
-           entropyestimates(syllind) = NaN;
+           for syllposind = 1:length(syllablepositions{syllind})
+               pitchestimates = [pitchestimates NaN];
+               volumeestimates = [volumeestimates NaN];
+               entropyestimates = [entropyestimates NaN];
            
-           if ceil(offs(syllind)*fs) <= length(smtemp)
-               filtsong = bandpass(smtemp,fs,300,10000,'hanningffir'); 
-               if floor(offs(syllablepositions{syllind})*fs) > length(filtsong)
-                   offs(syllablepositions{syllind}) = (length(filtsong)-129)/fs;
-               end
-               [sp f tm pxx] = spectrogram(filtsong(ceil(ons(syllablepositions{syllind})*fs):floor(offs(syllablepositions{syllind})*fs)),w,overlap,spNFFT,fs);
-               pc = [];
-               for m = 1:size(sp,2)
-                   fdat = abs(sp(:,m));
-                        mxtmpvec = zeros([1,size(fvalbnd{syllind},1)]);
-                        for kk = 1:size(fvalbnd{syllind},1)
-                            tmpinds = find((f>=fvalbnd{syllind}(kk,1))&(f<=fvalbnd{syllind}(kk,2)));
-                            NPNTS = 10;
-                            [tmp pf] = max(fdat(tmpinds));
-                            pf = pf+tmpinds(1)-1;
-                            if (USEFIT==1)%weighted average 
-                                tmpxv=pf + [-NPNTS:NPNTS];
-                                tmpxv=tmpxv(find((tmpxv>0)&(tmpxv<=length(f))));
-                                mxtmpvec(kk)=f(tmpxv)'*fdat(tmpxv);
-                                mxtmpvec(kk)=mxtmpvec(kk)./sum(fdat(tmpxv));
-                            else
-                                mxtmpvec(kk) = f(pf);
+               if ceil(offs(syllind)*fs) <= length(smtemp)
+                   filtsong = bandpass(smtemp,fs,300,10000,'hanningffir'); 
+                   if floor(offs(syllablepositions{syllind}(syllposind))*fs) > length(filtsong)
+                       offs(syllablepositions{syllind}(syllposind)) = (length(filtsong)-129)/fs;
+                   end
+                   [sp f tm pxx] = spectrogram(filtsong(ceil(ons(syllablepositions{syllind}(syllposind))*fs):...
+                       floor(offs(syllablepositions{syllind}(syllposind))*fs)),w,overlap,spNFFT,fs);
+                   pc = [];
+                   for m = 1:size(sp,2)
+                       fdat = abs(sp(:,m));
+                            mxtmpvec = zeros([1,size(fvalbnd{syllind},1)]);
+                            for kk = 1:size(fvalbnd{syllind},1)
+                                tmpinds = find((f>=fvalbnd{syllind}(kk,1))&(f<=fvalbnd{syllind}(kk,2)));
+                                NPNTS = 10;
+                                [tmp pf] = max(fdat(tmpinds));
+                                pf = pf+tmpinds(1)-1;
+                                if (USEFIT==1)%weighted average 
+                                    tmpxv=pf + [-NPNTS:NPNTS];
+                                    tmpxv=tmpxv(find((tmpxv>0)&(tmpxv<=length(f))));
+                                    mxtmpvec(kk)=f(tmpxv)'*fdat(tmpxv);
+                                    mxtmpvec(kk)=mxtmpvec(kk)./sum(fdat(tmpxv));
+                                else
+                                    mxtmpvec(kk) = f(pf);
+                                end
                             end
-                        end
-                        pc = cat(1,pc,mean(diff([0,mxtmpvec])));
+                            pc = cat(1,pc,mean(diff([0,mxtmpvec])));
+                    end
+                    %pitch
+                    pc = [tm' pc];
+                    if length(timeshifts{syllind})==1
+                        ti1 = find(tm<=timeshifts{syllind});
+                        ti1 = ti1(end);
+                        pitchestimates(syllind) = pc(ti1,2);%pitch estimate at timeshift
+                    elseif length(timeshifts{syllind}) == 2
+                        ti1 = find(tm>=timeshifts{syllind}(1)&tm<=timeshifts{syllind}(2));
+                        pitchestimates(end) = mean(pc(ti1,2));%pitch estimate at timeshift
+                    end
+                
+                    %Spectral temporal entropy
+                    indf = find(f>=300 & f <= 10000);
+                    pxx = pxx(indf,:);
+                    pxx = bsxfun(@rdivide,pxx,sum(sum(pxx)));
+                    entropyestimates(end) = -sum(sum(pxx.*log2(pxx)))/log2(length(pxx(:)));
+
+                    %volume
+                    volumeestimates(end)=mean(filtsong(ceil(ons(syllablepositions{syllind}(syllposind))*fs):...
+                        ceil(offs(syllablepositions{syllind}(syllposind))*fs)-1).^2);
+             else
+                    continue
                end
-                %pitch
-                pc = [tm' pc];
-                if length(timeshifts{syllind})==1
-                    ti1 = find(tm<=timeshifts{syllind});
-                    ti1 = ti1(end);
-                    pitchestimates(syllind) = pc(ti1,2);%pitch estimate at timeshift
-                elseif length(timeshifts{syllind}) == 2
-                    ti1 = find(tm>=timeshifts{syllind}(1)&tm<=timeshifts{syllind}(2));
-                    pitchestimates(syllind) = mean(pc(ti1,2));%pitch estimate at timeshift
-                end
-                
-                %Spectral temporal entropy
-                indf = find(f>=300 & f <= 10000);
-                pxx = pxx(indf,:);
-                pxx = bsxfun(@rdivide,pxx,sum(sum(pxx)));
-                entropyestimates(syllind) = -sum(sum(pxx.*log2(pxx)))/log2(length(pxx(:)));
-                
-                %volume
-                volumeestimates(syllind)=mean(filtsong(ceil(ons(syllablepositions{syllind})*fs):ceil(offs(syllablepositions{syllind})*fs)-1).^2);
-           else
-               continue
-           end        
+           end
        end
        
        
