@@ -231,8 +231,8 @@ else
     xpt = xpt+jitter;
     [hi lo mn2] = mBootstrapCI(pitchn);
     plot(xpt,mn2,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',...
-        {'NASPM/IEM','saline'},'fontweight','bold');
+    set(gca,'xlim',[0 5],'xtick',[0.5,1.5 2.5 3.5 4.5],'xticklabel',...
+        {'saline','naspm','apv','musc','naspm+musc'},'fontweight','bold');
     ylabel('z-score');;
     title('Change in pitch relative to saline');
     fv.zsc = mn2;
@@ -240,8 +240,8 @@ else
     subtightplot(4,1,2,0.07,0.07,0.15);hold on;
     [hi lo mn2] = mBootstrapCI(voln);
     plot(xpt,mn2,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',...
-        {'NASPM/IEM','saline'},'fontweight','bold');
+    set(gca,'xlim',[0 5],'xtick',[0.5,1.5 2.5 3.5 4.5],'xticklabel',...
+        {'saline','naspm','apv','musc','naspm+musc'},'fontweight','bold');
     ylabel('z-score');
     title('Change in volume relative to saline');
     v.zsc = mn2;
@@ -249,8 +249,8 @@ else
     subtightplot(4,1,3,0.07,0.07,0.15);hold on;
     [hi lo mn2] = mBootstrapCI(entn);
     plot(xpt,mn2,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',...
-        {'NASPM/IEM','saline'},'fontweight','bold');
+    set(gca,'xlim',[0 5],'xtick',[0.5,1.5 2.5 3.5 4.5],'xticklabel',...
+        {'saline','naspm','apv','musc','naspm+musc'},'fontweight','bold');
     ylabel('z-score');
     title('Change in entropy relative to saline');
     et.zsc = mn2;
@@ -262,8 +262,8 @@ else
     hi = mn3+((hi-mn2)/mn1);
     lo = mn3-((mn2-lo)/mn1);
     plot(xpt,mn3,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',...
-        {'NASPM/IEM','saline'},'fontweight','bold');
+    set(gca,'xlim',[0 5],'xtick',[0.5,1.5 2.5 3.5 4.5],'xticklabel',...
+        {'saline','naspm','apv','musc','naspm+musc'},'fontweight','bold');
     ylabel('Pitch CV change');
     title('Change in pitch CV relative to saline');
     pcv = mn3;

@@ -1,6 +1,6 @@
 ff = load_batchf('batchnaspm');
-boutsal = struct();
-load('analysis/data_structures/naspmvolumelatency.mat');
+boutnaspm = struct();
+load('analysis/data_structures/naspmpitchlatency.mat');
 trialcnt = 0;
 for i = 1:2:length(ff)
     trialcnt = trialcnt+1;
@@ -25,10 +25,10 @@ for i = 1:2:length(ff)
      if ~isempty(strfind(ff(i+1).name,'sal'))
         startpt = '';
     else
-        drugtime = naspmvolumelatency.(['tr_',ff(i+1).name]).treattime;
-        startpt = (drugtime+0.83)*3600;
+        drugtime = naspmpitchlatency.(['tr_',ff(i+1).name]).treattime;
+        startpt = (drugtime+1.5)*3600;
      end
     
-    boutsal(trialcnt).singrate = jc_plotboutsummary(eval(motif1),eval(motif2),mrk,mcolor,0.5,0,startpt,'',16);
-    %boutsal(trialcnt).singrate = jc_plotboutsummary2(eval(motif1),eval(motif2),'ko','k',5.5);
+    boutnaspm(trialcnt).singrate = jc_plotboutsummary(eval(motif1),eval(motif2),mrk,mcolor,0.5,0,startpt,'',16);
+    %boutnaspm(trialcnt).singrate = jc_plotboutsummary2(eval(motif1),eval(motif2),'ko','k',5.5);
 end

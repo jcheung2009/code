@@ -1,5 +1,5 @@
 function [fv_vol fv_ent vol_ent fv_vol_sal fv_ent_sal vol_ent_sal] = ...
-    jc_plotspeccorr(fv_sal,fv_cond,excludewashin,startpt,matchtm,fignum)
+    jc_plotspeccorr(fv_sal,fv_cond,excludewashin,startpt,matchtm)
 %plots pairwise trial by trial correlation of spectral features 
 
 pitch = [fv_sal(:).mxvals];
@@ -16,7 +16,7 @@ elseif excludewashin == 1
     tb_cond(ind) = [];
 end
 
-if ~isempty(matchtm)
+if matchtm == 1
     indsal = find(tb_sal>=tb_cond(1) & tb_sal <= tb_cond(end)); 
     tb_sal = tb_sal(indsal);
     pitch = pitch(indsal);
@@ -49,7 +49,7 @@ fv_vol_sal.abs = fv_vol_sal.abs(~any(isnan(fv_vol_sal.abs),2),:);
 fv_ent_sal.abs = fv_ent_sal.abs(~any(isnan(fv_ent_sal.abs),2),:);
 vol_ent_sal.abs = vol_ent_sal.abs(~any(isnan(vol_ent_sal.abs),2),:);
 %zscores scores
-% figure(fignum+1);hold on;
+
 pitch2 = (pitch2-nanmean(pitch))./std(pitch);
 pitch = (pitch-nanmean(pitch))./std(pitch);
 vol2 = (vol2-nanmean(vol))./std(vol);

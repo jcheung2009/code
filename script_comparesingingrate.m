@@ -21,9 +21,9 @@ end
 mintm = min(tb_sal);
 maxtm = max(tb_sal);
 numseconds = maxtm-mintm;
-timewindow = 1800;
+timewindow = 3600;
 jogsize = 900;
-numtimewindows = 2*floor(numseconds/timewindow)-1;
+numtimewindows = floor(numseconds/jogsize)-(timewindow/jogsize)/2;
 singingrate_sal = [];
 for i = 1:2:length(ff)
     load(['analysis/data_structures/bout_',ff(i).name]);

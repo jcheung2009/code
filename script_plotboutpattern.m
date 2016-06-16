@@ -2,8 +2,8 @@
 
 motif = 'aabb';
 
-ff = load_batchf('batchnaspm');
-load('analysis/data_structures/naspmpitchlatency');
+ff = load_batchf('batchnaspmmusc');
+load('analysis/data_structures/naspmmuscpitchlatency');
 
 for i = 1:2:length(ff);
 
@@ -12,7 +12,10 @@ for i = 1:2:length(ff);
     eval(cmd1);
     eval(cmd2);
     
-    if ~isempty(strfind(ff(i+1).name,'naspm'))
+    if ~isempty(strfind(ff(i+1).name,'naspm')) & ~isempty(strfind(ff(i+1).name,'musc'))
+        mcolor = 'g';
+        mrk = 'go';
+    elseif ~isempty(strfind(ff(i+1).name,'naspm'))
         mcolor = 'r';
         mrk = 'ro';
     elseif ~isempty(strfind(ff(i+1).name,'iem'))
@@ -32,7 +35,7 @@ for i = 1:2:length(ff);
     if ~isempty(strfind(ff(i+1).name,'sal'))
         startpt = '';
     else
-        drugtime = naspmpitchlatency.(['tr_',ff(i+1).name]).treattime;
+        drugtime = naspmmuscpitchlatency.(['tr_',ff(i+1).name]).treattime;
         startpt = (drugtime+1.5)*3600;
     end
     

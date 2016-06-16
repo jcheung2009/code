@@ -24,9 +24,9 @@ end
 
 %singing rate for sal
 numseconds = tb_sal(end)-tb_sal(1);
-timewindow = 1800;
+timewindow = 3600;
 jogsize = 900;
-numtimewindows = 2*floor(numseconds/timewindow)-1;
+numtimewindows = floor(numseconds/jogsize)-(timewindow/jogsize)/2;
 if numtimewindows < 0
     numtimewindows = 1;
 end
@@ -44,9 +44,9 @@ end
 
 %singing rate for cond
 numseconds = tb_cond(end)-tb_cond(1);
-timewindow = 1800;
+timewindow = 3600;
 jogsize = 900;
-numtimewindows = 2*floor(numseconds/timewindow)-1;
+numtimewindows = floor(numseconds/jogsize)-(timewindow/jogsize)/2;
 if numtimewindows < 0
     numtimewindows = 1;
 end
@@ -70,8 +70,8 @@ figure(fignum);hold on;
 jitter = (-1+2*rand)/10;
 xpt = xpt + jitter;
 plot(xpt,singingrate,marker,'markersize',12);hold on;
-set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',...
-        {'NASPM','saline'},'fontweight','bold');
+set(gca,'xlim',[0 5],'xtick',[0.5,1.5 2.5 3.5 4.5],'xticklabel',...
+        {'saline','naspm','apv','musc','naspm+musc'},'fontweight','bold');
 ylabel('Change in peak singing rate');
 title('Singing rate');
 

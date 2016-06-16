@@ -98,7 +98,7 @@ syllwv1 = [];
         end
     end
 
-wavwrite(syllwv1,fs,'syllwv1.wav');
+audiowrite('syllwv1.wav', syllwv1,fs);
 
 
 !ls *.wav > wav

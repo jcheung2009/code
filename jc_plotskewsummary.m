@@ -80,8 +80,8 @@ jitter = (-1+2*rand)/4;
 xpt = xpt+jitter;
 [diffskew hi lo] = jc_testSkew(pitch1n,pitch2n,'');
 plot(xpt,diffskew,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-set(gca,'xlim',[0 4],'xtick',[0.5 1.5 2.5 3.5],'xticklabel',...
-    {'saline','naspm','apv','muscimol'},'fontweight','bold');
+set(gca,'xlim',[0 5],'xtick',[0.5 1.5 2.5 3.5 4.5],'xticklabel',...
+    {'saline','naspm','apv','muscimol','naspm+musc'},'fontweight','bold');
 ylabel('skew difference (drug-saline)');
 title('Difference in skew relative to saline');
 

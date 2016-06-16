@@ -4,8 +4,8 @@
 ff = load_batchf('batchnaspm');
 spectempocorr = struct();
 load('analysis/data_structures/naspmvolumelatency');
-syllables = {'b','d'};
-motif = 'bcd';
+syllables = {'A1','d'};
+motif = 'aabb';
 trialcnt = 0;
 for i = 1:4:length(ff)
     trialcnt = trialcnt+1;

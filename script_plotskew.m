@@ -1,6 +1,6 @@
-ff = load_batchf('batchmusc');
-skewmusc = struct();
-load('analysis/data_structures/musclatency');
+ff = load_batchf('batchnaspmmusc');
+skewnaspmmusc = struct();
+load('analysis/data_structures/naspmmusclatency');
 syllables = {'A1','A2','B1','B2'};
 trialcnt = 0;
 pitch1 = [];
@@ -13,7 +13,10 @@ for i = 1:2:length(ff)
         load(['analysis/data_structures/fv_syll',syllables{ii},'_',ff(i+1).name]);
         fv1 = ['fv_syll',syllables{ii},'_',ff(i).name];
         fv2 = ['fv_syll',syllables{ii},'_',ff(i+1).name];
-        if ~isempty(strfind(ff(i+1).name,'naspm'))
+        if ~isempty(strfind(ff(i+1).name,'naspm')) & ~isempty(strfind(ff(i+1).name,'musc'))
+            mcolor = 'g';
+            mrk = 'go';
+        elseif ~isempty(strfind(ff(i+1).name,'naspm'))
             mcolor = 'r';
             mrk = 'ro';
         elseif ~isempty(strfind(ff(i+1).name,'iem'))
@@ -33,19 +36,19 @@ for i = 1:2:length(ff)
         if ~isempty(strfind(ff(i+1).name,'sal'))
             startpt = '';
         else
-            drugtime = musclatency.(['tr_',ff(i+1).name]).treattime;
-            startpt = (drugtime+0.4)*3600;%change latency time
+            drugtime = naspmmusclatency.(['tr_',ff(i+1).name]).treattime;
+            startpt = (drugtime+1.5)*3600;%change latency time
         end
         
         %% for saline morn vs drug afternoon design 
-        [skewmusc(trialcnt).(['syll',syllables{ii}]) pitch1n pitch2n] = ...
-            jc_plotskewsummary(eval(fv1),eval(fv2),mrk,mcolor,3.5,1,startpt,'y','n',21);
+        [skewnaspmmusc(trialcnt).(['syll',syllables{ii}]) pitch1n pitch2n] = ...
+            jc_plotskewsummary(eval(fv1),eval(fv2),mrk,mcolor,4.5,1,startpt,'y','n',21);
         pitch1 = [pitch1; pitch1n];
         pitch2 = [pitch2; pitch2n];
         %% for blocked experiment design, drug day vs saline pre day
 %         [fvnaspm(trialcnt).fv fvnaspm(trialcnt).vol fvnaspm(trialcnt).ent ...
 %             fvnaspm(trialcnt).pcv] = jc_plotfvsummary2(eval(fv1),eval(fv2),mrk,mcolor,0.5);
-        clearvars -except ff skewmusc syllables trialcnt musclatency i pitch1 pitch2 mcolor
+        clearvars -except ff skewnaspmmusc syllables trialcnt naspmmusclatency i pitch1 pitch2 mcolor
     end
 end
 % 
