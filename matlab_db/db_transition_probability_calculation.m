@@ -1,4 +1,4 @@
-function [trans_per_song, con_or_div, boot_results, entropy_results, syl_pool, time_per_song] =...
+function [trans_per_song, time_per_song, con_or_div, varargout] =...
     db_transition_probability_calculation( all_syllables, motifs, boot_yes_or_no, number_bootstraps, time_syl )
 %db_transition_probability_calculation Given a cell of syllables and a set 
 %of motifs (needs to be a cell, ex: {'ab' 'ac'}), it will give the following:
@@ -66,10 +66,10 @@ for k = 1:length(all_syllables)
 end
 
 %gets rid of any song that did not contain the transitions of interest
-trans_per_song = trans_per_song(~cellfun('isempty',trans_per_song));
 if ~isempty(time_syl) == 1
     time_per_song = time_per_song(~cellfun('isempty',trans_per_song));
 end
+trans_per_song = trans_per_song(~cellfun('isempty',trans_per_song));
 
 %creates a structure for bootstrap data if option is selected
 if strcmpi(boot_yes_or_no,'y') == 1
@@ -120,6 +120,10 @@ if strcmpi(boot_yes_or_no,'y') == 1
     
     %now you have a structure of bootstrap results. the median is the
     %transition probability for the day, and you can add 95% or 99% CI
+    
+    varargout{1} = boot_results;
+    varargout{2} = entropy_results;
+    varargout{3} = syl_pool;
 end
 
 

@@ -1,5 +1,5 @@
 function [fvalsstr]=jc_findwnote5(batch,NOTE,PRENOTE,POSTNOTE,...
-    TIMESHIFT,FVALBND,NFFT,USEFIT,CHANSPEC,evtaf,ADDX,varargin);
+    TIMESHIFT,FVALBND,NFFT,USEFIT,CHANSPEC,evtaf,ADDX,chckpc,varargin);
 %combines jc_findwnote and jc_evtaffv3 and pitch contour code
 %datenum: extracted from rec file which has seconds resolution 
 %ADDX: use X.rec 
@@ -184,7 +184,7 @@ for ifn=1:length(ff)
         end
     end
                
-    p=findstr(labels,[PRENOTE,NOTE,POSTNOTE])+length(PRENOTE);
+    p=strfind(labels,[PRENOTE,NOTE,POSTNOTE])+length(PRENOTE);
     
     for ii = 1:length(p)
         if(length(onsets)==length(labels))
@@ -377,7 +377,7 @@ for ifn=1:length(ff)
 end
 
 %% check pitch contours with average spectrograms 
-
+if chckpc == 1
     [maxlength ind1] = max(arrayfun(@(x) length(x.tm),spec));
     freqlength = max(arrayfun(@(x) length(x.f),spec));
     avgspec = zeros(freqlength,maxlength);
@@ -392,7 +392,7 @@ end
     figure;hold on;
     imagesc(spec(ind1).tm,spec(ind1).f,log(avgspec));hold on;colormap('jet');
     plot(pcstruct.tm,nanmean(pcstruct.pc,2),'k');
-
+end
 
 return;
 

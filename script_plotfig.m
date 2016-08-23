@@ -3,11 +3,12 @@
 %each trial has pre-day, treat-day, post-day (matched to time window
 %of treat-day) 
 
-ff = load_batchf('batchmusc');
-load('analysis/data_structures/musclatency.mat');
+ff = load_batchf('batchnaspm');
+load('analysis/data_structures/naspmlatency.mat');
+
 syllables = {'A1','A2','B1','B2'};
 spc = 0.15;
-
+nstd = 4;
 for ii = 1:length(syllables)
     figure;
     h = subtightplot(3,1,1,0.07,0.08,0.15);hold on;
@@ -24,53 +25,55 @@ for ii = 1:length(syllables)
         eval(cmd1);
         eval(cmd2);
 
-        drugtime = musclatency.(['tr_',ff(i+1).name]).treattime;
-        startpt = (drugtime+0.4)*3600;%change latency time!
+        drugtime = naspmlatency.(['tr_',ff(i+1).name]).treattime;
+        startpt = (drugtime+0.6)*3600;%change latency time!
         ind = find(tb_cond >= startpt);
-        indsal = find(tb_sal >= tb_cond(1) & tb_sal <= tb_cond(end));
-        %ind2 = find(tb_sal2 >= tb_cond(1) & tb_sal2 <= tb_cond(end));
+        %indsal = find(tb_sal >= tb_cond(1) & tb_sal <= tb_cond(end));
+        indsal = 1:length(tb_sal);
 
-        cmd2 = ['mBootstrapCI([fv_syll',syllables{ii},'_',ff(i).name,'(:).mxvals])'];
-        [hi lo mn] = eval(cmd2);
+        pitch = eval(['[fv_syll',syllables{ii},'_',ff(i).name,'(:).mxvals]''']);
+        pitch = jc_removeoutliers(pitch,nstd);
+        [hi lo mn] = mBootstrapCI(pitch);
         plot(h,[daycnt daycnt],[hi lo],'k','linewidth',2);hold on;
         plot(h,daycnt,mn,'ok','MarkerSize',8);hold on;
-
-        cmd3 = ['mBootstrapCI([fv_syll',syllables{ii},'_',ff(i).name,'(:).maxvol])'];
-        [hi lo mn] = eval(cmd3);
+        
+        vol = eval(['log([fv_syll',syllables{ii},'_',ff(i).name,'(:).maxvol]'')']);
+        vol = jc_removeoutliers(vol,nstd);
+        [hi lo mn] = mBootstrapCI(vol);
         plot(h2,[daycnt daycnt],[hi lo],'k','linewidth',2);hold on;
         plot(h2,daycnt,mn,'ok','MarkerSize',8);hold on;
-
-        cmd4 = ['mBootstrapCI_CV([fv_syll',syllables{ii},'_',ff(i).name,'(:).mxvals])'];
-         [mn hi lo] = eval(cmd4);
+        
+        [mn hi lo] = mBootstrapCI_CV(pitch);
         plot(h3,[daycnt daycnt],[hi lo],'k','linewidth',2);hold on;
         plot(h3,daycnt,mn,'ok','MarkerSize',8);hold on;
 
         if ~isempty(strfind(ff(i+1).name,'naspm'))
             mrk = 'or';
             mcolor = 'r';
-        elseif ~isempty(strfind(ff(i+1).name,'iem'))
-            mrk = 'om';
-            mcolor = 'm';
-        elseif ~isempty(strfind(ff(i+1).name,'apv'))
-            mrk = 'ob';
-            mcolor = 'b';
+        elseif ~isempty(strfind(ff(i+1).name,'IEM'))
+            mrk = 'or';
+            mcolor = 'r';
+        elseif ~isempty(strfind(ff(i+1).name,'APV'))
+            mrk = 'og';
+            mcolor = 'g';
         else
             mrk = 'ok';
             mcolor = 'k';
         end
 
-        cmd2 = ['mBootstrapCI([fv_syll',syllables{ii},'_',ff(i+1).name,'(ind).mxvals])'];
-        [hi lo mn] = eval(cmd2);
+        pitch2 = eval(['[fv_syll',syllables{ii},'_',ff(i+1).name,'(ind).mxvals]''']);
+        pitch2 = jc_removeoutliers(pitch2,nstd);
+        [hi lo mn] = mBootstrapCI(pitch2);
         plot(h,[daycnt+spc daycnt+spc],[hi lo],mcolor,'linewidth',2);hold on;
         plot(h,daycnt+spc,mn,mrk,'MarkerSize',8);hold on;
 
-        cmd3 = ['mBootstrapCI([fv_syll',syllables{ii},'_',ff(i+1).name,'(ind).maxvol])'];
-        [hi lo mn] = eval(cmd3);
+        vol2 = eval(['[fv_syll',syllables{ii},'_',ff(i+1).name,'(ind).maxvol]''']);
+        vol2 = jc_removeoutliers(vol2,nstd);
+        [hi lo mn] = mBootstrapCI(vol2);
         plot(h2,[daycnt+spc daycnt+spc],[hi lo],mcolor,'linewidth',2);hold on;
         plot(h2,daycnt+spc,mn,mrk,'MarkerSize',8);hold on;
 
-        cmd4 = ['mBootstrapCI_CV([fv_syll',syllables{ii},'_',ff(i+1).name,'(ind).mxvals])'];
-         [mn hi lo] = eval(cmd4);
+        [mn hi lo] = mBootstrapCI_CV(pitch2);
         plot(h3,[daycnt+spc daycnt+spc],[hi lo],mcolor,'linewidth',2);hold on;
         plot(h3,daycnt+spc,mn,mrk,'MarkerSize',8);hold on;
 

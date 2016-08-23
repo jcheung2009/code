@@ -4,9 +4,9 @@
 %effect for each trial 
 
 
-ff = load_batchf('batchnaspm');
-if exist('naspmtreatmenttime')
-    ff2 = load_batchf('naspmtreatmenttime');
+ff = load_batchf('batchdcs');
+if exist('dcstreatmenttime')
+    ff2 = load_batchf('dcstreatmenttime');
 else
     ff2 = '';
 end
@@ -30,6 +30,8 @@ for i = 1:2:length(ff)
         
         pitch_sal = [fv_sal(:).mxvals];
         pitch_cond = [fv_cond(:).mxvals];
+%         pitch_sal = log([fv_sal(:).maxvol]);
+%         pitch_cond = log([fv_cond(:).maxvol]);
         %pitch_cond = (pitch_cond - nanmean(pitch_sal))./nanstd(pitch_sal);
 
         tb_cond = jc_tb([fv_cond(:).datenm]',7,0);
@@ -38,7 +40,7 @@ for i = 1:2:length(ff)
         timewindow = 3600; % hr in seconds
         jogsize = 900;%15 minutes
         numtimewindows = floor(numseconds/jogsize)-(timewindow/jogsize)/2;%2*floor(numseconds/timewindow)-1;
-        if numtimewindows < 0
+        if numtimewindows <= 0
             numtimewindows = 1;
         end
 
@@ -47,7 +49,8 @@ for i = 1:2:length(ff)
         for p = 1:numtimewindows
             timept2 = timept1+timewindow;
             ind = find(tb_cond >= timept1 & tb_cond < timept2);
-            indsal = find(tb_sal >= timept1 & tb_sal < timept2);
+            indsal = 1:length(tb_sal);
+            %indsal = find(tb_sal >= timept1 & tb_sal < timept2);
             pitch_condn = (pitch_cond(ind)-nanmean(pitch_sal(indsal)))./nanstd(pitch_sal(indsal));
             fv_cond_avg = [fv_cond_avg;timept1 nanmean(pitch_condn)];
             timept1 = timept1+jogsize;
@@ -91,7 +94,11 @@ for i = 1:2:length(ff)
                 ff(i+1).name]).latency; fv_cond_avg(ind_1std(1),1)-st_time/3600];%time between treatment start and drug effect in hours
         end 
     end
-
+    h = [];
+    for n = 1:length(syllables)
+        h = [h;findobj(ax,'color',mcolor(n,:))];
+    end
+    legend(h,syllables);
     plot(ax,naspmpitchlatency.(['tr_',ff(i+1).name]).treattime,1,'r*','markersize',12);
     hold(ax,'off');
     

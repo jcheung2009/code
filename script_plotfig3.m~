@@ -64,10 +64,22 @@ for i = 1:3:length(ff)
     plot(gca,[daycnt daycnt],[hi lo],'k','linewidth',2);hold on;
     plot(gca,daycnt,mn,'ok','MarkerSize',8);hold on;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
-     if ~isempty(strfind(ff(i+1).name,'naspm'))
+    if ~isempty(strfind(ff(i+1).name,'apvnaspm'))
+        mrk = 'og';
+        mcolor = 'g';
+    elseif ~isempty(strfind(ff(i+1).name,'naspm'))
         mrk = 'or';
         mcolor = 'r';
-     end
+    elseif ~isempty(strfind(ff(i+1).name,'iem'))
+        mrk = 'om';
+        mcolor = 'm';
+    elseif ~isempty(strfind(ff(i+1).name,'apv'))
+        mrk = 'ob';
+        mcolor = 'b';
+    else
+        mrk = 'ok';
+        mcolor = 'k';
+    end
     
     acorr2 = 
     cmd2 = ['mBootstrapCI([motif_aabb_',ff(i+1).name,'(ind).firstpeakdistance])'];

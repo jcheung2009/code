@@ -1,4 +1,4 @@
-function motifinfo = jc_findmotif(batch,motif,syllables,fvalbnd,timeshifts,varseq,jitter,CHANSPEC)
+function motifinfo = jc_findmotif_pk88gr54(batch,motif,syllables,fvalbnd,timeshifts,varseq,jitter,CHANSPEC)
 %syllables = {'a','b','c'}
 %fvalbnds = {[fvalbnd for syllable A], [fvalbnd for syllable C],...}
 %timeshifts = {timeshift for A, timeshift for B, timeshift for C}
@@ -132,9 +132,9 @@ for i = 1:length(ff)
         end
         
         if jitter == 'n'
-            minint = 3;%gap
+            minint = 10;%gap
             mindur = 20;%syllable
-            thresholdforsegmentation = {0.35,minint,mindur};%{graythresh(sm2),minint,mindur};%otsu's method
+            thresholdforsegmentation = {0.4,minint,mindur};%{graythresh(sm2),minint,mindur};%otsu's method
             [ons offs] = SegmentNotes(sm2,fs,thresholdforsegmentation{2},...
                 thresholdforsegmentation{3},thresholdforsegmentation{1});
             disp([num2str(length(ons)),' syllables detected']);
@@ -158,26 +158,26 @@ for i = 1:length(ff)
                 end
             else
 %                 %uncomment this section if want to see segmentation
-%                 if length(ons) ~= length(motif)
-%                     figure;hold on;
-%                 end
-%                 while length(ons) ~= length(motif) 
-%                     clf
-%                     plot(sm2,'k');hold on;
-%                     plot([floor(ons*fs) ceil(offs*fs)],[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');hold on;
-%                     accept_or_not = input('accept segmentation? (y/n):','s');
-%                     if accept_or_not == 'y'
-%                         break
-%                     else
-%                         thresholdforsegmentation = input('try new {thresholdhold,minint,mindur}:');
-%                             [ons offs] = SegmentNotes(sm2,fs,thresholdforsegmentation{2},...
-%                                 thresholdforsegmentation{3},thresholdforsegmentation{1});
-%                             disp([num2str(length(ons)),' syllables detected']);
-%                     end
-%                 end
-%                 if length(ons) ~= length(motif)
-%                     continue
-%                 end
+                if length(ons) ~= length(motif)
+                    figure;hold on;
+                end
+                while length(ons) ~= length(motif) 
+                    clf
+                    plot(sm2,'k');hold on;
+                    plot([floor(ons*fs) ceil(offs*fs)],[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');hold on;
+                    accept_or_not = input('accept segmentation? (y/n):','s');
+                    if accept_or_not == 'y'
+                        break
+                    else
+                        thresholdforsegmentation = input('try new {thresholdhold,minint,mindur}:');
+                            [ons offs] = SegmentNotes(sm2,fs,thresholdforsegmentation{2},...
+                                thresholdforsegmentation{3},thresholdforsegmentation{1});
+                            disp([num2str(length(ons)),' syllables detected']);
+                    end
+                end
+                if length(ons) ~= length(motif)
+                    continue
+                end
                 %%
             end
         else
@@ -325,12 +325,4 @@ end
 
     
        
-        
-        
-        
-        
-        
-        
-        
-        
         

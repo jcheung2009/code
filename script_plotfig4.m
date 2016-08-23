@@ -3,7 +3,7 @@
 %A,B,D, each trial has pre-day, treat-day, post-day (matched to time window
 %of treat-day) 
 
-ff = load_batchf('batchnaspm2');
+ff = load_batchf('batch');
 load('analysis/data_structures/naspmpitchlatency.mat');
 daycnt = 1;
 figure;hold on;

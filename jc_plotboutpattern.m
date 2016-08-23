@@ -1,4 +1,4 @@
-function jc_plotboutpattern(boutinfo_sal,boutinfo_cond,linecolor,excludewashin,startpt,matchtm,motif)
+function jc_plotboutpattern(boutinfo_sal,boutinfo_cond,linecolor,excludewashin,startpt,matchtm,numsylls)
 
 tb_sal = jc_tb([boutinfo_sal(:).datenm]',7,0);
 tb_cond = jc_tb([boutinfo_cond(:).datenm]',7,0);
@@ -13,7 +13,7 @@ elseif excludewashin == 1
     tb_cond(ind) = [];
 end
 
-if ~isempty(matchtm)
+if matchtm == 1
     indsal = find(tb_sal>=tb_cond(1) & tb_sal <= tb_cond(end)); 
     tb_sal = tb_sal(indsal);
     boutinfo_sal = boutinfo_sal(indsal);
@@ -21,7 +21,7 @@ end
 
 
 %% plot within bout pitch,volume,entropy, and tempo patterns
-numsylls = length(motif);
+
 maxnummotifs1 = max(arrayfun(@(x) x.nummotifs,boutinfo_sal));
 pitchpattern1 = [];
 for i = 1:length(boutinfo_sal)
@@ -39,7 +39,7 @@ for i = 1:length(boutinfo_cond)
     end
 end
 
-figure;hold on;
+figure(15);hold on;
 subtightplot(4,1,1,0.07,0.05,0.1);hold on;
 fill([1:maxnummotifs1 fliplr(1:maxnummotifs1)],[nanmean(pitchpattern1,2)'-nanstderr(pitchpattern1,2)',...
 fliplr(nanmean(pitchpattern1,2)'+nanstderr(pitchpattern1,2)')],'k','edgecolor','none',...

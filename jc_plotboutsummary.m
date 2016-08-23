@@ -17,7 +17,7 @@ elseif excludewashin == 1
     tb_cond(ind) = [];
 end
 
-if ~isempty(matchtm)
+if matchtm == 1
     indsal = find(tb_sal>=tb_cond(1) & tb_sal <= tb_cond(end)); 
     tb_sal = tb_sal(indsal);
 end 
@@ -27,7 +27,7 @@ numseconds = tb_sal(end)-tb_sal(1);
 timewindow = 3600;
 jogsize = 900;
 numtimewindows = floor(numseconds/jogsize)-(timewindow/jogsize)/2;
-if numtimewindows < 0
+if numtimewindows <= 0
     numtimewindows = 1;
 end
 
@@ -47,7 +47,7 @@ numseconds = tb_cond(end)-tb_cond(1);
 timewindow = 3600;
 jogsize = 900;
 numtimewindows = floor(numseconds/jogsize)-(timewindow/jogsize)/2;
-if numtimewindows < 0
+if numtimewindows <= 0
     numtimewindows = 1;
 end
 
@@ -70,8 +70,9 @@ figure(fignum);hold on;
 jitter = (-1+2*rand)/10;
 xpt = xpt + jitter;
 plot(xpt,singingrate,marker,'markersize',12);hold on;
-set(gca,'xlim',[0 5],'xtick',[0.5,1.5 2.5 3.5 4.5],'xticklabel',...
-        {'saline','naspm','apv','musc','naspm+musc'},'fontweight','bold');
+plot([0 3],[1 1],'c','linewidth',2);
+    set(gca,'xlim',[0 3],'xtick',[0.5,1.5 2.5],'xticklabel',...
+        {'saline','iem','iem+apv'},'fontweight','bold');
 ylabel('Change in peak singing rate');
 title('Singing rate');
 

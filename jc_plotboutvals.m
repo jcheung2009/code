@@ -79,17 +79,27 @@ if isempty(fignum)
 end
 figure(fignum);hold on;
 h1 = subtightplot(2,1,1,[0.08 0.08],0.08,0.1);hold on;
-bar(numsongs(:,1),numsongs(:,2),1,'edgecolor','none','facecolor',linecolor);
-xlim = get(h1,'xlim');
-xtick = [xlim(1):4*3600:xlim(2)];
+if isstr(linecolor)
+    bar(numsongs(:,1),numsongs(:,2),1,'edgecolor','none','facecolor',linecolor);
+else
+    linecolor = linecolor/max(linecolor);
+    bar(numsongs(:,1),numsongs(:,2),1,'edgecolor','none','facecolor',linecolor);
+end
+dataob = get(h1,'children');
+xd = get(dataob,'xdata');
+if iscell(xd)
+    xd = cell2mat(xd');
+end
+xlim = [min(xd) max(xd)];
+xtick = [xlim(1):24*3600:xlim(2)];
 xticklabel = round(xtick/3600);
-set(h1,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
+set(h1,'xlim',xlim,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
 xlabel(h1,'Time in hours since 7 AM');
 ylabel(h1,'Number of songs per hour');
 title(h1,'Singing Rate')
 h2 = subtightplot(2,1,2,[0.08 0.08],0.08,0.1);hold on;
 bar(nummotifs_per_window(:,1),nummotifs_per_window(:,2),1,'edgecolor','none','facecolor',linecolor);
-set(h2,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
+set(h2,'xlim',xlim,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
 xlabel(h2,'Time in hours since 7 AM');
 ylabel(h2,'Number of motifs per hour');
 

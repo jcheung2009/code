@@ -31,6 +31,6 @@ for i = 1:length(ff)
     min_int = min_int2;
     min_dur = min_dur2;
     cmd = ['save ',fn,'.not.mat fname Fs labels min_int min_dur ',...
-        'offsets onsets sm_win threshold'];
+        'offsets onsets sm_win threshold;'];
     eval(cmd);
 end

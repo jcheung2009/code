@@ -4,17 +4,17 @@
 %effect for each trial 
 
 
-ff = load_batchf('batchmusc');
-if exist('musctreatmenttime')
-    ff2 = load_batchf('musctreatmenttime');
+ff = load_batchf('batchapvnaspm');
+if exist('apvnaspmtreatmenttime')
+    ff2 = load_batchf('apvnaspmtreatmenttime');
 else
     ff2 = '';
 end
 musclatency = struct();
 syllables = {'A1','A2','B1','B2'};
-for i = 1:2:length(ff)
+for i =  5%1:2:length(ff)-1
 
-    figure;hold on;
+    figure(7);hold on;
     ax = gca;
     mcolor = hsv(length(syllables));
     musclatency.(['tr_',ff(i+1).name]).latency = [];
@@ -54,8 +54,8 @@ for i = 1:2:length(ff)
         
         fv_cond_avg(:,1) = fv_cond_avg(:,1)/3600;
         hold(ax,'on');
-        plot(ax,[0 12],[10 10],'k','linewidth',2);hold on;
-        plot(ax,[0 12],[-10 -10],'k','linewidth',2);hold on;
+        plot(ax,[0 14],[10 10],'k','linewidth',2);hold on;
+        plot(ax,[0 14],[-10 -10],'k','linewidth',2);hold on;
         plot(ax,fv_cond_avg(:,1),fv_cond_avg(:,2),'color',mcolor(ii,:),'marker','o');hold on;
         
         set(ax,'fontweight','bold');
@@ -90,9 +90,14 @@ for i = 1:2:length(ff)
                 ff(i+1).name]).latency; fv_cond_avg(ind_1std(1),1)-st_time/3600];%time between treatment start and drug effect in hours
         end 
     end
-    
+%      h = [];
+%     for n = 1:length(syllables)
+%         h = [h;findobj(ax,'color',mcolor(n,:))];
+%     end
+%     legend(h,syllables);
     plot(ax,musclatency.(['tr_',ff(i+1).name]).treattime,10,'r*','markersize',12);
     hold(ax,'off');
+
     
     clearvars -except ff ff2 syllables musclatency
 end

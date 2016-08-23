@@ -56,7 +56,7 @@ if strcmp(filetype,'b')   %binary filetype, big-endian (from mac or sun)
   rawsong=fread(sound_fid,inf,'short');
   Fs=-1;   %this filetype doesn't contain Fs
 elseif strcmp(filetype,'w')    %wavefile
-  [rawsong, Fs] = wavread(soundfile_full);
+  [rawsong, Fs] = audioread(soundfile_full);
 elseif strcmp(filetype,'d')    %dcp file
   [Fs, nframes, rawsong] = read_song(soundfile_full);
 elseif strcmp(filetype,'foo')    %foosong/gogo file

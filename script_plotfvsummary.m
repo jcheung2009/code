@@ -1,7 +1,7 @@
-ff = load_batchf('batchnaspm');
-fvnaspm = struct();
-load('analysis/data_structures/naspmpitchlatency');
-syllables = {'A1','A2','B1','B2'};
+ff = load_batchf('batchsal');
+fvsal = struct();
+load('analysis/data_structures/iemapvlatency');
+syllables = {'A','C','R','W1','W2'};
 trialcnt = 0;
 for i = 1:2:length(ff)
     trialcnt = trialcnt+1;
@@ -14,12 +14,12 @@ for i = 1:2:length(ff)
         if ~isempty(strfind(ff(i+1).name,'naspm'))
             mcolor = 'r';
             mrk = 'ro';
-        elseif ~isempty(strfind(ff(i+1).name,'iem'))
-            mcolor = 'm';
-            mrk = 'mo';
-        elseif ~isempty(strfind(ff(i+1).name,'apv'))
-            mcolor = 'b';
-            mrk = 'bo';
+        elseif ~isempty(strfind(ff(i+1).name,'IEM'))
+            mcolor = 'r';
+            mrk = 'ro';
+        elseif ~isempty(strfind(ff(i+1).name,'APV'))
+            mcolor = 'g';
+            mrk = 'go';
         else
             mcolor = 'k';
             mrk = 'ko';
@@ -28,20 +28,20 @@ for i = 1:2:length(ff)
         if ~isempty(strfind(ff(i+1).name,'sal'))
             startpt = '';
         else
-            drugtime = apviempitchlatency.(['tr_',ff(i+1).name]).treattime;
-            startpt = (drugtime+1.5)*3600;%change latency time
+            drugtime = iemapvlatency.(['tr_',ff(i+1).name]).treattime;
+            startpt = (drugtime+0.6)*3600;%change latency time
         end
         
         %% for saline morn vs drug afternoon design 
-        [fvnaspm(trialcnt).(['syll',syllables{ii}]).fv fvnaspm(trialcnt).(['syll',syllables{ii}]).vol ...
-            fvnaspm(trialcnt).(['syll',syllables{ii}]).ent ...
-            fvnaspm(trialcnt).(['syll',syllables{ii}]).pcv] = ...
-            jc_plotfvsummary(eval(fv1),eval(fv2),mrk,mcolor,0.5,1,startpt,'','n','n',20);
+        [fvsal(trialcnt).(['syll',syllables{ii}]).fv fvsal(trialcnt).(['syll',syllables{ii}]).vol ...
+            fvsal(trialcnt).(['syll',syllables{ii}]).ent ...
+            fvsal(trialcnt).(['syll',syllables{ii}]).pcv] = ...
+            jc_plotfvsummary(eval(fv1),eval(fv2),mrk,mcolor,0.5,0,startpt,0,'y','n',20);
         
         %% for blocked experiment design, drug day vs saline pre day
-%         [fvnaspm(trialcnt).fv fvnaspm(trialcnt).vol fvnaspm(trialcnt).ent ...
-%             fvnaspm(trialcnt).pcv] = jc_plotfvsummary2(eval(fv1),eval(fv2),mrk,mcolor,0.5);
-        clearvars -except ff fvnaspm syllables trialcnt naspmpitchlatency i 
+%         [fvsal(trialcnt).fv fvsal(trialcnt).vol fvsal(trialcnt).ent ...
+%             fvsal(trialcnt).pcv] = jc_plotfvsummary2(eval(fv1),eval(fv2),mrk,mcolor,0.5);
+        clearvars -except ff fvsal syllables trialcnt iemapvlatency i 
     end
 end
 

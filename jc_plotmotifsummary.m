@@ -1,4 +1,4 @@
-function [mdur sdur gdur mcv macorr] = jc_plotmotifsummary(motif_sal, motif_cond, ...
+function [mdur sdur gdur macorr] = jc_plotmotifsummary(motif_sal, motif_cond, ...
     marker, linecolor, xpt,excludewashin,startpt,matchtm,checkoutliers,rawplot,fignum)
 %for experiment design saline morning vs drug afternoon
 
@@ -30,7 +30,7 @@ if excludewashin == 1
     motifacorr2(ind) = [];
 end
 
-if ~isempty(matchtm)
+if matchtm == 1
     indsal = find(tb_sal>=tb_cond(1) & tb_sal <= tb_cond(end)); 
     tb_sal = tb_sal(indsal);
     motifdur = motifdur(indsal);
@@ -40,99 +40,108 @@ if ~isempty(matchtm)
 end 
 
 if checkoutliers == 'y'
-    fignum = input('figure number for checking outliers:');
-    figure(fignum);
-    h = plot(tb_sal,motifdur,'k.');
-    removeoutliers = input('remove outliers (y/n):','s');
-    while removeoutliers == 'y'
-        nstd = input('nstd:');
-        delete(h);
-        removeind = jc_findoutliers(motifdur',nstd);
-        motifdur(removeind) = [];
-        sylldur(removeind) = [];
-        gapdur(removeind) = [];
-        tb_sal(removeind) = [];
-        plot(tb_sal,motifdur,'k.');
-        removeoutliers = input('remove outliers (y/n):','s');
-    end
-    delete(h);
-
-    h = plot(tb_sal,sylldur,'k.');
-    removeoutliers = input('remove outliers (y/n):','s');
-    while removeoutliers == 'y'
-        nstd = input('nstd:');
-        delete(h);
-        removeind = jc_findoutliers(sylldur',nstd);
-        motifdur(removeind) = [];
-        sylldur(removeind) = [];
-        gapdur(removeind) = [];
-        tb_sal(removeind) = [];
-        plot(tb_sal,sylldur,'k.');
-        removeoutliers = input('remove outliers (y/n):','s');
-    end
-    delete(h);
-
-    h = plot(tb_sal,gapdur,'k.');
-    removeoutliers = input('remove outliers (y/n):','s');
-    while removeoutliers == 'y'
-        nstd = input('nstd:');
-        delete(h);
-        removeind = jc_findoutliers(gapdur',nstd);
-        motifdur(removeind) = [];
-        sylldur(removeind) = [];
-        gapdur(removeind) = [];
-        tb_sal(removeind) = [];
-        plot(tb_sal,gapdur,'k.');
-        removeoutliers = input('remove outliers (y/n):','s');
-    end
-    delete(h);
-
-    h = plot(tb_cond,motifdur2,'k.');
-    removeoutliers = input('remove outliers (y/n):','s');
-    while removeoutliers == 'y'
-        nstd = input('nstd:');
-        delete(h);
-        removeind = jc_findoutliers(motifdur2',nstd);
-        motifdur2(removeind) = [];
-        sylldur2(removeind) = [];
-        gapdur2(removeind) = [];
-        tb_cond(removeind) = [];
-        plot(tb_cond,motifdur2,'k.');
-        removeoutliers = input('remove outliers (y/n):','s');
-    end
-    delete(h);
-
-    h = plot(tb_cond,sylldur2,'k.');
-    removeoutliers = input('remove outliers (y/n):','s');
-    while removeoutliers == 'y'
-        nstd = input('nstd:');
-        delete(h);
-        removeind = jc_findoutliers(sylldur2',nstd);
-        motifdur2(removeind) = [];
-        sylldur2(removeind) = [];
-        gapdur2(removeind) = [];
-        tb_cond(removeind) = [];
-        plot(tb_cond,sylldur2,'k.');
-        removeoutliers = input('remove outliers (y/n):','s');
-    end
-    delete(h);
-
-    h = plot(tb_cond,gapdur2,'k.');
-    removeoutliers = input('remove outliers (y/n):','s');
-    while removeoutliers == 'y'
-        nstd = input('nstd:');
-        delete(h);
-        removeind = jc_findoutliers(gapdur2',nstd);
-        motifdur2(removeind) = [];
-        sylldur2(removeind) = [];
-        gapdur2(removeind) = [];
-        tb_cond(removeind) = [];
-        plot(tb_cond,gapdur2,'k.');
-        removeoutliers = input('remove outliers (y/n):','s');
-    end
-    delete(h);
-    clf;
+    nstd = 4;
+    motifdur = jc_removeoutliers(motifdur,nstd);
+    sylldur = jc_removeoutliers(sylldur,nstd);
+    gapdur = jc_removeoutliers(gapdur,nstd);
+    motifdur2 = jc_removeoutliers(motifdur2,nstd);
+    sylldur2 = jc_removeoutliers(sylldur2,nstd);
+    gapdur2 = jc_removeoutliers(gapdur2,nstd);
 end
+%if checkoutliers == 'y'
+%     fignum = input('figure number for checking outliers:');
+%     figure(fignum);
+%     h = plot(tb_sal,motifdur,'k.');
+%     removeoutliers = input('remove outliers (y/n):','s');
+%     while removeoutliers == 'y'
+%         nstd = input('nstd:');
+%         delete(h);
+%         removeind = jc_findoutliers(motifdur',nstd);
+%         motifdur(removeind) = [];
+%         sylldur(removeind) = [];
+%         gapdur(removeind) = [];
+%         tb_sal(removeind) = [];
+%         plot(tb_sal,motifdur,'k.');
+%         removeoutliers = input('remove outliers (y/n):','s');
+%     end
+%     delete(h);
+% 
+%     h = plot(tb_sal,sylldur,'k.');
+%     removeoutliers = input('remove outliers (y/n):','s');
+%     while removeoutliers == 'y'
+%         nstd = input('nstd:');
+%         delete(h);
+%         removeind = jc_findoutliers(sylldur',nstd);
+%         motifdur(removeind) = [];
+%         sylldur(removeind) = [];
+%         gapdur(removeind) = [];
+%         tb_sal(removeind) = [];
+%         plot(tb_sal,sylldur,'k.');
+%         removeoutliers = input('remove outliers (y/n):','s');
+%     end
+%     delete(h);
+% 
+%     h = plot(tb_sal,gapdur,'k.');
+%     removeoutliers = input('remove outliers (y/n):','s');
+%     while removeoutliers == 'y'
+%         nstd = input('nstd:');
+%         delete(h);
+%         removeind = jc_findoutliers(gapdur',nstd);
+%         motifdur(removeind) = [];
+%         sylldur(removeind) = [];
+%         gapdur(removeind) = [];
+%         tb_sal(removeind) = [];
+%         plot(tb_sal,gapdur,'k.');
+%         removeoutliers = input('remove outliers (y/n):','s');
+%     end
+%     delete(h);
+% 
+%     h = plot(tb_cond,motifdur2,'k.');
+%     removeoutliers = input('remove outliers (y/n):','s');
+%     while removeoutliers == 'y'
+%         nstd = input('nstd:');
+%         delete(h);
+%         removeind = jc_findoutliers(motifdur2',nstd);
+%         motifdur2(removeind) = [];
+%         sylldur2(removeind) = [];
+%         gapdur2(removeind) = [];
+%         tb_cond(removeind) = [];
+%         plot(tb_cond,motifdur2,'k.');
+%         removeoutliers = input('remove outliers (y/n):','s');
+%     end
+%     delete(h);
+% 
+%     h = plot(tb_cond,sylldur2,'k.');
+%     removeoutliers = input('remove outliers (y/n):','s');
+%     while removeoutliers == 'y'
+%         nstd = input('nstd:');
+%         delete(h);
+%         removeind = jc_findoutliers(sylldur2',nstd);
+%         motifdur2(removeind) = [];
+%         sylldur2(removeind) = [];
+%         gapdur2(removeind) = [];
+%         tb_cond(removeind) = [];
+%         plot(tb_cond,sylldur2,'k.');
+%         removeoutliers = input('remove outliers (y/n):','s');
+%     end
+%     delete(h);
+% 
+%     h = plot(tb_cond,gapdur2,'k.');
+%     removeoutliers = input('remove outliers (y/n):','s');
+%     while removeoutliers == 'y'
+%         nstd = input('nstd:');
+%         delete(h);
+%         removeind = jc_findoutliers(gapdur2',nstd);
+%         motifdur2(removeind) = [];
+%         sylldur2(removeind) = [];
+%         gapdur2(removeind) = [];
+%         tb_cond(removeind) = [];
+%         plot(tb_cond,gapdur2,'k.');
+%         removeoutliers = input('remove outliers (y/n):','s');
+%     end
+%     delete(h);
+%     clf;
+% end
 
 %rawplot = input('plot raw summary?:(y/n)','s');
 if rawplot == 'y'
@@ -183,58 +192,49 @@ else
     figure(fignum);hold on;
     
     %z-score
-    motifdurn = (motifdur2-mean(motifdur))./std(motifdur);
-    sylldurn = (sylldur2-mean(sylldur))./std(sylldur);
-    gapdurn = (gapdur2-mean(gapdur))./std(gapdur);
+    motifdurn = (motifdur2-nanmean(motifdur))./nanstd(motifdur);
+    sylldurn = (sylldur2-nanmean(sylldur))./nanstd(sylldur);
+    gapdurn = (gapdur2-nanmean(gapdur))./nanstd(gapdur);
     motifacorrn = (motifacorr2-nanmean(motifacorr))./nanstd(motifacorr);
     
-    subtightplot(5,1,1,0.07,0.07,0.15);hold on;
+    subtightplot(4,1,1,0.07,0.07,0.15);hold on;
     jitter = (-1+2*rand)/4;
     xpt = xpt+jitter;
     [hi lo mn2] = mBootstrapCI(motifdurn);
     plot(xpt,mn2,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',...
-        {'NASPM','saline'},'fontweight','bold');
+    plot([0 3],[0 0],'c','linewidth',2);
+    set(gca,'xlim',[0 3],'xtick',[0.5,1.5 2.5],'xticklabel',...
+        {'saline','iem','iem+apv'},'fontweight','bold');
     ylabel('z-score');
     title('Change in motif duration relative to saline');
     mdur.zsc = mn2;
     
-    subtightplot(5,1,2,0.07,0.07,0.15);hold on;
+    subtightplot(4,1,2,0.07,0.07,0.15);hold on;
     [hi lo mn2] = mBootstrapCI(sylldurn);
     plot(xpt,mn2,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',...
-        {'NASPM','saline'},'fontweight','bold');
+    plot([0 3],[0 0],'c','linewidth',2);
+    set(gca,'xlim',[0 3],'xtick',[0.5,1.5 2.5],'xticklabel',...
+        {'saline','iem','iem+apv'},'fontweight','bold');
     ylabel('z-score');
     title('Change in syllable duration relative to saline');
     sdur.zsc = mn2;
 
-    subtightplot(5,1,3,0.07,0.07,0.15);hold on;
+    subtightplot(4,1,3,0.07,0.07,0.15);hold on;
     [hi lo mn2] = mBootstrapCI(gapdurn);
     plot(xpt,mn2,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',...
-        {'NASPM','saline'},'fontweight','bold');
+    plot([0 3],[0 0],'c','linewidth',2);
+    set(gca,'xlim',[0 3],'xtick',[0.5,1.5 2.5],'xticklabel',...
+        {'saline','iem','iem+apv'},'fontweight','bold');
     ylabel('z-score');;
     title('Change in gap duration relative to saline');
     gdur.zsc = mn2;
-
-    subtightplot(5,1,4,0.07,0.07,0.15);hold on;
-    mn1 = mBootstrapCI_CV(motifdur);
-    [mn2 hi lo] = mBootstrapCI_CV(motifdur2);
-    mn3 = mn2/mn1;
-    hi = mn3+((hi-mn2)/mn1);
-    lo = mn3-((mn2-lo)/mn1);
-    plot(xpt,mn3,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',...
-        {'NASPM','saline'},'fontweight','bold');
-    ylabel('CV change');
-    title('Change in motif duration CV');
-    mcv.zsc = mn3;
     
-    subtightplot(5,1,5,0.07,0.07,0.15);hold on;
+    subtightplot(4,1,4,0.07,0.07,0.15);hold on;
     [hi lo mn2] = mBootstrapCI(motifacorrn);
     plot(xpt,mn2,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    set(gca,'xlim',[0 2],'xtick',[0.5,1.5],'xticklabel',...
-        {'NASPM','saline'},'fontweight','bold');
+    plot([0 3],[0 0],'c','linewidth',2);
+    set(gca,'xlim',[0 3],'xtick',[0.5,1.5 2.5],'xticklabel',...
+        {'saline','iem','iem+apv'},'fontweight','bold');
     ylabel('z-score');
     title('Change in motif tempo relative to saline');
     macorr.zsc = mn2;
@@ -256,9 +256,6 @@ else
     gdur.rel = mean(gapdur2);
     macorr.rel = nanmean(motifacorr2);
     
-    
-    
-   
-    
+
   
 end

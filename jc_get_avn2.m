@@ -79,7 +79,7 @@ for ii=1:length(files)
 		
 		[filepath,filename,fileext] = fileparts(fn);
         if(strcmpi(fileext,'.wav'))
-            [dat,fs] = wavread(fn);
+            [dat,fs] = audioread(fn);
             dat = dat *10e3; % boost amplitude to cbin levels
         else
             [dat,fs]=evsoundin('',fn,CS);

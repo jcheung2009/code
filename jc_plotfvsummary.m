@@ -5,6 +5,7 @@ function [fv v et pcv] = jc_plotfvsummary(fv_syll_sal, fv_syll_cond,marker,...
 %(normalized and raw)
 %for experiment design saline morning vs drug afternoon
 
+nstd = 4;
 
 pitch = [fv_syll_sal(:).mxvals];
 vol = log([fv_syll_sal(:).maxvol]);
@@ -21,7 +22,7 @@ elseif excludewashin == 1
     tb_cond(ind) = [];
 end
 
-if ~isempty(matchtm)
+if matchtm==1
     indsal = find(tb_sal>=tb_cond(1) & tb_sal <= tb_cond(end)); 
     tb_sal = tb_sal(indsal);
     pitch = pitch(indsal);
@@ -37,119 +38,123 @@ if excludewashin == 1
     vol2(ind) = [];
     ent2(ind) = [];
 end
-
 if checkoutliers == 'y'
-    fignum = input('figure number for checking outliers:');
-    figure(fignum);
-    plot(tb_sal,pitch,'k.');
-    removeoutliers = input('remove outliers (y/n):','s');
-    while removeoutliers == 'y'
-        cla;
-        nstd = input('nstd:');
-        removeind = jc_findoutliers(pitch',nstd);
-        pitch(removeind) = [];
-        vol(removeind) = [];
-        ent(removeind) = [];
-        tb_sal(removeind) = [];
-        plot(tb_sal,pitch,'k.');
-        removeoutliers = input('remove outliers (y/n):','s');
-    end
-    cla
-
-    plot(tb_sal,vol,'k.');
-    removeoutliers = input('remove outliers:','s');
-    while removeoutliers == 'y'
-        cla;jc_plotfvsummary
-        nstd = input('nstd:');
-        removeind = jc_findoutliers(vol',nstd);
-        pitch(removeind) = [];
-        vol(removeind) = [];
-        ent(removeind) = [];
-        tb_sal(removeind) = [];
-        plot(tb_sal,vol,'k.');
-        removeoutliers = input('remove outliers (y/n):','s');
-    end
-    cla
-
-    plot(tb_sal,ent,'k.');
-    removeoutliers = input('remove outliers:','s');
-    while removeoutliers == 'y'
-        cla;
-        nstd = input('nstd:');
-        removeind = jc_findoutliers(ent',nstd);
-        pitch(removeind) = [];
-        vol(removeind) = [];
-        ent(removeind) = [];
-        tb_sal(removeind) = [];
-        plot(tb_sal,ent,'k.');
-        removeoutliers = input('remove outliers (y/n):','s');
-    end
-    cla
-
-    plot(tb_cond,pitch2,'k.');
-    removeoutliers = input('remove outliers:','s');
-    while removeoutliers == 'y'
-        cla;
-        nstd = input('nstd:');
-        removeind = jc_findoutliers(pitch2',nstd);
-        pitch2(removeind) = [];
-        vol2(removeind) = [];
-        ent2(removeind) = [];
-        tb_cond(removeind) = [];
-        plot(tb_cond,pitch2,'k.');
-        removeoutliers = input('remove outliers (y/n):','s');
-    end
-    cla
-
-    plot(tb_cond,vol2,'k.');
-    removeoutliers = input('remove outliers:','s');
-    while removeoutliers == 'y'
-        cla;
-        nstd = input('nstd:');
-        removeind = jc_findoutliers(vol2',nstd);
-        pitch2(removeind) = [];
-        vol2(removeind) = [];
-        ent2(removeind) = [];
-        tb_cond(removeind) = [];
-        plot(tb_cond,vol2,'k.');
-        removeoutliers = input('remove outliers (y/n):','s');
-    end
-    cla
-
-    plot(tb_cond,ent2,'k.');
-    removeoutliers = input('remove outliers:','s');
-    while removeoutliers == 'y'
-        cla;
-        nstd = input('nstd:');
-        removeind = jc_findoutliers(ent2',nstd);
-        pitch2(removeind) = [];
-        vol2(removeind) = [];
-        ent2(removeind) = [];
-        tb_cond(removeind) = [];
-        plot(tb_cond,ent2,'k.');
-        removeoutliers = input('remove outliers (y/n):','s');
-    end
-    hold off;
+    pitch = jc_removeoutliers(pitch,nstd);
+    vol = jc_removeoutliers(vol,nstd);
+    ent = jc_removeoutliers(ent,nstd);
+    pitch2 = jc_removeoutliers(pitch2,nstd);
+    vol2 = jc_removeoutliers(vol2,nstd);
+    ent2 = jc_removeoutliers(ent2,nstd);
 end
+% if checkoutliers == 'y'
+%     fignum = input('figure number for checking outliers:');
+%     figure(fignum);
+%     plot(tb_sal,pitch,'k.');
+%     removeoutliers = input('remove outliers (y/n):','s');
+%     while removeoutliers == 'y'
+%         cla;
+%         nstd = input('nstd:');
+%         removeind = jc_findoutliers(pitch',nstd);
+%         pitch(removeind) = [];
+%         vol(removeind) = [];
+%         ent(removeind) = [];
+%         tb_sal(removeind) = [];
+%         plot(tb_sal,pitch,'k.');
+%         removeoutliers = input('remove outliers (y/n):','s');
+%     end
+%     cla
+% 
+%     plot(tb_sal,vol,'k.');
+%     removeoutliers = input('remove outliers:','s');
+%     while removeoutliers == 'y'
+%         cla;jc_plotfvsummary
+%         nstd = input('nstd:');
+%         removeind = jc_findoutliers(vol',nstd);
+%         pitch(removeind) = [];
+%         vol(removeind) = [];
+%         ent(removeind) = [];
+%         tb_sal(removeind) = [];
+%         plot(tb_sal,vol,'k.');
+%         removeoutliers = input('remove outliers (y/n):','s');
+%     end
+%     cla
+% 
+%     plot(tb_sal,ent,'k.');
+%     removeoutliers = input('remove outliers:','s');
+%     while removeoutliers == 'y'
+%         cla;
+%         nstd = input('nstd:');
+%         removeind = jc_findoutliers(ent',nstd);
+%         pitch(removeind) = [];
+%         vol(removeind) = [];
+%         ent(removeind) = [];
+%         tb_sal(removeind) = [];
+%         plot(tb_sal,ent,'k.');
+%         removeoutliers = input('remove outliers (y/n):','s');
+%     end
+%     cla
+% 
+%     plot(tb_cond,pitch2,'k.');
+%     removeoutliers = input('remove outliers:','s');
+%     while removeoutliers == 'y'
+%         cla;
+%         nstd = input('nstd:');
+%         removeind = jc_findoutliers(pitch2',nstd);
+%         pitch2(removeind) = [];
+%         vol2(removeind) = [];
+%         ent2(removeind) = [];
+%         tb_cond(removeind) = [];
+%         plot(tb_cond,pitch2,'k.');
+%         removeoutliers = input('remove outliers (y/n):','s');
+%     end
+%     cla
+% 
+%     plot(tb_cond,vol2,'k.');
+%     removeoutliers = input('remove outliers:','s');
+%     while removeoutliers == 'y'
+%         cla;
+%         nstd = input('nstd:');
+%         removeind = jc_findoutliers(vol2',nstd);
+%         pitch2(removeind) = [];
+%         vol2(removeind) = [];
+%         ent2(removeind) = [];
+%         tb_cond(removeind) = [];
+%         plot(tb_cond,vol2,'k.');
+%         removeoutliers = input('remove outliers (y/n):','s');
+%     end
+%     cla
+% 
+%     plot(tb_cond,ent2,'k.');
+%     removeoutliers = input('remove outliers:','s');
+%     while removeoutliers == 'y'
+%         cla;
+%         nstd = input('nstd:');
+%         removeind = jc_findoutliers(ent2',nstd);
+%         pitch2(removeind) = [];
+%         vol2(removeind) = [];
+%         ent2(removeind) = [];
+%         tb_cond(removeind) = [];
+%         plot(tb_cond,ent2,'k.');
+%         removeoutliers = input('remove outliers (y/n):','s');
+%     end
+%     hold off;
+% end
 
 if ~isempty(find(isnan(pitch2)))
     removeind = find(isnan(pitch2));
     pitch2(removeind) = [];
     vol2(removeind) = [];
     ent2(removeind) = [];
-    tb_cond(removeind) = [];
 elseif ~isempty(find(isnan(vol2)))
     removeind = find(isnan(vol2));
     pitch2(removeind) = [];
     vol2(removeind) = [];
     ent2(removeind) = [];
-    tb_cond(removeind) = [];
 elseif ~isempty(find(isnan(ent2)))
     removeind = find(isnan(ent2));
     pitch2(removeind) = [];
     vol2(removeind) = [];
     ent2(removeind) = [];
-    tb_cond(removeind) = [];
 end
 
 if ~isempty(find(isnan(pitch)))
@@ -157,19 +162,16 @@ if ~isempty(find(isnan(pitch)))
     pitch(removeind) = [];
     vol(removeind) = [];
     ent(removeind) = [];
-    tb_sal(removeind) = [];
 elseif ~isempty(find(isnan(vol)))
     removeind = find(isnan(vol));
     pitch(removeind) = [];
     vol(removeind) = [];
     ent(removeind) = [];
-    tb_sal(removeind) = [];
 elseif ~isempty(find(isnan(ent)))
     removeind = find(isnan(ent));
     pitch(removeind) = [];
     vol(removeind) = [];
     ent(removeind) = [];
-    tb_sal(removeind) = [];
 end
 
 %rawplot = input('plot raw summary?:(y/n)','s');
@@ -231,8 +233,9 @@ else
     xpt = xpt+jitter;
     [hi lo mn2] = mBootstrapCI(pitchn);
     plot(xpt,mn2,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    set(gca,'xlim',[0 5],'xtick',[0.5,1.5 2.5 3.5 4.5],'xticklabel',...
-        {'saline','naspm','apv','musc','naspm+musc'},'fontweight','bold');
+    plot([0 3],[0 0],'c','linewidth',2);
+    set(gca,'xlim',[0 3],'xtick',[0.5,1.5 2.5],'xticklabel',...
+        {'saline','iem','iem+apv'},'fontweight','bold');
     ylabel('z-score');;
     title('Change in pitch relative to saline');
     fv.zsc = mn2;
@@ -240,8 +243,9 @@ else
     subtightplot(4,1,2,0.07,0.07,0.15);hold on;
     [hi lo mn2] = mBootstrapCI(voln);
     plot(xpt,mn2,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    set(gca,'xlim',[0 5],'xtick',[0.5,1.5 2.5 3.5 4.5],'xticklabel',...
-        {'saline','naspm','apv','musc','naspm+musc'},'fontweight','bold');
+    plot([0 3],[0 0],'c','linewidth',2);
+    set(gca,'xlim',[0 3],'xtick',[0.5,1.5 2.5],'xticklabel',...
+        {'saline','iem','iem+apv'},'fontweight','bold');
     ylabel('z-score');
     title('Change in volume relative to saline');
     v.zsc = mn2;
@@ -249,8 +253,9 @@ else
     subtightplot(4,1,3,0.07,0.07,0.15);hold on;
     [hi lo mn2] = mBootstrapCI(entn);
     plot(xpt,mn2,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    set(gca,'xlim',[0 5],'xtick',[0.5,1.5 2.5 3.5 4.5],'xticklabel',...
-        {'saline','naspm','apv','musc','naspm+musc'},'fontweight','bold');
+    plot([0 3],[0 0],'c','linewidth',2);
+    set(gca,'xlim',[0 3],'xtick',[0.5,1.5 2.5],'xticklabel',...
+        {'saline','iem','iem+apv'},'fontweight','bold');
     ylabel('z-score');
     title('Change in entropy relative to saline');
     et.zsc = mn2;
@@ -258,13 +263,14 @@ else
     subtightplot(4,1,4,0.07,0.07,0.15);hold on;
     mn1 = mBootstrapCI_CV(pitch);
     [mn2 hi lo] = mBootstrapCI_CV(pitch2);
-    mn3 = mn2/mn1;
-    hi = mn3+((hi-mn2)/mn1);
-    lo = mn3-((mn2-lo)/mn1);
+    mn3 = 100*(mn2-mn1)/mn1;
+    hi = 100*(hi-mn1)/mn1;
+    lo = 100*(lo-mn1)/mn1;
     plot(xpt,mn3,marker,[xpt xpt],[hi lo],linecolor,'linewidth',1,'markersize',12);
-    set(gca,'xlim',[0 5],'xtick',[0.5,1.5 2.5 3.5 4.5],'xticklabel',...
-        {'saline','naspm','apv','musc','naspm+musc'},'fontweight','bold');
-    ylabel('Pitch CV change');
+    plot([0 3],[0 0],'c','linewidth',2);
+    set(gca,'xlim',[0 3],'xtick',[0.5,1.5 2.5],'xticklabel',...
+        {'saline','iem','iem+apv'},'fontweight','bold');
+    ylabel('percent change');
     title('Change in pitch CV relative to saline');
     pcv = mn3;
     
@@ -274,8 +280,6 @@ else
     et.abs = mean(ent2)-mean(ent);
     
     %relative change
-    
-    
     fv.rel = (mean(pitch2)-mean(pitch))/mean(pitch);
     v.rel = (mean(vol2)-mean(vol))/abs(mean(vol));
     et.rel = (mean(ent2)-mean(ent))/mean(ent);

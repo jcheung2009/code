@@ -1,11 +1,11 @@
 %plot pitch contours of all syllables in trial
 
-syllables = {'A1','A2','B1','B2'};
+syllables = {'A','C','R','W1','W2'};
 
 ff = load_batchf('batchnaspm');
-load('analysis/data_structures/naspmpitchlatency');
+load('analysis/data_structures/naspmlatency');
 
-for i = 1:2:length(ff);
+for i = 1:3:length(ff);
     figure;hold on;
     for ii = 1:length(syllables)
         h = subtightplot(2,length(syllables),ii,0.07,0.1,0.08);
@@ -22,12 +22,12 @@ for i = 1:2:length(ff);
          if ~isempty(strfind(ff(i+1).name,'sal'))
             startpt = '';
         else
-            drugtime = naspmpitchlatency.(['tr_',ff(i+1).name]).treattime;
-            startpt = (drugtime+1.5)*3600;
+            drugtime = naspmlatency.(['tr_',ff(i+1).name]).treattime;
+            startpt = (drugtime+0.5)*3600;
          end
         ind = find(tb_cond >= startpt);
         
-        cmd4 = ['jc_avnspec(fv_syll',syllables{ii},'_',ff(i).name,',fv_syll',syllables{ii},'_',ff(i+1).name,'(ind),''y'',h,h2);'];
+        cmd4 = ['jc_avnspec(fv_syll',syllables{ii},'_',ff(i).name,',fv_syll',syllables{ii},'_',ff(i+1).name,'(ind),''n'',h,h2);'];
         eval(cmd4);
         title(h,['fv_syll',syllables{ii},'_',ff(i+1).name],'interpreter','none');
         hold(h,'off');

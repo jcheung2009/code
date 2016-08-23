@@ -44,8 +44,13 @@ if length(motifs) < 2
     display('Not enough motifs')
     return
 else
-    [trans_per_song, con_or_div, boot_results, entropy_results, syl_pool, time_per_song] = ...
+    if isempty(number_bootstraps) 
+        [trans_per_song, time_per_song, con_or_div] = ...
         db_transition_probability_calculation( all_syllables, motifs, boot_yes_or_no, number_bootstraps, time_syl );
+    else
+        [trans_per_song, time_per_song, con_or_div, boot_results, entropy_results, syl_pool] = ...
+            db_transition_probability_calculation( all_syllables, motifs, boot_yes_or_no, number_bootstraps, time_syl );
+    end
 end
         
         

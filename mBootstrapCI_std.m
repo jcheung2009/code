@@ -1,4 +1,4 @@
-function [meanstd hiconf loconf] = mBootstrapCI_std(invect,numsamps,alpha)
+function [meanstd hiconf loconf] = mBootstrapCI_std(invect,varargin)
 %
 %
 % function [meanCV hiConf loConf] = mBootstrapCI_CV(invect,alpha)
@@ -12,27 +12,29 @@ function [meanstd hiconf loconf] = mBootstrapCI_std(invect,numsamps,alpha)
 % uses 10000 iterations with replacement.
 %
 
-if(isempty(alpha))
+if(isempty(varargin))
     alpha = 0.95;
+else
+    alpha = varargin{1};
 end
 
 hithresh = alpha;
 lothresh = 1-alpha;
 
-if isempty(numsamps)
-    if(length(invect)<40)
-        numsamps = 5;
-    else
-         numsamps = length(invect);
-    end
+
+if(length(invect)<40)
+    numsamps = 5;
+else
+     numsamps = length(invect);
 end
+
 
 numreps = 10000;
 shuffvect = zeros(1,numreps);
 
 for i=1:numreps
     thesamp = invect(randi(length(invect),1,length(invect)));
-    shuffvect(i) = std(thesamp);    
+    shuffvect(i) = nanstd(thesamp);    
 end
 
 shuffvect = sort(shuffvect);

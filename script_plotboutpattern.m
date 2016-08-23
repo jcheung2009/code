@@ -1,9 +1,9 @@
 %plot spectral and temporal bout patterns
 
-motif = 'aabb';
-
-ff = load_batchf('batchnaspmmusc');
-load('analysis/data_structures/naspmmuscpitchlatency');
+motif = 'abcdeeerww';
+numsylls = 5;
+ff = load_batchf('batchiemapv');
+load('analysis/data_structures/iemapvlatency');
 
 for i = 1:2:length(ff);
 
@@ -12,18 +12,18 @@ for i = 1:2:length(ff);
     eval(cmd1);
     eval(cmd2);
     
-    if ~isempty(strfind(ff(i+1).name,'naspm')) & ~isempty(strfind(ff(i+1).name,'musc'))
+    if ~isempty(strfind(ff(i+1).name,'IEM')) & ~isempty(strfind(ff(i+1).name,'APV'))
         mcolor = 'g';
         mrk = 'go';
     elseif ~isempty(strfind(ff(i+1).name,'naspm'))
         mcolor = 'r';
         mrk = 'ro';
-    elseif ~isempty(strfind(ff(i+1).name,'iem'))
-        mcolor = 'm';
-        mrk = 'mo';
-    elseif ~isempty(strfind(ff(i+1).name,'apv'))
-        mcolor = 'b';
-        mrk = 'bo';
+    elseif ~isempty(strfind(ff(i+1).name,'IEM'))
+        mcolor = 'r';
+        mrk = 'ro';
+    elseif ~isempty(strfind(ff(i+1).name,'APV'))
+        mcolor = 'g';
+        mrk = 'go';
     elseif ~isempty(strfind(ff(i+1).name,'musc'))
         mcolor = 'm';
         mrk = 'mo';
@@ -35,11 +35,11 @@ for i = 1:2:length(ff);
     if ~isempty(strfind(ff(i+1).name,'sal'))
         startpt = '';
     else
-        drugtime = naspmmuscpitchlatency.(['tr_',ff(i+1).name]).treattime;
-        startpt = (drugtime+1.5)*3600;
+        drugtime = iemapvlatency.(['tr_',ff(i+1).name]).treattime;
+        startpt = (drugtime+0.5)*3600;
     end
     
-    cmd4 = ['jc_plotboutpattern(bout_',ff(i).name,',bout_',ff(i+1).name,',mcolor,1,startpt,''y'',''aabb'');'];
+    cmd4 = ['jc_plotboutpattern(bout_',ff(i).name,',bout_',ff(i+1).name,',mcolor,1,startpt,0,numsylls);'];
     eval(cmd4);
         
 end
