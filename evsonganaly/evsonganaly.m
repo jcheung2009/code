@@ -327,6 +327,7 @@ function EVSONGANAL_KeyPressFcn(hObject, eventdata, handles)
 
 newlabel = get(hObject,'CurrentCharacter');
 newlabelfix = fix(newlabel);
+
 if ((newlabelfix>=49)&&(newlabelfix<=51))
     if (newlabelfix==49)
         set(hObject,'SelectionType','normal');
@@ -1259,7 +1260,7 @@ if (strcmp(qreply,'Yes'))
     end
     
     if (strcmp(ext,'.wav'))
-        wavwrite(dat,fs,16,fname);
+        audiowrite(fname,dat,fs,'BitsPerSample',16);
     elseif (strcmp(ext,'.ebin'))
         tdat = zeros([size(dat,1)*size(dat,2),1]);
         for ijk = 1:nchan

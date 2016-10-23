@@ -1,0 +1,37 @@
+%gaussian mixture model classification ~18-20% resubstitution error
+%support vector machine classification
+%k nearest neighbors classification ~7% resubstitution error
+
+
+%sequential feature selection (dependent on order of features)
+%PCA 
+
+%feature vector vs distance vector
+
+
+function vals= jc_test_model(feature_vecs,modeltype)
+classes = fieldnames(feature_vecs);
+dataset = [];
+labels = [];
+for i = 1:length(classes)
+    dataset = [dataset; feature_vecs.(classes{i})];
+    labels = [labels; i*ones(size(feature_vecs.(classes{i}),1),1)];
+end
+dataset = zscore(dataset);
+
+if modeltype == 'knn'
+knn = fitcknn(dataset,labels,'NumNeighbors',5);
+cvknn = crossval(knn);
+vals = kfoldLoss(cvknn,'folds',3);
+
+% c = cvpartition(size(dataset,1),'KFold',3);
+% knn_classify = @(XTRAIN,YTRAIN,XTEST)(predict(fitcknn(XTRAIN,YTRAIN,'NumNeighbors',5),XTEST));
+% gmm_classify = @(XTRAIN,YTRAIN,XTEST)(cluster(fitgmdist(XTRAIN,6),XTEST));
+% svm_classify = @(XTRAIN,YTRAIN,XTeST)(
+% vals = crossval('mcr',dataset,labels,'predfun',knn_classify,'partition',c);
+
+
+
+
+%[fs history] = sequentialfs(fun,dataset,labels,'cv',3);
+
