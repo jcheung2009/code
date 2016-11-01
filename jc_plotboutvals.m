@@ -54,7 +54,7 @@ nummotifs = [boutinfo(:).nummotifs]';
 numseconds = tb_singingrate(end)-tb_singingrate(1);
 timewindow = 3600; %half hr in seconds
 jogsize = 900;%15 minutes
-numtimewindows = 2*floor(numseconds/timewindow)-1;
+numtimewindows = ceil(numseconds/jogsize)-(timewindow/jogsize)/2;
 if numtimewindows < 0
     numtimewindows = 1;
 end
@@ -79,7 +79,7 @@ if isempty(fignum)
 end
 figure(fignum);hold on;
 h1 = subtightplot(2,1,1,[0.08 0.08],0.08,0.1);hold on;
-plot(numsongs(:,1),numsongs(:,2),linecolor);
+stairs(numsongs(:,1),numsongs(:,2),linecolor);
 dataob = get(h1,'children');
 xd = get(dataob,'xdata');
 if iscell(xd)
@@ -93,7 +93,7 @@ xlabel(h1,'Time in hours since 7 AM');
 ylabel(h1,'Number of songs per hour');
 title(h1,'Singing Rate')
 h2 = subtightplot(2,1,2,[0.08 0.08],0.08,0.1);hold on;
-plot(nummotifs_per_window(:,1),nummotifs_per_window(:,2),linecolor);
+stairs(nummotifs_per_window(:,1),nummotifs_per_window(:,2),linecolor);
 set(h2,'xlim',xlim,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
 xlabel(h2,'Time in hours since 7 AM');
 ylabel(h2,'Number of motifs per hour');
