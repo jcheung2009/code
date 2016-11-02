@@ -1,6 +1,6 @@
 ff = load_batchf('batchsal');
 boutsal = struct();
-load('analysis/data_structures/iemapvlatency.mat');
+load('analysis/data_structures/naspmlatency.mat');
 trialcnt = 0;
 for i = 1:2:length(ff)
     trialcnt = trialcnt+1;
@@ -8,16 +8,10 @@ for i = 1:2:length(ff)
     load(['analysis/data_structures/bout_',ff(i+1).name]);
     motif1 = ['bout_',ff(i).name];
     motif2 = ['bout_',ff(i+1).name];
-    if ~isempty(strfind(ff(i+1).name,'iem')) & ~isempty(strfind(ff(i+1).name,'apv'))
-            mcolor = 'g';
-            mrk = 'go';
-        elseif ~isempty(strfind(ff(i+1).name,'IEM'))
+    if ~isempty(strfind(ff(i+1).name,'naspm'))
             mcolor = 'r';
             mrk = 'ro';
-        elseif ~isempty(strfind(ff(i+1).name,'APV'))
-            mcolor = 'g';
-            mrk = 'go';
-        else
+    else
             mcolor = 'k';
             mrk = 'ko';
     end
