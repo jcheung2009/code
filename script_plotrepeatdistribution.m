@@ -3,14 +3,14 @@
 ff = load_batchf('naspm_birds');
 
 repdata = [];
-acorrdata = [];
-sdurdata = [];
-gdurdata = [];
+% acorrdata = [];
+% sdurdata = [];
+% gdurdata = [];
 
 repdata_sal = [];
-acorrdata_sal = [];
-sdurdata_sal = [];
-gdurdata_sal = [];
+% acorrdata_sal = [];
+% sdurdata_sal = [];
+% gdurdata_sal = [];
 lname = {};
 cmap = [];
 for i = 1:length(ff)
@@ -29,61 +29,72 @@ for i = 1:length(ff)
      end
     
      repeats = fieldnames(x);
+     rep = [];
+     repsal = [];
      cmap = [cmap; repmat(rand(1,3),length(repeats),1)];
      for ii = 1:length(repeats)
          lname = [lname; {ff(i).name}];
          ydata = [x(:).([repeats{ii}])];
          ydata = [ydata(:).rep];
-         ydata = 100*([ydata(:).rel]-1);
-         repdata = [repdata; nanmean(ydata)];
+         if i <=8
+             ydata = 100*([ydata(:).rel]-1);
+         else
+             ydata = [ydata(:).rel];
+         end
+         rep = [rep;nanmean(ydata)];
+         %repdata = [repdata; nanmean(ydata)];
          
-         ydata = [x(:).([repeats{ii}])];
-         ydata = [ydata(:).acorr];
-         ydata = 100*([ydata(:).rel]-1);
-         acorrdata = [acorrdata; nanmean(ydata)];
-         
-         ydata = [x(:).([repeats{ii}])];
-         ydata = [ydata(:).sdur];
-         ydata = 100*([ydata(:).rel]-1);
-         sdurdata = [sdurdata; nanmean(ydata)];
-         
-         ydata = [x(:).([repeats{ii}])];
-         ydata = [ydata(:).gdur];
-         ydata = 100*([ydata(:).rel]-1);
-         gdurdata = [gdurdata; nanmean(ydata)];
+%          ydata = [x(:).([repeats{ii}])];
+%          ydata = [ydata(:).acorr];
+%          ydata = 100*([ydata(:).rel]-1);
+%          acorrdata = [acorrdata; nanmean(ydata)];
+%          
+%          ydata = [x(:).([repeats{ii}])];
+%          ydata = [ydata(:).sdur];
+%          ydata = 100*([ydata(:).rel]-1);
+%          sdurdata = [sdurdata; nanmean(ydata)];
+%          
+%          ydata = [x(:).([repeats{ii}])];
+%          ydata = [ydata(:).gdur];
+%          ydata = 100*([ydata(:).rel]-1);
+%          gdurdata = [gdurdata; nanmean(ydata)];
 
          
          ydata = [y(:).([repeats{ii}])];
          ydata = [ydata(:).rep];
-         ydata = 100*([ydata(:).rel]-1);
-         repdata_sal = [repdata_sal; nanmean(ydata)];
+         if i<=8
+            ydata = 100*([ydata(:).rel]-1);
+         else
+             ydata = [ydata(:).rel];
+         end
+         repsal = [repsal; nanmean(ydata)];
+         %repdata_sal = [repdata_sal; nanmean(ydata)];
          
-         ydata = [y(:).([repeats{ii}])];
-         ydata = [ydata(:).acorr];
-         ydata = 100*([ydata(:).rel]-1);
-         acorrdata_sal = [acorrdata_sal; nanmean(ydata)];
-         
-         ydata = [y(:).([repeats{ii}])];
-         ydata = [ydata(:).sdur];
-         ydata = 100*([ydata(:).rel]-1);
-         sdurdata_sal = [sdurdata_sal; nanmean(ydata)];
-         
-         ydata = [y(:).([repeats{ii}])];
-         ydata = [ydata(:).gdur];
-         ydata = 100*([ydata(:).rel]-1);
-         gdurdata_sal = [gdurdata_sal; nanmean(ydata)];
+%          ydata = [y(:).([repeats{ii}])];
+%          ydata = [ydata(:).acorr];
+%          ydata = 100*([ydata(:).rel]-1);
+%          acorrdata_sal = [acorrdata_sal; nanmean(ydata)];
+%          
+%          ydata = [y(:).([repeats{ii}])];
+%          ydata = [ydata(:).sdur];
+%          ydata = 100*([ydata(:).rel]-1);
+%          sdurdata_sal = [sdurdata_sal; nanmean(ydata)];
+%          
+%          ydata = [y(:).([repeats{ii}])];
+%          ydata = [ydata(:).gdur];
+%          ydata = 100*([ydata(:).rel]-1);
+%          gdurdata_sal = [gdurdata_sal; nanmean(ydata)];
      end
-
+    repdata = [repdata; nanmean(rep)];
+    repdata_sal = [repdata_sal; nanmean(repsal)];
 end
          
-figure;
-h1 = subtightplot(4,1,1,[0.1 0.05],0.08,0.3);
-h2 = subtightplot(4,1,2,[0.1 0.05],0.08,0.3);
-h3 = subtightplot(4,1,3,[0.1 0.05],0.08,0.3);
-h4 = subtightplot(4,1,4,[0.1 0.05],0.08,0.3);
-
+figure;h1 = gca;
+% h1 = subtightplot(4,1,1,[0.1 0.05],0.08,0.3);
+% h2 = subtightplot(4,1,2,[0.1 0.05],0.08,0.3);
+% h3 = subtightplot(4,1,3,[0.1 0.05],0.08,0.3);
+% h4 = subtightplot(4,1,4,[0.1 0.05],0.08,0.3);
 axes(h1);hold(h1,'on');
-set(h1,'ColorOrder',cmap,'NextPlot','replacechildren');
 plot(h1,repmat([0.5 1.5]',1,length(repdata)),[repdata_sal repdata]',...
     'marker','o','markersize',8,'linewidth',2);hold on;
 plot(h1,[0 2],[0 0],'c','linewidth',2);hold on;
@@ -92,48 +103,63 @@ str = {['repeat length'],['stat = ',num2str(stat.signedrank)],['p = ',num2str(p)
 title(h1,str);
 hold(h1,'off');
 xlim(h1,[0 2]);
-legend(h1,lname);
+legend(h1,{ff(:).name});
 set(h1,'xtick',[0.5 1.5],'xticklabel',{'saline','NASPM'},'fontweight','bold');
 ylabel(h1,'percent change');
 
-axes(h2);hold(h2,'on');
-set(h2,'ColorOrder',cmap,'NextPlot','replacechildren');
-plot(h2,repmat([0.5 1.5]',1,length(acorrdata)),[acorrdata_sal acorrdata]',...
-    'marker','o','markersize',8,'linewidth',2);hold on;
-plot(h2,[0 2],[0 0],'c','linewidth',2);hold on;
-[p h stat] = signrank(acorrdata,acorrdata_sal);
-str = {['acorr'],['stat = ',num2str(stat.signedrank)],['p = ',num2str(p)]};
-title(h2,str);
-hold(h2,'off');
-xlim(h2,[0 2]);
-set(h2,'xtick',[0.5 1.5],'xticklabel',{'saline','NASPM'},'fontweight','bold');
-ylabel(h2,'percent change');
 
-axes(h3);hold(h3,'on');
-set(h3,'ColorOrder',cmap,'NextPlot','replacechildren');
-plot(h3,repmat([0.5 1.5]',1,length(sdurdata)),[sdurdata_sal sdurdata]',...
-    'marker','o','markersize',8,'linewidth',2);hold on;
-plot(h3,[0 2],[0 0],'c','linewidth',2);hold on;
-[p h stat] = signrank(sdurdata,sdurdata_sal);
-str = {['syll duration'],['stat = ',num2str(stat.signedrank)],['p = ',num2str(p)]};
-title(h3,str);
-hold(h3,'off');
-xlim(h3,[0 2]);
-set(h3,'xtick',[0.5 1.5],'xticklabel',{'saline','NASPM'},'fontweight','bold');
-ylabel(h3,'percent change');
+% axes(h1);hold(h1,'on');
+% set(h1,'ColorOrder',cmap,'NextPlot','replacechildren');
+% plot(h1,repmat([0.5 1.5]',1,length(repdata)),[repdata_sal repdata]',...
+%     'marker','o','markersize',8,'linewidth',2);hold on;
+% plot(h1,[0 2],[0 0],'c','linewidth',2);hold on;
+% [p h stat] = signrank(repdata,repdata_sal);
+% str = {['repeat length'],['stat = ',num2str(stat.signedrank)],['p = ',num2str(p)]};
+% title(h1,str);
+% hold(h1,'off');
+% xlim(h1,[0 2]);
+% legend(h1,lname);
+% set(h1,'xtick',[0.5 1.5],'xticklabel',{'saline','NASPM'},'fontweight','bold');
+% ylabel(h1,'percent change');
 
-axes(h4);hold(h4,'on');
-set(h4,'ColorOrder',cmap,'NextPlot','replacechildren');
-plot(h4,repmat([0.5 1.5]',1,length(gdurdata)),[gdurdata_sal gdurdata]',...
-    'marker','o','markersize',8,'linewidth',2);hold on;
-plot(h4,[0 2],[0 0],'c','linewidth',2);hold on;
-[p h stat] = signrank(gdurdata,gdurdata_sal);
-str = {['gap duration'],['stat = ',num2str(stat.signedrank)],['p = ',num2str(p)]};
-title(h4,str);
-hold(h4,'off');
-xlim(h4,[0 2]);
-set(h4,'xtick',[0.5 1.5],'xticklabel',{'saline','NASPM'},'fontweight','bold');
-ylabel(h4,'percent change');
+% axes(h2);hold(h2,'on');
+% set(h2,'ColorOrder',cmap,'NextPlot','replacechildren');
+% plot(h2,repmat([0.5 1.5]',1,length(acorrdata)),[acorrdata_sal acorrdata]',...
+%     'marker','o','markersize',8,'linewidth',2);hold on;
+% plot(h2,[0 2],[0 0],'c','linewidth',2);hold on;
+% [p h stat] = signrank(acorrdata,acorrdata_sal);
+% str = {['acorr'],['stat = ',num2str(stat.signedrank)],['p = ',num2str(p)]};
+% title(h2,str);
+% hold(h2,'off');
+% xlim(h2,[0 2]);
+% set(h2,'xtick',[0.5 1.5],'xticklabel',{'saline','NASPM'},'fontweight','bold');
+% ylabel(h2,'percent change');
+% 
+% axes(h3);hold(h3,'on');
+% set(h3,'ColorOrder',cmap,'NextPlot','replacechildren');
+% plot(h3,repmat([0.5 1.5]',1,length(sdurdata)),[sdurdata_sal sdurdata]',...
+%     'marker','o','markersize',8,'linewidth',2);hold on;
+% plot(h3,[0 2],[0 0],'c','linewidth',2);hold on;
+% [p h stat] = signrank(sdurdata,sdurdata_sal);
+% str = {['syll duration'],['stat = ',num2str(stat.signedrank)],['p = ',num2str(p)]};
+% title(h3,str);
+% hold(h3,'off');
+% xlim(h3,[0 2]);
+% set(h3,'xtick',[0.5 1.5],'xticklabel',{'saline','NASPM'},'fontweight','bold');
+% ylabel(h3,'percent change');
+% 
+% axes(h4);hold(h4,'on');
+% set(h4,'ColorOrder',cmap,'NextPlot','replacechildren');
+% plot(h4,repmat([0.5 1.5]',1,length(gdurdata)),[gdurdata_sal gdurdata]',...
+%     'marker','o','markersize',8,'linewidth',2);hold on;
+% plot(h4,[0 2],[0 0],'c','linewidth',2);hold on;
+% [p h stat] = signrank(gdurdata,gdurdata_sal);
+% str = {['gap duration'],['stat = ',num2str(stat.signedrank)],['p = ',num2str(p)]};
+% title(h4,str);
+% hold(h4,'off');
+% xlim(h4,[0 2]);
+% set(h4,'xtick',[0.5 1.5],'xticklabel',{'saline','NASPM'},'fontweight','bold');
+% ylabel(h4,'percent change');
 
 
 

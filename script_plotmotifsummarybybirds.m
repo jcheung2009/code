@@ -1,4 +1,4 @@
-ff = load_batchf('apv_birds');
+ff = load_batchf('naspm_birds');
 bcolor = hsv(length(ff));
 
 barind = 1;
@@ -12,24 +12,24 @@ lname = {};
 for i = 1:length(ff)
      load([ff(i).name,'/analysis/data_structures/summary']);
      
-%      if exist(['motifnaspm_',ff(i).name])
-%          x = eval(['motifnaspm_',ff(i).name]);
-%      elseif exist(['motifiem_',ff(i).name]) 
-%         x = eval(['motifiem_',ff(i).name]);
-%      end
-     if ~exist(['motifapv_',ff(i).name]);
-         continue
-     else
-        x = eval(['motifapv_',ff(i).name]);
-        lname = [lname;ff(i).name];
+     if exist(['motifnaspm_',ff(i).name])
+         x = eval(['motifnaspm_',ff(i).name]);
+     elseif exist(['motifiem_',ff(i).name]) 
+        x = eval(['motifiem_',ff(i).name]);
      end
+%      if ~exist(['motifapv_',ff(i).name]);
+%          continue
+%      else
+%         x = eval(['motifapv_',ff(i).name]);
+%         lname = [lname;ff(i).name];
+%      end
      
      xlblcenter = [xlblcenter,barind];
 
      xdata = barind;
      ydata = [x(:).macorr];
      %ydata = 1000*([ydata(:).abs]);
-     ydata = 100*([ydata(:).rel]-1);
+     ydata = [ydata(:).rel];
      axes(h1);hold(h1,'on');
      createPatches(xdata,nanmean(ydata),0.45,bcolor(i,:),0.5);
      plot(h1,xdata,ydata,'color',bcolor(i,:),'marker','o','markersize',8);
@@ -37,7 +37,7 @@ for i = 1:length(ff)
 
      ydata = [x(:).mdur];
      %ydata = 1000*([ydata(:).abs]);
-     ydata = 100*([ydata(:).rel]-1);
+     ydata = [ydata(:).rel];
      axes(h2);hold(h2,'on');
      createPatches(xdata,nanmean(ydata),0.45,bcolor(i,:),0.5);
      plot(h2,xdata,ydata,'color',bcolor(i,:),'marker','o','markersize',8);
@@ -45,7 +45,7 @@ for i = 1:length(ff)
 
      ydata = [x(:).sdur];
      %ydata = 1000*([ydata(:).abs]);
-     ydata = 100*([ydata(:).rel]-1);
+     ydata = [ydata(:).rel];
      axes(h3);hold(h3,'on');
      createPatches(xdata,nanmean(ydata),0.45,bcolor(i,:),0.5);
      plot(h3,xdata,ydata,'color',bcolor(i,:),'marker','o','markersize',8);
@@ -53,7 +53,7 @@ for i = 1:length(ff)
 
      ydata = [x(:).gdur];
      %ydata = 1000*([ydata(:).abs]);
-     ydata = 100*([ydata(:).rel]-1);
+     ydata = [ydata(:).rel];
      axes(h4);hold(h4,'on');
      createPatches(xdata,nanmean(ydata),0.45,bcolor(i,:),0.5);
      plot(h4,xdata,ydata,'color',bcolor(i,:),'marker','o','markersize',8);

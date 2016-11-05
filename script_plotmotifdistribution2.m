@@ -3,12 +3,12 @@
 ff = load_batchf('naspm_birds');
 
 acorrdata = [];
-motifdurdata = [];
+% motifdurdata = [];
 sdurdata = [];
 gdurdata = [];
 
 acorrdata_sal = [];
-motifdurdata_sal = [];
+% motifdurdata_sal = [];
 sdurdata_sal = [];
 gdurdata_sal = [];
 for i = 1:length(ff)
@@ -25,22 +25,22 @@ for i = 1:length(ff)
      end
     
      acorr = [x(:).macorr];
-     motifdur = [x(:).mdur];
+%      motifdur = [x(:).mdur];
      sdur = [x(:).sdur];
      gdur = [x(:).gdur];
      
      acorrdata = [acorrdata; 100*([acorr(:).rel]'-1)];
-     motifdurdata = [motifdurdata; 100*([motifdur(:).rel]'-1)];
+%      motifdurdata = [motifdurdata; 100*([motifdur(:).rel]'-1)];
      sdurdata = [sdurdata; 100*([sdur(:).rel]'-1)];
      gdurdata = [gdurdata; 100*([gdur(:).rel]'-1)];
      
      acorr_sal = [y(:).macorr];
-     motifdur_sal = [y(:).mdur];
+%      motifdur_sal = [y(:).mdur];
      sdur_sal = [y(:).sdur];
      gdur_sal = [y(:).gdur];
      
      acorrdata_sal = [acorrdata_sal; 100*([acorr_sal(:).rel]'-1)];
-     motifdurdata_sal = [motifdurdata_sal; 100*([motifdur_sal(:).rel]'-1)];
+%      motifdurdata_sal = [motifdurdata_sal; 100*([motifdur_sal(:).rel]'-1)];
      sdurdata_sal = [sdurdata_sal; 100*([sdur_sal(:).rel]'-1)];
      gdurdata_sal = [gdurdata_sal; 100*([gdur_sal(:).rel]'-1)];    
 

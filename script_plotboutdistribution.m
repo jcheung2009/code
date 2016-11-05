@@ -18,9 +18,13 @@ for i = 1:length(ff)
          y = eval(['boutsal_',ff(i).name]);
      end
 
-     singrate = [singrate; 100*(nanmean([x(:).singrate]')-1)];
-     
-     singrate_sal = [singrate_sal; 100*(nanmean([y(:).singrate]')-1)];
+     if i <=8
+         singrate = [singrate; 100*(nanmean([x(:).singrate]')-1)];
+         singrate_sal = [singrate_sal; 100*(nanmean([y(:).singrate]')-1)];
+     else
+         singrate = [singrate; nanmean([x(:).averagesingrate]')];
+         singrate_sal = [singrate_sal; nanmean([y(:).averagesingrate]')];
+     end
 end
          
 figure;hold on;
