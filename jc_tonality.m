@@ -2,7 +2,7 @@ function [tonality_segment] = jc_tonality(batch,motif,chanspec);
 
 ff = load_batchf(batch);
 tonality_segment = struct();
-motif = 'abcc';
+
 trialcnt = 0;
 for i = 1:length(ff)
     fn = (ff(i).name);
@@ -24,21 +24,32 @@ for i = 1:length(ff)
             corr = ifft(x.*conj(x));
             corr = corr(1:length(corr)/4);
             [pks locs] = findpeaks(corr);
-            tonality = [tonality;pks(1)];
+            if isempty(pks)
+                tonality = [tonality;NaN];
+            else
+                tonality = [tonality;pks(1)];
+            end
+%             if length(tonality)==1920
+%                 break
+%             end
             startind = startind+4;
         end
         tonality = abs(tonality);
-        thresh = std(tonality)/1e3;
-        [ons offs] = SegmentSong(tonality,fs/4,10,20,thresh);
+        thresh = std(tonality)/1e2;%for bu42o17, cbin
+        %thresh = std(tonality)/50;%for pk88gr54, wav
+        [ons offs] = SegmentSong(tonality,fs/4,10,20,thresh);%for bu42o17
         
         sm = evsmooth(motifdat,fs,'','','',5);
         sm2 = log(sm);
         sm2 = sm2-min(sm2);
         sm2 = sm2./max(sm2);
-        [ons2 offs2] = SegmentSong(sm2,fs,3,20,0.35);
+        [ons2 offs2] = SegmentSong(sm2,fs,5,20,0.35);
         
-        if length(ons) ~= length(motif) | length(ons2) ~= length(motif)
-            disp(fn);
+        if length(ons) ~= length(motif) 
+            disp(['tonal segmentation error: ',fn]);
+            continue
+        elseif length(ons2) ~= length(motif)
+            disp(['amp segmentation error: ',fn]);
             continue
         end
         
@@ -64,12 +75,25 @@ for i = 1:length(ff)
 end
 
 % figure;plot([1:length(tonality)]/8000,tonality);hold on
+for i = 1:length(ons)
+    plot([ons(i) ons(i)]/1e3,[min(tonality) max(tonality)],'r');hold on;
+    plot([offs(i) offs(i)]/1e3,[min(tonality) max(tonality)],'g');hold on;
+end
+
+for i = 1:length(ons)
+    plot([ons(i) ons(i)]/1e3,[0 1],'r');hold on;
+    plot([offs(i) offs(i)]/1e3,[0 1],'g');hold on;
+end
+% 
+for i = 1:length(ons)
+    plot([ons(i) ons(i)]/1e3,[0 16000],'r');hold on;
+    plot([offs(i) offs(i)]/1e3,[0 16000],'g');hold on;
+end
+% 
 % for i = 1:length(ons)
-%     plot([ons(i) ons(i)]/1e3,[min(tonality) max(tonality)],'r');hold on;
-%     plot([offs(i) offs(i)]/1e3,[min(tonality) max(tonality)],'g');hold on;
+%     plot([ons(i) ons(i)]/1e3,[min(sm2) max(sm2)],'r');hold on;
+%     plot([offs(i) offs(i)]/1e3,[min(sm2) max(sm2)],'g');hold on;
 % end
-
-
 
 % figure;
 % h1 = subplot(4,1,1);
