@@ -60,7 +60,7 @@ for i = 1:length(ff)
         thresh = otsuthresh(tonality);%for normalized nsdf method
         %thresh = std(tonality)/1e2;%for bu42o17, cbin
         %thresh = std(tonality)/50;%for pk88gr54, wav
-        [ons offs] = SegmentSong(tonality,fs/4,10,20,thresh);%for bu42o17
+        [ons offs] = SegmentSong(tonality,fs/4,5,20,thresh);%for bu42o17
         
         sm = evsmooth(motifdat,fs,'','','',5);
         sm2 = log(sm);
