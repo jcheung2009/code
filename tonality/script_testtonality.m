@@ -3,22 +3,22 @@
 %tonality_segment_naspm = jc_tonality('batch.keep','abcc','obs0');
 
 %6-11
-vol_sal = cell2mat(arrayfun(@(x) x.vol,tonality_segment_sal_6_29,'unif',0)');
-sylls_tonal_sal = cell2mat(arrayfun(@(x) (x.tonality_offs-x.tonality_ons)',tonality_segment_sal_6_29,'unif',0)');
-gaps_tonal_sal = cell2mat(arrayfun(@(x) (x.tonality_ons(2:end)-x.tonality_offs(1:end-1))',tonality_segment_sal_6_29,'unif',0)');
-vol_naspm = cell2mat(arrayfun(@(x) x.vol,tonality_segment_naspm_6_29,'unif',0)');
-sylls_tonal_naspm = cell2mat(arrayfun(@(x) (x.tonality_offs-x.tonality_ons)',tonality_segment_naspm_6_29,'unif',0)');
-gaps_tonal_naspm = cell2mat(arrayfun(@(x) (x.tonality_ons(2:end)-x.tonality_offs(1:end-1))',tonality_segment_naspm_6_29,'unif',0)');
+vol_sal = cell2mat(arrayfun(@(x) x.vol,tonality_segment_sal,'unif',0)');
+sylls_tonal_sal = cell2mat(arrayfun(@(x) (x.tonality_offs-x.tonality_ons)',tonality_segment_sal,'unif',0)');
+gaps_tonal_sal = cell2mat(arrayfun(@(x) (x.tonality_ons(2:end)-x.tonality_offs(1:end-1))',tonality_segment_sal,'unif',0)');
+vol_naspm = cell2mat(arrayfun(@(x) x.vol,tonality_segment_naspm,'unif',0)');
+sylls_tonal_naspm = cell2mat(arrayfun(@(x) (x.tonality_offs-x.tonality_ons)',tonality_segment_naspm,'unif',0)');
+gaps_tonal_naspm = cell2mat(arrayfun(@(x) (x.tonality_ons(2:end)-x.tonality_offs(1:end-1))',tonality_segment_naspm,'unif',0)');
 
-sylls_amp_sal = cell2mat(arrayfun(@(x) (x.amp_offs-x.amp_ons)',tonality_segment_sal_6_29,'unif',0)');
-gaps_amp_sal = cell2mat(arrayfun(@(x) (x.amp_ons(2:end)-x.amp_offs(1:end-1))',tonality_segment_sal_6_29,'unif',0)');
-sylls_amp_naspm = cell2mat(arrayfun(@(x) (x.amp_offs-x.amp_ons)',tonality_segment_naspm_6_29,'unif',0)');
-gaps_amp_naspm = cell2mat(arrayfun(@(x) (x.amp_ons(2:end)-x.amp_offs(1:end-1))',tonality_segment_naspm_6_29,'unif',0)');
+sylls_amp_sal = cell2mat(arrayfun(@(x) (x.amp_offs-x.amp_ons)',tonality_segment_sal,'unif',0)');
+gaps_amp_sal = cell2mat(arrayfun(@(x) (x.amp_ons(2:end)-x.amp_offs(1:end-1))',tonality_segment_sal,'unif',0)');
+sylls_amp_naspm = cell2mat(arrayfun(@(x) (x.amp_offs-x.amp_ons)',tonality_segment_naspm,'unif',0)');
+gaps_amp_naspm = cell2mat(arrayfun(@(x) (x.amp_ons(2:end)-x.amp_offs(1:end-1))',tonality_segment_naspm,'unif',0)');
 
-motif_tonal_sal = arrayfun(@(x) (x.tonality_offs(end)-x.tonality_ons(1)),tonality_segment_sal_6_29,'unif',1)';
-motif_tonal_naspm = arrayfun(@(x) (x.tonality_offs(end)-x.tonality_ons(1)),tonality_segment_naspm_6_29,'unif',1)';
-motif_amp_sal = arrayfun(@(x) (x.amp_offs(end)-x.amp_ons(1)),tonality_segment_sal_6_29,'unif',1)';
-motif_amp_naspm = arrayfun(@(x) (x.amp_offs(end)-x.amp_ons(1)),tonality_segment_naspm_6_29,'unif',1)';
+motif_tonal_sal = arrayfun(@(x) (x.tonality_offs(end)-x.tonality_ons(1)),tonality_segment_sal,'unif',1)';
+motif_tonal_naspm = arrayfun(@(x) (x.tonality_offs(end)-x.tonality_ons(1)),tonality_segment_naspm,'unif',1)';
+motif_amp_sal = arrayfun(@(x) (x.amp_offs(end)-x.amp_ons(1)),tonality_segment_sal,'unif',1)';
+motif_amp_naspm = arrayfun(@(x) (x.amp_offs(end)-x.amp_ons(1)),tonality_segment_naspm,'unif',1)';
 
 %5-430
 vol_sal = cell2mat(arrayfun(@(x) x.vol,tonality_segment_sal_5_30,'unif',0)');
@@ -45,7 +45,7 @@ motif_amp_naspm = arrayfun(@(x) (x.amp_offs(end)-x.amp_ons(1)),tonality_segment_
 %volumes are very different
 
 %% tonality sal ex
-tonality_segment_sal = tonality_segment_sal_6_29;
+tonality_segment_sal = tonality_segment_sal;
 fs = 32000;
 [c ind] = min(mean(vol_sal,2));
 tonality = tonality_segment_sal(ind).tonality;
@@ -83,7 +83,7 @@ for i = 1:length(onsets)
 end
 
 %% tonality naspm ex
-tonality_segment_naspm = tonality_segment_naspm_6_29;
+tonality_segment_naspm = tonality_segment_naspm;
 
 [c ind] = max(mean(vol_naspm,2));
 tonality = tonality_segment_naspm(ind).tonality;

@@ -1,4 +1,4 @@
-function [Dist,D,k,w,rw,tw]=dtw(r,t,pflag)
+function [Dist,D,k,w,rw,tw]=dtw2(r,t,pflag)
 %
 % [Dist,D,k,w,rw,tw]=dtw(r,t,pflag)
 %
@@ -14,11 +14,11 @@ function [Dist,D,k,w,rw,tw]=dtw(r,t,pflag)
 % pflag  plot flag: 1 (yes), 0(no)
 %
 % Version comments:
-% rw, tw and pflag added by Pau Micó
+% rw, tw and pflag added by Pau Micï¿½
 tic
 [row,M]=size(r); if (row > M) M=row; r=r'; end;
 [row,N]=size(t); if (row > N) N=row; t=t'; end;
-d=(repmat(r',1,N)-repmat(t,M,1)).^2; %this makes clear the above instruction Thanks Pau Micó
+d=(repmat(r',1,N)-repmat(t,M,1)).^2; %this makes clear the above instruction Thanks Pau Micï¿½
 
 D=zeros(size(d));
 D(1,1)=d(1,1);
@@ -58,7 +58,7 @@ while ((n+m)~=2)
       end
   end
     k=k+1;
-    w=[m n; w]; % this replace the above sentence. Thanks Pau Micó
+    w=[m n; w]; % this replace the above sentence. Thanks Pau Micï¿½
 end
 
 % warped waves

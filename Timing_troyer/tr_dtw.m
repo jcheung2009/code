@@ -1,4 +1,4 @@
-function  [warp,range,M,Dpath,Dcum,move] = dtw(template,exemplar,varargin)
+function  [warp,range,M,Dpath,Dcum,move] = tr_dtw(template,exemplar,varargin)
 % [warp,range,M,Dpath,Dcum,move] = dtw(template,examplar,varargin)
 % calculate DTW map for examplar vs. template
 % varargin can be used to set the following parameter/value pairs

@@ -60,7 +60,7 @@ for i = 1:length(ff)
         thresh = otsuthresh(tonality);%for normalized nsdf method
         %thresh = std(tonality)/1e2;%for bu42o17, cbin
         %thresh = std(tonality)/50;%for pk88gr54, wav
-        [ons offs] = SegmentSong(tonality,fs/4,10,20,thresh);%for bu42o17
+%         [ons offs] = SegmentSong(tonality,fs/4,5,20,thresh);%for bu42o17
         
         sm = evsmooth(motifdat,fs,'','','',5);
         sm2 = log(sm);
@@ -69,7 +69,7 @@ for i = 1:length(ff)
         [ons2 offs2] = SegmentSong(sm2,fs,5,20,0.35);
         
         if length(ons) ~= length(motif) 
-            error(['tonal segmentation error: ',fn]);
+            disp(['tonal segmentation error: ',fn]);
             continue
         elseif length(ons2) ~= length(motif)
             disp(['amp segmentation error: ',fn]);
@@ -87,8 +87,8 @@ for i = 1:length(ff)
         tonality_segment(trialcnt).filtsong = filtsong;
         tonality_segment(trialcnt).dat = motifdat;
         tonality_segment(trialcnt).tonality = tonality;
-        tonality_segment(trialcnt).tonality_ons = ons;
-        tonality_segment(trialcnt).tonality_offs = offs;
+%         tonality_segment(trialcnt).tonality_ons = ons;
+%         tonality_segment(trialcnt).tonality_offs = offs;
         tonality_segment(trialcnt).amp_ons = ons2;
         tonality_segment(trialcnt).amp_offs = offs2;
         tonality_segment(trialcnt).vol = amp;
@@ -98,20 +98,20 @@ for i = 1:length(ff)
 end
 
 % figure;plot([1:length(tonality)]/8000,tonality);hold on
-for i = 1:length(ons)
-    plot([ons(i) ons(i)]/1e3,[min(tonality) max(tonality)],'r');hold on;
-    plot([offs(i) offs(i)]/1e3,[min(tonality) max(tonality)],'g');hold on;
-end
-
-for i = 1:length(ons)
-    plot([ons(i) ons(i)]/1e3,[0 1],'r');hold on;
-    plot([offs(i) offs(i)]/1e3,[0 1],'g');hold on;
-end
+% for i = 1:length(ons)
+%     plot([ons(i) ons(i)]/1e3,[min(tonality) max(tonality)],'r');hold on;
+%     plot([offs(i) offs(i)]/1e3,[min(tonality) max(tonality)],'g');hold on;
+% end
 % 
-for i = 1:length(ons)
-    plot([ons(i) ons(i)]/1e3,[0 16000],'r');hold on;
-    plot([offs(i) offs(i)]/1e3,[0 16000],'g');hold on;
-end
+% for i = 1:length(ons)
+%     plot([ons(i) ons(i)]/1e3,[0 1],'r');hold on;
+%     plot([offs(i) offs(i)]/1e3,[0 1],'g');hold on;
+% end
+% % 
+% for i = 1:length(ons)
+%     plot([ons(i) ons(i)]/1e3,[0 16000],'r');hold on;
+%     plot([offs(i) offs(i)]/1e3,[0 16000],'g');hold on;
+% end
 % 
 % for i = 1:length(ons)
 %     plot([ons(i) ons(i)]/1e3,[min(sm2) max(sm2)],'r');hold on;
