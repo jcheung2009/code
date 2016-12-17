@@ -10,9 +10,9 @@ if matchtime == 'y'
     runlength1 = [fv_rep_sal(ind).runlength]';
     runlength2 = [fv_rep_cond(:).runlength]';
 else
-    ind = find(tb_cond > tb_sal(end)+1800); %exclude first half hour of wash in
-    runlength1 = [fv_rep_sal(:).runlength]';
-    runlength2 = [fv_rep_cond(ind).runlength]';
+%     ind = find(tb_cond > tb_sal(end)+1800); %exclude first half hour of wash in
+     runlength1 = [fv_rep_sal(:).runlength]';
+     runlength2 = [fv_rep_cond(:).runlength]';
 end
 
 
@@ -34,7 +34,7 @@ stairs(b,n/sum(n),'r','linewidth',2);hold on;
 [h p2 ci fstat] = vartest2(runlength1,runlength2);
 xlabel('Repeat length (number of syllables)','FontWeight','bold')
 ylabel('Probability','FontWeight','bold');
-title('Probability distribution of repeat length');
+title('repeat length');
 xlim([1 maxlength]);
 set(gca,'fontweight','bold');
 

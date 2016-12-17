@@ -1,4 +1,15 @@
 function [tonality_segment] = jc_tonality(batch,motif,chanspec);
+%for each motif in batch files, extracts information for tonality and 
+%amplitude segmentation and stores into output structure. Includes the 
+%(un)filtered waveform, smoothed amplitude envelop, volume (average squared 
+%amplitude of whole motif), syllable onsets/offsets from threshold segmentation
+%of amplitude envelop, and tonality waveform. Tonality waveform is computed based 
+%on a 8 ms sliding window to compute an autocorrelation (fft based) on the 
+%amplitude waveform. This ACF is normalized according to McLeod/Wyvill 
+%(“A smarter way to find pitch”). Tonality at each 8 ms chunk is the value
+%of the correlation at the first peak. 
+%tonality_segment_sal = jc_tonality('batch.keep','abcc','obs0');
+%tonality_segment_naspm = jc_tonality('batch.keep','abcc','obs0');
 
 ff = load_batchf(batch);
 tonality_segment = struct();
@@ -54,7 +65,7 @@ for i = 1:length(ff)
 %             if length(tonality)==1920
 %                 break
 %             end
-            startind = startind+4;
+            startind = startind+16;
         end
         tonality = abs(tonality);
         thresh = otsuthresh(tonality);%for normalized nsdf method
@@ -68,11 +79,7 @@ for i = 1:length(ff)
         sm2 = sm2./max(sm2);
         [ons2 offs2] = SegmentSong(sm2,fs,5,20,0.35);
         
-        if length(ons) ~= length(motif) 
-            disp(['tonal segmentation error: ',fn]);
-            continue
-        elseif length(ons2) ~= length(motif)
-            disp(['amp segmentation error: ',fn]);
+        if length(ons2) ~= length(motif)
             continue
         end
         
@@ -92,9 +99,12 @@ for i = 1:length(ff)
         tonality_segment(trialcnt).amp_ons = ons2;
         tonality_segment(trialcnt).amp_offs = offs2;
         tonality_segment(trialcnt).vol = amp;
+        tonality_segment(trialcnt).sm = sm2;
         
         
     end
+
+    
 end
 
 % figure;plot([1:length(tonality)]/8000,tonality);hold on
