@@ -52,6 +52,7 @@ for i = 1:length(syllables)
         [mn hi lo] = mBootstrapseqCI(postnote,uniquepostnotes{m},'');
         transprobs.([syllables{i}]).divergence.([uniquepostnotes{m}]) = [mn hi lo];%95% confidence interval of trans probability
     end
+    transprobs.([syllables{i}]).divergence.postnotes = cell2mat(postnote');
     removeind = strfind(cell2mat(prenote'),'-');
     prenote(removeind) = [];
     [uniqueprenotes,~,idx] = unique(prenote);

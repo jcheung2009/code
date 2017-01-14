@@ -1,3 +1,16 @@
+function [repnaspm repsal] = jc_plotrepeatsummary(batchcontrol,batchtreatment,varargin)
+trialcnt=0;
+repnaspm = struct();repsal=struct();
+figure;h1=gca;
+figure;h2=gca;
+figure;h3=gca;
+figure;h4=gca;
+for i = 1:2:length(ff)
+    trialcnt=trialcnt+1;
+    for ii=1:length(
+
+
+
 function [rep reptempo sdur gdur] = jc_plotrepeatsummary(fv_rep_sal,fv_rep_cond,marker,linecolor,xpt)
 %plots summary data for changes in repeat length, gap duration, and
 %syllable duration for target repeat

@@ -38,7 +38,8 @@ function jc_plot_transprob(trnsprob,marker,linecolor)
 % title('Convergent probabilities for all syllables')
 
 %% transition probability matrices
-figure;
+fignum = input('figure number for plotting transition matrices:');
+figure(fignum);
 syllables = fieldnames(trnsprob); %all syllables 
 %divergence
 
@@ -58,7 +59,7 @@ end
 divmat = divmat.*(divmat>=0.05);
 g = digraph(divmat,syllables);
 width = 5*g.Edges.Weight;
-plot(g,'layout','circle','edgelabel',g.Edges.Weight,'linewidth',width);
+plot(g,'layout','circle','edgelabel',g.Edges.Weight);
 % imagesc(divmat,[0 1]);colormap('hot');colorbar;
 % set(gca,'xtick',[1:length(syllables)],'xticklabel',syllables,'xaxislocation','top','yticklabel',syllables);
 % xlabel('Divergent transition probability from syllable:')

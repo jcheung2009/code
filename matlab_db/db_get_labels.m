@@ -31,7 +31,12 @@ if nargin < 2 || strcmpi(single_song,'y') == 0
         
         %gets the timing of each syllable in the file
         %gets the time of the recorded file
-        time_of_file = db_timing4_file(current_line);
+        if isempty(strfind(current_line,'wav'))
+            time_of_file = db_timing4_file(current_line);
+        else
+            formatIn = 'yyyymmddHHMMSS';
+            time_of_file = datenum(datevec(current_line(end-17:end-4),formatIn));
+        end
         
         %gets the time of onset of each syllable (in serial date time)
         time_of_syllables = db_convert_seconds_to_serialdate(onsets./1000, 'sec');

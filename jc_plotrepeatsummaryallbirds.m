@@ -16,4 +16,3 @@ plot(xpt2,mn2,marker,[xpt2 xpt2],[mn2+err mn2-err],linecolor,'linewidth',2,'mark
 plot([xpt1 xpt2],[mn1 mn2],'color',[.5 .5 .5],'linewidth',2);
 set(gca,'xlim',[0.45 .85],'xtick',[0.5 .75],'xticklabel',{'saline','NASPM'});
 ylabel('Relative Change');
-% 
