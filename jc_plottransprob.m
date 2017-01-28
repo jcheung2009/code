@@ -1,4 +1,4 @@
-function jc_plottransprob(batch,varargin)
+function jc_plottransprob(batch)
 %plots figure for transition probability and transition entropy for each
 %treatment day in batch between baseline and condition
 
@@ -27,9 +27,15 @@ for k = 1:length(params.sequences)
         eval(cmd1);
         eval(cmd2);
         
-        drugtime = params.treatmenttime.(['tr_',ff(i+1).name]);
-        drugtime = etime(datevec(drugtime,'HH:MM'),datevec('07:00','HH:MM'))/3600;
-        startpt = (drugtime+params.latency)*3600;
+        if isempty(strfind(batch,'sal'))
+            drugtime = params.treatmenttime.(['tr_',ff(i+1).name]);
+            drugtime = etime(datevec(drugtime,'HH:MM'),datevec('07:00','HH:MM'))/3600;
+            startpt = (drugtime+params.latency)*3600;
+        else
+            startpt = params.treatmenttime.saline;
+            startpt = etime(datevec(startpt,'HH:MM'),datevec('07:00','HH:MM'));
+        end
+        
         
         if strcmp(params.baselinetype,'cross day')     
             ind2 = find(tb_cond1 >= startpt);
