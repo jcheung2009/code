@@ -1,6 +1,9 @@
 function jc_plottransprob(batch)
 %plots figure for transition probability and transition entropy for each
 %treatment day in batch between baseline and condition
+%performs permutation test to calculate p-value for difference in
+%transition probability or transition entropy between conditions for each
+%trial
 
 config;
 
@@ -17,16 +20,18 @@ for k = 1:length(params.sequences)
     daycnt = 1;
     for i = 1:params.numconditions:length(ff)
         eval(['load(''analysis/data_structures/',structname,ff(i).name,''')']);
-        eval(['load(''analysis/data_structures/',structname,ff(i+1).name,''')']);
         cmd1 = ['tb_sal =',structname,ff(i).name,'.time_per_song;'];
-        cmd2 = ['tb_cond1 =',structname,ff(i+1).name,'.time_per_song;'];
         eval(cmd1);
-        eval(cmd2);
         cmd1 = ['tb_sal = jc_tb(cell2mat(tb_sal)'',7,0);'];
-        cmd2 = ['tb_cond1 = jc_tb(cell2mat(tb_cond1)'',7,0);'];
         eval(cmd1);
-        eval(cmd2);
-        
+        if ~isempty(ff(i+1).name)
+            eval(['load(''analysis/data_structures/',structname,ff(i+1).name,''')']);
+            cmd2 = ['tb_cond1 =',structname,ff(i+1).name,'.time_per_song;'];
+            eval(cmd2);
+            cmd2 = ['tb_cond1 = jc_tb(cell2mat(tb_cond1)'',7,0);'];
+            eval(cmd2);
+        end
+
         if isempty(strfind(batch,'sal'))
             drugtime = params.treatmenttime.(['tr_',ff(i+1).name]);
             drugtime = etime(datevec(drugtime,'HH:MM'),datevec('07:00','HH:MM'))/3600;
@@ -35,17 +40,23 @@ for k = 1:length(params.sequences)
             startpt = params.treatmenttime.saline;
             startpt = etime(datevec(startpt,'HH:MM'),datevec('07:00','HH:MM'));
         end
-        
-        
+
         if strcmp(params.baselinetype,'cross day')     
             ind2 = find(tb_cond1 >= startpt);
             tb_cond1 = tb_cond1(ind2);
             ind1 = find(tb_sal >= tb_cond1(1) & tb_sal <= tb_cond1(end));
             tb_sal = tb_sal(ind1);
         elseif strcmp(params.baselinetype,'same day')
-            ind2 = find(tb_cond1 >= startpt);
-            tb_cond1 = tb_cond1(ind2);
-            ind1 = 1:length(tb_sal);
+            if isempty(strfind(batch,'sal'))
+                ind2 = find(tb_cond1 >= startpt);
+                tb_cond1 = tb_cond1(ind2);
+                ind1 = 1:length(tb_sal);
+            else
+                ind2 = find(tb_sal>=startpt);
+                tb_cond1 = tb_sal(ind2);
+                ind1 = find(tb_sal < startpt);
+                tb_sal = tb_sal(ind1);
+            end
         end
 
         if ~isempty(strfind(ff(i+1).name,'naspm'))&~isempty(strfind(ff(i+1).name,'apv'))
@@ -62,15 +73,20 @@ for k = 1:length(params.sequences)
             mcolor2 = 'k';
         end
 
-        cmd1 = ['trans_sal =',structname,ff(i).name,'.trans_per_song;'];
-        cmd2 = ['trans_cond1 =',structname,ff(i+1).name,'.trans_per_song;'];
-        eval(cmd1);
-        eval(cmd2);
-        trans_sal = cell2mat(trans_sal);
-        trans_cond1 = cell2mat(trans_cond1);
-        trans_cond1 = trans_cond1(ind2);
-        trans_sal = trans_sal(ind1);
         
+        cmd1 = ['trans_sal =',structname,ff(i).name,'.trans_per_song;'];
+        eval(cmd1);
+        trans_sal = cell2mat(trans_sal);
+        trans_sal = trans_sal(ind1);
+        if ~isempty(ff(i+1).name)
+            cmd2 = ['trans_cond1 =',structname,ff(i+1).name,'.trans_per_song;'];
+            eval(cmd2);
+            trans_cond1 = cell2mat(trans_cond1);
+            trans_cond1 = trans_cond1(ind2);
+        else
+            trans_cond1 = trans_sal(ind2);
+        end
+          
         %plot bootstrapped confidence intervals 
         [boot_results entropy_results] = db_transition_probability_calculation2(trans_sal, motifs);
         [boot_results1 entropy_results1] = db_transition_probability_calculation2(trans_cond1,motifs);
