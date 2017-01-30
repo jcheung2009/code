@@ -62,7 +62,7 @@ for k = 1:length(params.sequences)
             patch([0 14 14 0],[lo lo hi hi],mcolor(m,:),'FaceAlpha',0.2,'edgecolor','none');
 
             plot(transavg{m}(:,1)/3600,transavg{m}(:,2),'color',mcolor(m,:),'marker','o','linewidth',2);hold on;
-            set(gca,'fontweight','bold');
+            
             title(ff(i+1).name,'interpreter','none');
 
             xlim([0 14]);
@@ -72,10 +72,10 @@ for k = 1:length(params.sequences)
             
             if isempty(strfind(batch,'sal'))
                 drugtime = params.treatmenttime.(['tr_',ff(i+1).name]);
-                drugtime = etime(datevec(drugtime,'HH:MM'),datevec('07:00','HH:MM'));
+                drugtime = etime(datevec(drugtime,'HH:MM'),datevec('07:00','HH:MM'))/3600;
             else
                 drugtime = params.treatmenttime.saline;
-                drugtime = etime(datevec(drugtime,'HH:MM'),datevec('07:00','HH:MM'));
+                drugtime = etime(datevec(drugtime,'HH:MM'),datevec('07:00','HH:MM'))/3600;
             end
             plot(drugtime,hi,'*','markersize',12,'linewidth',2,'color',[0 0 0]+0.5);hold on;
         end
@@ -85,6 +85,7 @@ for k = 1:length(params.sequences)
             h = [h;ob(1)];
         end
         legend(h,motifs)
+        set(gca,'fontweight','bold','ylim',[0 1]);
     end
 end
 
