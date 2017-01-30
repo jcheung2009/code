@@ -129,7 +129,7 @@ for k = 1:length(params.sequences)
         %p value: permutation test for transition probability and entropy
         %between baseline and condition, shuffle by bout
         cmd1 = ['tb_sal =',structname,ff(i).name,'.time_per_song;'];
-        eval(cmd1);
+        eval(cmd2);
         if ~isempty(ff(i+1).name)
             cmd2 = ['tb_cond1 =',structname,ff(i+1).name,'.time_per_song;'];
             eval(cmd2);
@@ -160,12 +160,24 @@ for k = 1:length(params.sequences)
         if ~isempty(ff(i+1).name)
             cmd2 = ['trans_cond1 =',structname,ff(i+1).name,'.trans_per_song;'];
             eval(cmd2);
+        else
+            trans_cond1 = trans_sal(ind2);
+        trans_sal = trans_sal(ind1);
+        trans_cond1 = trans_cond1(ind2);
+        
+        cmd1 = ['trans_sal =',structname,ff(i).name,'.trans_per_song;'];
+        eval(cmd1);
+        trans_sal = cell2mat(trans_sal);
+        if ~isempty(ff(i+1).name)
+            cmd2 = ['trans_cond1 =',structname,ff(i+1).name,'.trans_per_song;'];
+            eval(cmd2);
+            trans_cond1 = cell2mat(trans_cond1);
             trans_cond1 = trans_cond1(ind2);
         else
             trans_cond1 = trans_sal(ind2);
         end
         trans_sal = trans_sal(ind1);
-
+        
         numpool1 = length(trans_sal);
         numpool2 = length(trans_cond1);
         numreps = 1000;
