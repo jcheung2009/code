@@ -35,7 +35,7 @@ for iii = 1:number_bootstraps
     %(entropy = Sigma -p * log2 p)
     entropy_iteration = [];
     for nnn = 1:length(motifs)
-        entropy_iteration = [entropy_iteration boot_results.(motifs{nnn})(iii).*log2(boot_results.(motifs{nnn})(iii))];
+        entropy_iteration = [entropy_iteration boot_results.(motifs{nnn})(iii).*log2(boot_results.(motifs{nnn})(iii))/log2(length(motifs))];
     end
 
     entropy_results(iii) = sum(entropy_iteration)*-1;

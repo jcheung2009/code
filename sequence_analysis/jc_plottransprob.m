@@ -14,7 +14,7 @@ for k = 1:length(params.sequences)
     [~,modified_motifs] = db_con_or_div(motifs);
     mcolor = hsv(length(motifs));
     structname = ['seq_',strjoin(motifs,'_'),'_'];
-    figure;
+    figure;hold on;
     h = subtightplot(2,1,1,0.07,0.08,0.15);hold on;
     h2 = subtightplot(2,1,2,0.07,0.08,0.15);hold on;
     daycnt = 1;
@@ -32,7 +32,7 @@ for k = 1:length(params.sequences)
             eval(cmd2);
         end
 
-        if isempty(strfind(batch,'sal'))
+        if isempty(strfind(batch,'sal')) & isempty(strfind(ff(i+1).name,'sal'))
             drugtime = params.treatmenttime.(['tr_',ff(i+1).name]);
             drugtime = etime(datevec(drugtime,'HH:MM'),datevec('07:00','HH:MM'))/3600;
             startpt = (drugtime+params.latency)*3600;
@@ -103,7 +103,7 @@ for k = 1:length(params.sequences)
             plot(h,[daycnt daycnt]+spc,[hi1 lo1],'color',mcolor(n,:),'linewidth',2);hold on;
             plot(h,daycnt+spc,mn1,'o','MarkerSize',8,'color',mcolor(n,:),'linewidth',2);hold on;
             plot(h,[daycnt daycnt+spc],[mn mn1],'color',[0 0 0]+0.85,'linewidth',2);hold on;
-
+            obsdiff.([motifs{n}]) = abs(mn1-mn);
         end
         ob = [];
         for n = 1:length(motifs)
@@ -191,14 +191,14 @@ for k = 1:length(params.sequences)
         end
         
         for nnn = 1:length(motifs)
-            transdiff_pval.([motifs{nnn}]) = sum(abs(transdiff_distribution.([motifs{nnn}])) > abs(mn1-mn))/numreps;
+            transdiff_pval.([motifs{nnn}]) = sum(abs(transdiff_distribution.([motifs{nnn}])) > obsdiff.([motifs{nnn}]))/numreps;
         end
         entdiff_pval = sum(abs(entropydiff_distribution) > abs(mn3-mn2))/numreps;
         
         if length(motifs) > 2
-            str = [];
+            str = {};
             for nnn = 1:length(motifs)
-                str = [str;'p=',num2str(transdiff_pval.([motifs{nnn}]))];
+                str = [str;'p',motifs{nnn},'=',num2str(transdiff_pval.([motifs{nnn}]))];
             end
             text(h,daycnt,1,str,'fontsize',7);
         else
@@ -209,17 +209,20 @@ for k = 1:length(params.sequences)
         text(h2,daycnt,1,str,'fontsize',7);
         
         daycnt = daycnt+1;
+        
         clear ind*
-    end
-    title(h,['transition probability with 90% CI']);
-    ylabel(h,'probability');
-    set(h,'fontweight','bold','xlim',[0.5 daycnt-0.5],'xtick',[1:daycnt-1],...
-        'ylim',[0 1]);            
+        title(h,['transition probability with 90% CI']);
+        ylabel(h,'probability');
+        set(h,'fontweight','bold','xlim',[0.5 daycnt-0.5],'xtick',[1:daycnt-1],...
+            'ylim',[0 1]);            
 
-    title(h2,['transition entropy with 90% CI']);
-    ylabel(h2,'probability');
-    set(h2,'fontweight','bold','xlim',[0.5 daycnt-0.5],'xtick',[1:daycnt-1],...
-        'ylim',[0.5 1]);  
+        title(h2,['transition entropy with 90% CI']);
+        ylabel(h2,'probability');
+        set(h2,'fontweight','bold','xlim',[0.5 daycnt-0.5],'xtick',[1:daycnt-1],...
+            'ylim',[0 1]);     
+   
+    end
+    
 
     
 end

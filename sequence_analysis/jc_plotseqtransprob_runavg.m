@@ -22,6 +22,8 @@ for k = 1:length(params.sequences)
             eval(cmd2);
             cmd2 = ['tb_cond1 = jc_tb(cell2mat(tb_cond1)'',7,0);'];
             eval(cmd2);
+        else
+            tb_cond1 = tb_sal;
         end
         
         cmd1 = ['trans_sal =',structname,ff(i).name,'.trans_per_song;'];
@@ -31,6 +33,8 @@ for k = 1:length(params.sequences)
             cmd2 = ['trans_cond1 =',structname,ff(i+1).name,'.trans_per_song;'];
             eval(cmd2);
             trans_cond1 = cell2mat(trans_cond1);
+        else
+            trans_cond1 = trans_sal;
         end
         
         numseconds = tb_cond1(end)-tb_cond1(1);
@@ -63,7 +67,11 @@ for k = 1:length(params.sequences)
 
             plot(transavg{m}(:,1)/3600,transavg{m}(:,2),'color',mcolor(m,:),'marker','o','linewidth',2);hold on;
             
-            title(ff(i+1).name,'interpreter','none');
+            if ~isempty(ff(i+1).name)
+                title(ff(i+1).name,'interpreter','none');
+            else
+                title(ff(i).name,'interpreter','none');
+            end
 
             xlim([0 14]);
             ylim('auto');
