@@ -5,12 +5,12 @@
 
 %for first harmonic what are points to cut out
 
-range=[22 26]
+range=[16 26]
 %number of harmonics to shift
-npeaks=4;
+npeaks=3;
 
 %positive value for upshift, negative value for downshift
-shift=2;
+shift=-2;
 
 outvec=zeros(length(invec),1);
 for ii=1:npeaks

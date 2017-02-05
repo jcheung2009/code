@@ -35,13 +35,13 @@ for i = filestart:fileend
     recdata = readrecf(files(i).fn,'');
     
     if ~exist(strcat(files(i).fn,'.not.mat'),'file')
-        [dat,fs]=evsoundin('',files(i).fn,CHANSPEC);
-        [sm]=SmoothData(dat,fs,1,'hanningfirff');
-        sm(1)=0.0;sm(end)=0.0;
-        [ons,offs]=SegmentNotes(sm,fs,min_int,min_dur,ampThresh);
-        onsets=ons*1e3;offsets=offs*1e3;
+%         [dat,fs]=evsoundin('',files(i).fn,CHANSPEC);
+%         [sm]=SmoothData(dat,fs,1,'hanningfirff');
+%         sm(1)=0.0;sm(end)=0.0;
+%         [ons,offs]=SegmentNotes(sm,fs,min_int,min_dur,ampThresh);
+%         onsets=ons*1e3;offsets=offs*1e3;
         
-        
+        continue
     else
         load(strcat(files(i).fn,'.not.mat'));
     end
