@@ -1,5 +1,5 @@
 function [fvalsstr]=jc_findwnote_pretrig(batch,NOTE,PRENOTE,POSTNOTE,...
-    TIMESHIFT,FVALBND,NFFT,USEFIT,CHANSPEC,evtaf,ADDX,chckpc,varargin);
+    TIMESHIFT,FVALBND,NFFT,USEFIT,CHANSPEC,evtaf,ADDX,chckpc,refrac,varargin);
 %catch/trig is based on whether pre note was catch or trig
 %combines jc_findwnote and jc_evtaffv3 and pitch contour code
 %datenum: extracted from rec file which has seconds resolution 
@@ -190,10 +190,10 @@ for ifn=1:length(ff)
     for ii = 1:length(p)
         if(length(onsets)==length(labels))
             ton=onsets(p(ii));toff=offsets(p(ii));%in milliseconds
-            ton_pre = onsets(p(ii)-1);toff_pre=offsets(p(ii)-1);
+            %ton_pre = onsets(p(ii)-1);toff_pre=offsets(p(ii)-1);
             %Determine whether pre-syllable triggered detection 
             if (isfield(rd,'ttimes'))
-                trigindtmp=find((rd.ttimes>=ton_pre)&(rd.ttimes<=toff_pre));%find trigger time for syllable
+                trigindtmp=find((rd.ttimes<=ton)&(rd.ttimes+refrac>=toff));%find trigger time for syllable
                 if (length(trigindtmp)>0)%if exist trigger time for syllable...
                     TRIG=rd.ttimes(trigindtmp);%hits
                     if (isfield(rd,'catch'))
