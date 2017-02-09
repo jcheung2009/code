@@ -1,11 +1,9 @@
 %plot spectral and temporal bout patterns
 
-motif = 'abcdeeerww';
-numsylls = 5;
-ff = load_batchf('batchiemapv');
-load('analysis/data_structures/iemapvlatency');
+motif = 'efga';
+ff = load_batchf('batch');
 
-for i = 1:2:length(ff);
+for i = 1:length(ff);
 
     cmd1 = ['load(''analysis/data_structures/bout_',ff(i).name,''')'];
     cmd2 = ['load(''analysis/data_structures/bout_',ff(i+1).name,''')'];

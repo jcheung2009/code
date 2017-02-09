@@ -33,7 +33,11 @@ for i = 1:length(ff)
     end
     
     %number of motifs 
-    ind = find(arrayfun(@(x) strcmp(x.filename,ff(i).name),motifinfo));
+    try
+        ind = find(arrayfun(@(x) strcmp(x.filename,ff(i).name),motifinfo));
+    catch
+        ind = find(arrayfun(@(x) strcmp(x.fn,ff(i).name),motifinfo));
+    end
     if isempty(ind)
         continue
     end
@@ -78,17 +82,31 @@ for i = 1:length(ff)
     end
     
     %pitch, volume, entropy, and tempo patterns of motif syllables within bout
-    boutvolume = [];
-    boutpitch = [];
-    boutentropy = [];
-    bouttempo = [];
-    for m = 1:length(ind)
-        boutvolume = [boutvolume; motifinfo(ind(m)).syllvol];
-        boutpitch = [boutpitch; motifinfo(ind(m)).syllpitch];
-        boutentropy = [boutentropy; motifinfo(ind(m)).syllent];
-        bouttempo = [bouttempo; motifinfo(ind(m)).motifdur];
+    if length(motif) > 1
+        boutvolume = [];
+        boutpitch = [];
+        boutentropy = [];
+        bouttempo = [];
+        boutacorr = [];
+        for m = 1:length(ind)
+            boutvolume = [boutvolume; motifinfo(ind(m)).syllvol];
+            boutpitch = [boutpitch; motifinfo(ind(m)).syllpitch];
+            boutentropy = [boutentropy; motifinfo(ind(m)).syllent];
+            bouttempo = [bouttempo; motifinfo(ind(m)).motifdur];
+            boutacorr = [boutacorr; motifinfo(ind(m)).firstpeakdistance];
+        end
+    elseif length(motif) == 1
+        boutvolume = [];
+        boutpitch = [];
+        boutentropy = [];
+        bouttempo = NaN(length(ind),1);
+        boutacorr = NaN(length(ind),1);
+        for m = 1:length(ind)
+            boutvolume = [boutvolume; motifinfo(ind(m)).maxvol];
+            boutpitch = [boutpitch; motifinfo(ind(m)).mxvals];
+            boutentropy = [boutentropy; motifinfo(ind(m)).spent];
+        end
     end
-    
     
     bout_cnt = bout_cnt+1;
     bout(bout_cnt).filename = fn;
@@ -105,6 +123,7 @@ for i = 1:length(ff)
     bout(bout_cnt).boutpitch = boutpitch;
     bout(bout_cnt).boutentropy = boutentropy;
     bout(bout_cnt).bouttempo = bouttempo;% motif duration for each motif in bout
+    bout(bout_cnt).boutacorr = boutacorr;
     
 end
     

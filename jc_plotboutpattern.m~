@@ -22,7 +22,7 @@ for i = 1:length(boutinfo)
 end
 
 figure(fignum1);hold on;
-subtightplot(numplots,1,1,[0.07 0.07],[0.07 0.07],0.15);hold on;
+subtightplot(numplots,1,1,[0.07 0.07],[0.07 0.07],0.1);hold on;
 for ii = 1:numsylls
     mns = NaN(i,2);
     for i = 1:maxnummotifs
@@ -43,7 +43,7 @@ set(gca,'fontweight','bold');
 title(['bout ',motif]);
 xlabel('position in bout');
 
-subtightplot(numplots,1,2,[0.07 0.07],[0.07 0.07],0.15);hold on;
+subtightplot(numplots,1,2,[0.07 0.07],[0.07 0.07],0.1);hold on;
 for ii = 1:numsylls
     mns = NaN(i,2);
     for i = 1:maxnummotifs
@@ -64,7 +64,7 @@ set(gca,'fontweight','bold');
 xlabel('position in bout');
 
 if length(motif) > 1
-    subtightplot(numplots,1,numplots,[0.07 0.07],[0.07 0.07],0.15);hold on;
+    subtightplot(numplots,1,numplots,[0.07 0.07],[0.07 0.07],0.1);hold on;
     mns = NaN(i,2);
     for i = 1:maxnummotifs
         jitter = (-1+2*rand)/10;
@@ -99,16 +99,15 @@ for i = 1:maxnummotifs
 end
 
 figure(fignum2);hold on;
-subtightplot(numplots+1,1,1,[0.07 0.07],[0.07 0.07],0.15);hold on;
+subtightplot(numplots+1,1,1,[0.07 0.07],[0.07 0.07],0.1);hold on;
 for i = 1:numsylls
     mns = NaN(ii,2);
     for ii = 1:maxnummotifs
-        jitter = (-1+2*rand)/10;
         if length(pitchbyposition{ii})>=15
             [hi lo mn] = mBootstrapCI(pitchbyposition{ii}(:,i));
-            plot(jitter+ii,mn,marker,'markersize',8);hold on;
-            plot(jitter+[ii ii],[hi lo],linecolor,'linewidth',2);hold on;
-            mns(ii,:) = [jitter+ii,mn];
+            plot(ii,mn,marker,'markersize',8);hold on;
+            plot([ii ii],[hi lo],linecolor,'linewidth',2);hold on;
+            mns(ii,:) = [ii,mn];
         end
     end
     plot(mns(:,1),mns(:,2),'k');
@@ -118,16 +117,15 @@ set(gca,'fontweight','bold');
 title(['bout ',motif]);
 xlabel('position in bout');
 
-subtightplot(numplots+1,1,2,[0.07 0.07],[0.07 0.07],0.15);hold on;
+subtightplot(numplots+1,1,2,[0.07 0.07],[0.07 0.07],0.1);hold on;
 for i = 1:numsylls
     mns = NaN(ii,2);
     for ii = 1:maxnummotifs
-        jitter = (-1+2*rand)/10;
         if length(pitchbyposition{ii})>=15
-            [mn hi lo] = mBootstrapCI_CV(pitchbyposition{ii}(:,i));
-            plot(jitter+ii,mn,marker,'markersize',8);hold on;
-            plot(jitter+[ii ii],[hi lo],linecolor,'linewidth',2);hold on;
-            mns(ii,:) = [jitter+ii,mn];
+            [hi lo mn] = mBootstrapCI_CV(pitchbyposition{ii}(:,i));
+            plot(ii,mn,marker,'markersize',8);hold on;
+            plot([ii ii],[hi lo],linecolor,'linewidth',2);hold on;
+            mns(ii,:) = [ii,mn];
         end
     end
     plot(mns(:,1),mns(:,2),'k');
@@ -136,16 +134,15 @@ ylabel({'pitch CV'});
 set(gca,'fontweight','bold');
 xlabel('position in bout');
 
-subtightplot(numplots+1,1,3,[0.07 0.07],[0.07 0.07],0.15);hold on;
+subtightplot(numplots+1,1,3,[0.07 0.07],[0.07 0.07],0.1);hold on;
 for i = 1:numsylls
     mns = NaN(ii,2);
     for ii = 1:maxnummotifs
-        jitter = (-1+2*rand)/10;
         if length(volumebyposition{ii})>=15
             [hi lo mn] = mBootstrapCI(log(volumebyposition{ii}(:,i)));
-            plot(jitter+ii,mn,marker,'markersize',8);hold on;
-            plot(jitter+[ii ii],[hi lo],linecolor,'linewidth',2);hold on;
-            mns(ii,:) = [jitter+ii,mn];
+            plot(ii,mn,marker,'markersize',8);hold on;
+            plot([ii ii],[hi lo],linecolor,'linewidth',2);hold on;
+            mns(ii,:) = [ii,mn];
         end
     end
     plot(mns(:,1),mns(:,2),'k');
@@ -155,21 +152,19 @@ set(gca,'fontweight','bold');
 xlabel('position in bout');
 
 if length(motif) > 1
-    subtightplot(numplots+1,1,numplots+1,[0.07 0.07],[0.07 0.07],0.15);hold on;
+    subtightplot(numplots+1,1,numplots+1,[0.07 0.07],[0.07 0.07],0.1);hold on;
     mns = NaN(ii,2);
     for ii = 1:maxnummotifs
-        jitter = (-1+2*rand)/10;
         if length(tempobyposition{ii})>=15
             [hi lo mn] = mBootstrapCI(tempobyposition{ii}(:,i));
-            plot(jitter+ii,mn,marker,'markersize',8);hold on;
-            plot(jitter+[ii ii],[hi lo],linecolor,'linewidth',2);hold on;
-            mns(ii,:) = [jitter+ii,mn];
+            plot(ii,mn,marker,'markersize',8);hold on;
+            plot([ii ii],[hi lo],linecolor,'linewidth',2);hold on;
+            mns(ii,:) = [ii,mn];
         end
     end
     plot(mns(:,1),mns(:,2),'k');
-    ylabel({'interval duration'});
-    set(gca,'fontweight','bold'); 
 end
-
+ylabel({'interval duration'});
+set(gca,'fontweight','bold');
 
 
