@@ -193,6 +193,7 @@ for ifn=1:length(ff)
             %ton_pre = onsets(p(ii)-1);toff_pre=offsets(p(ii)-1);
             %Determine whether pre-syllable triggered detection 
             if (isfield(rd,'ttimes'))
+                trigindtmp=find((rd.ttimes+refrac+40<=ton
                 trigindtmp=find((rd.ttimes<=ton)&(rd.ttimes+refrac>=toff));%find trigger time for syllable
                 if (length(trigindtmp)>0)%if exist trigger time for syllable...
                     TRIG=rd.ttimes(trigindtmp);%hits

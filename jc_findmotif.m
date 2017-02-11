@@ -1,4 +1,4 @@
-function motifinfo = jc_findmotif(batch,motif,syllables,fvalbnd,timeshifts,varseq,jitter,measurespecs,CHANSPEC)
+function motifinfo = jc_findmotif(batch,motif,syllables,fvalbnd,timeshifts,varseq,jitter,measurespecs,CHANSPEC,varargin)
 %syllables = {'a','b','c'}
 %fvalbnds = {[fvalbnd for syllable A], [fvalbnd for syllable C],...}
 %timeshifts = {timeshift for A, timeshift for B, timeshift for C}
@@ -8,6 +8,7 @@ function motifinfo = jc_findmotif(batch,motif,syllables,fvalbnd,timeshifts,varse
 %CHANSPEC = 'obs0';
 % varseq = input('motif is variable (y/n):','s');
 % jitter = input('Were syllables manually edited?:','s');
+
 
 if varseq ~= 'y'
     for i = 1:length(syllables)
@@ -120,25 +121,56 @@ for i = 1:length(ff)
 
         smtemp = dat(onsamp:offsamp);%amplitude envelope of motif
         sm = evsmooth(smtemp,fs,'','','',5);%smoothed amplitude envelop
-        sm2 = log(sm);%to better see amplitude envelop and to better segment
-        sm2 = sm2-min(sm2);
-        sm2 = sm2./max(sm2);
         
-        [c lag] = xcorr(sm2,'coeff');
-        c = c(ceil(length(lag)/2):end);
-        lag = lag(ceil(length(lag)/2):end);
-        %peakdistance = 0.05*fs; %50 ms 
-        [pks locs] = findpeaks(c,'minpeakwidth',256);
-        if isempty(locs)%when number of syllables in motif < 4
-            firstpeakdistance = NaN;
+        if ~isempty(varargin) & length(varargin) >=4
+            if varargin{4} == 'no log'
+                sm2 = sm;
+                sm2 = sm2-min(sm2);
+                sm2 = sm2./max(sm2);
+                [c lag] = xcorr(sm2,'coeff');
+                c = c(ceil(length(lag)/2):end);
+                lag = lag(ceil(length(lag)/2):end);
+                %peakdistance = 0.05*fs; %50 ms 
+                [pks locs] = findpeaks(c,'minpeakwidth',256);
+                if isempty(locs)%when number of syllables in motif < 4
+                    firstpeakdistance = NaN;
+                else
+                    firstpeakdistance = locs(1)/fs;%average time in seconds between adjacent syllables from autocorr
+                end
+                sm2 = log(sm);%to better see amplitude envelop and to better segment
+                sm2 = sm2-min(sm2);
+                sm2 = sm2./max(sm2);
+            end
         else
-            firstpeakdistance = locs(1)/fs;%average time in seconds between adjacent syllables from autocorr
+            sm2 = log(sm);%to better see amplitude envelop and to better segment
+            sm2 = sm2-min(sm2);
+            sm2 = sm2./max(sm2);
+            [c lag] = xcorr(sm2,'coeff');
+            c = c(ceil(length(lag)/2):end);
+            lag = lag(ceil(length(lag)/2):end);
+            %peakdistance = 0.05*fs; %50 ms 
+            [pks locs] = findpeaks(c,'minpeakwidth',256);
+
+            if isempty(locs)%when number of syllables in motif < 4
+                firstpeakdistance = NaN;
+            else
+                firstpeakdistance = locs(1)/fs;%average time in seconds between adjacent syllables from autocorr
+            end
         end
         
+        
+        
+        
         if jitter == 'n'
-            minint = 3;%gap
-            mindur = 20;%syllable
-            thresholdforsegmentation = {0.35,minint,mindur};%{graythresh(sm2),minint,mindur};%otsu's method
+            if isempty(varargin)
+                minint = 3;%gap
+                mindur = 20;%syllable
+                thresholdforsegmentation = {0.35,minint,mindur};%{graythresh(sm2),minint,mindur};%otsu's method
+            else
+                minint = varargin{1};
+                mindur = varargin{2};
+                thresholdforsegmentation = {varargin{3},minint,mindur};
+            end
             [ons offs] = SegmentNotes(sm2,fs,thresholdforsegmentation{2},...
                 thresholdforsegmentation{3},thresholdforsegmentation{1});
             disp([num2str(length(ons)),' syllables detected']);
@@ -328,6 +360,7 @@ for i = 1:length(ff)
        motifinfo(motif_cnt).syllvol = volumeestimates;
        motifinfo(motif_cnt).syllent = entropyestimates;
        motifinfo(motif_cnt).boutind = ii;%motif number in song file
+
        
     end
 end

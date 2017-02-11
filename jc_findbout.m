@@ -124,6 +124,7 @@ for i = 1:length(ff)
     bout(bout_cnt).boutentropy = boutentropy;
     bout(bout_cnt).bouttempo = bouttempo;% motif duration for each motif in bout
     bout(bout_cnt).boutacorr = boutacorr;
+    bout(bout_cnt).iscatch = rd.iscatch;
     
 end
     

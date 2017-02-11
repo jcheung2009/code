@@ -160,7 +160,7 @@ if length(motif) > 1
     for ii = 1:maxnummotifs
         jitter = (-1+2*rand)/10;
         if length(tempobyposition{ii})>=15
-            [hi lo mn] = mBootstrapCI(tempobyposition{ii}(:,i));
+            [hi lo mn] = mBootstrapCI(tempobyposition{ii});
             plot(jitter+ii,mn,marker,'markersize',8);hold on;
             plot(jitter+[ii ii],[hi lo],linecolor,'linewidth',2);hold on;
             mns(ii,:) = [jitter+ii,mn];
