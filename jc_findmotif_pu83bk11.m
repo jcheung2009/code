@@ -289,9 +289,9 @@ for i = 1:length(ff)
                end
            end
        else
-           pitchestimates = NaN;
-           volumeestimates = NaN;
-           entropyestimates = NaN;
+           pitchestimates = [];
+           volumeestimates = [];
+           entropyestimates = [];
        end
        
        
