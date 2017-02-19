@@ -8,7 +8,7 @@ function motifinfo = jc_findmotif(batch,motif,syllables,fvalbnd,timeshifts,varse
 %CHANSPEC = 'obs0';
 % varseq = input('motif is variable (y/n):','s');
 % jitter = input('Were syllables manually edited?:','s');
-%varargin = minint, mindur, thresh, log/nolog
+%varargin = minint, 
 
 
 if varseq ~= 'y'
@@ -168,21 +168,9 @@ for i = 1:length(ff)
                 mindur = 20;%syllable
                 thresholdforsegmentation = {0.35,minint,mindur};%{graythresh(sm2),minint,mindur};%otsu's method
             else
-                if ~isempty(varargin{1})
-                    minint = varargin{1};
-                else
-                    minint = 3;
-                end
-                if ~isempty(varargin{2})
-                    mindur = varargin{2};
-                else
-                    mindur = 20;
-                end
-                if ~isempty(varargin{3})
-                    thresholdforsegmentation = {varargin{3},minint,mindur};
-                else
-                    thresholdforsegmentation = {0.35,minint,mindur};
-                end
+                minint = varargin{1};
+                mindur = varargin{2};
+                thresholdforsegmentation = {varargin{3},minint,mindur};
             end
             [ons offs] = SegmentNotes(sm2,fs,thresholdforsegmentation{2},...
                 thresholdforsegmentation{3},thresholdforsegmentation{1});

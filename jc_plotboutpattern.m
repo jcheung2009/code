@@ -57,7 +57,7 @@ end
 %% plot pitch, volume, and tempo bout patterns
 if spec == 'y'
     figure(fignum1);hold on;
-    subtightplot(2,1,1,[0.08 0.08],[0.08 0.08],0.15);hold on;
+    subtightplot(3,1,1,[0.08 0.08],[0.08 0.08],0.15);hold on;
     for ii = 1:numsylls
         mns = NaN(maxnummotifs,2);
         for i = 1:maxnummotifs
@@ -78,7 +78,7 @@ if spec == 'y'
     title([motif]);
     xlabel('position in bout');
     
-    subtightplot(2,1,2,[0.08 0.08],[0.08 0.08],0.15);hold on;
+    subtightplot(3,1,2,[0.08 0.08],[0.08 0.08],0.15);hold on;
     for i = 1:numsylls
         mns = NaN(maxnummotifs,2);
         for ii = 1:maxnummotifs
@@ -93,6 +93,25 @@ if spec == 'y'
         plot(mns(:,1),mns(:,2),'k');
     end
     ylabel({'Frequency'});
+    set(gca,'fontweight','bold');
+    title(['bout ',motif]);
+    xlabel('position in bout');
+    
+    subtightplot(3,1,3,[0.08 0.08],[0.08 0.08],0.15);hold on;
+    for i = 1:numsylls
+        mns = NaN(maxnummotifs,2);
+        for ii = 1:maxnummotifs
+            jitter = (-1+2*rand)/10;
+            if length(pitchbyposition{ii})>=15
+                [mn hi lo] = mBootstrapCI_CV(pitchbyposition{ii}(:,i));
+                plot(jitter+ii,mn,marker,'markersize',8);hold on;
+                plot(jitter+[ii ii],[hi lo],linecolor,'linewidth',2);hold on;
+                mns(ii,:) = [jitter+ii,mn];
+            end
+        end
+        plot(mns(:,1),mns(:,2),'k');
+    end
+    ylabel({'pitch CV'});
     set(gca,'fontweight','bold');
     title(['bout ',motif]);
     xlabel('position in bout');
@@ -140,7 +159,7 @@ end
 
 if temp == 'y'
     figure(fignum3);hold on;
-    subtightplot(2,1,1,[0.08 0.08],[0.08 0.08],0.15);hold on;
+    subtightplot(3,1,1,[0.08 0.08],[0.08 0.08],0.15);hold on;
     mns = NaN(maxnummotifs,2);
     for i = 1:maxnummotifs
         jitter = (-1+2*rand)/10;
@@ -159,7 +178,7 @@ if temp == 'y'
     title([motif]);
     set(gca,'fontweight','bold');
     
-    subtightplot(2,1,2,[0.08 0.08],[0.08 0.08],0.15);hold on;
+    subtightplot(3,1,2,[0.08 0.08],[0.08 0.08],0.15);hold on;
     mns = NaN(maxnummotifs,2);
     for ii = 1:maxnummotifs
         jitter = (-1+2*rand)/10;
@@ -173,6 +192,23 @@ if temp == 'y'
     end
     plot(mns(:,1),mns(:,2),'k');
     ylabel({'interval duration'});
+    set(gca,'fontweight','bold');
+    xlabel('position in bout');
+    
+    subtightplot(3,1,3,[0.08 0.08],[0.08 0.08],0.15);hold on;
+    mns = NaN(maxnummotifs,2);
+    for ii = 1:maxnummotifs
+        jitter = (-1+2*rand)/10;
+        tempobyposition{ii} = tempobyposition{ii}(~isnan(tempobyposition{ii}));
+        if length(tempobyposition{ii})>=15
+            [mn hi lo] = mBootstrapCI_CV(tempobyposition{ii});
+            plot(jitter+ii,mn,marker,'markersize',8);hold on;
+            plot(jitter+[ii ii],[hi lo],linecolor,'linewidth',2);hold on;
+            mns(ii,:) = [jitter+ii,mn];
+        end
+    end
+    plot(mns(:,1),mns(:,2),'k');
+    ylabel({'interval duration CV'});
     set(gca,'fontweight','bold');
     xlabel('position in bout');
 end
