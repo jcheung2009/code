@@ -321,17 +321,24 @@ for ifn=1:length(ff)
    
              %extract datenum from rec file, add syllable ton in seconds
              if (strcmp(CHANSPEC,'obs0'))
-                key = 'created:';
-                ind = strfind(rd.header{1},key);
-                tmstamp = rd.header{1}(ind+length(key):end);
-                tmstamp = datenum(tmstamp,'ddd, mmm dd, yyyy, HH:MM:SS');%time file was closed
-                
-                ind2 = strfind(rd.header{5},'=');
-                filelength = sscanf(rd.header{5}(ind2 + 1:end),'%g');%duration of file
-                
-                tm_st = addtodate(tmstamp,-(filelength),'millisecond');%time at start of filefiltsong
-                datenm = addtodate(tm_st, round(ton), 'millisecond');%add time to onset of syllable
-                [yr mon dy hr minutes sec] = datevec(datenm);
+                 if isfield(rd,'header')
+                    key = 'created:';
+                    ind = strfind(rd.header{1},key);
+                    tmstamp = rd.header{1}(ind+length(key):end);
+                    try
+                        tmstamp = datenum(tmstamp,'ddd, mmm dd, yyyy, HH:MM:SS');%time file was closed
+                        ind2 = strfind(rd.header{5},'=');
+                        filelength = sscanf(rd.header{5}(ind2 + 1:end),'%g');%duration of file
+
+                        tm_st = addtodate(tmstamp,-(filelength),'millisecond');%time at start of filefiltsong
+                        datenm = addtodate(tm_st, round(ton), 'millisecond');%add time to onset of syllable
+                        [yr mon dy hr minutes sec] = datevec(datenm);     
+                    catch
+                        datenm = fn2datenum(fn);
+                    end
+                 else
+                     datenm = fn2datenum(fn);
+                 end
              elseif strcmp(CHANSPEC,'w')
                  formatIn = 'yyyymmddHHMMSS';
                  datenm = datenum(datevec(fn(end-17:end-4),formatIn));
