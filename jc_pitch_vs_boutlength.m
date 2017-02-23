@@ -29,6 +29,7 @@ end
 
 %% plot correlation between pitch of last syllable and bout length
 pitch_vs_lngth = cell2mat(arrayfun(@(x) [x.nummotifs x.boutpitch(end,:)],boutinfo,'unif',0)');
+%pitch_vs_lngth = cell2mat(arrayfun(@(x) [x.nummotifs x.boutpitch(end,:)./x.boutpitch(1,:)],boutinfo,'unif',0)');
 removeind = jc_findoutliers(pitch_vs_lngth,3);
 pitch_vs_lngth(removeind,:) = [];
 removeind = find(isnan(pitch_vs_lngth(:,2)));
