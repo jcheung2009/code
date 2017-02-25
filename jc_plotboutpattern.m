@@ -64,7 +64,7 @@ if spec == 'y'
             jitter = (-1+2*rand)/10;
             normpitch = pitchpattern{ii}(i,:);
             normpitch = normpitch(~isnan(normpitch));
-            if length(normpitch) >= 15
+            if length(normpitch) >= 10
                 [hi lo mn] = mBootstrapCI(normpitch);
                 plot(jitter+i,mn,marker,'markersize',8);hold on;
                 plot(jitter+[i i],[hi lo],linecolor,'linewidth',2);hold on;
@@ -83,7 +83,7 @@ if spec == 'y'
         mns = NaN(maxnummotifs,2);
         for ii = 1:maxnummotifs
             jitter = (-1+2*rand)/10;
-            if length(pitchbyposition{ii})>=15
+            if length(pitchbyposition{ii})>=10
                 [hi lo mn] = mBootstrapCI(pitchbyposition{ii}(:,i));
                 plot(jitter+ii,mn,marker,'markersize',8);hold on;
                 plot(jitter+[ii ii],[hi lo],linecolor,'linewidth',2);hold on;
@@ -102,7 +102,7 @@ if spec == 'y'
         mns = NaN(maxnummotifs,2);
         for ii = 1:maxnummotifs
             jitter = (-1+2*rand)/10;
-            if length(pitchbyposition{ii})>=15
+            if length(pitchbyposition{ii})>=10
                 [mn hi lo] = mBootstrapCI_CV(pitchbyposition{ii}(:,i));
                 plot(jitter+ii,mn,marker,'markersize',8);hold on;
                 plot(jitter+[ii ii],[hi lo],linecolor,'linewidth',2);hold on;
@@ -124,7 +124,7 @@ if spec == 'y'
             jitter = (-1+2*rand)/10;
             normvolume = volumepattern{ii}(i,:);
             normvolume = normvolume(~isnan(normvolume));
-            if length(normvolume) >= 15
+            if length(normvolume) >= 10
                 [hi lo mn] = mBootstrapCI(normvolume);
                 plot(jitter+i,mn,marker,'markersize',8);hold on;
                 plot(jitter+[i i],[hi lo],linecolor,'linewidth',2);hold on;
@@ -143,7 +143,7 @@ if spec == 'y'
         mns = NaN(maxnummotifs,2);
         for ii = 1:maxnummotifs
             jitter = (-1+2*rand)/10;
-            if length(volumebyposition{ii})>=15
+            if length(volumebyposition{ii})>=10
                 [hi lo mn] = mBootstrapCI(log(volumebyposition{ii}(:,i)));
                 plot(jitter+ii,mn,marker,'markersize',8);hold on;
                 plot(jitter+[ii ii],[hi lo],linecolor,'linewidth',2);hold on;
@@ -165,7 +165,7 @@ if temp == 'y'
         jitter = (-1+2*rand)/10;
         normtempo = tempopattern(i,:);
         normtempo = normtempo(~isnan(normtempo));
-        if length(normtempo) >= 15
+        if length(normtempo) >= 10
             [hi lo mn] = mBootstrapCI(normtempo);
             plot(jitter+i,mn,marker,'markersize',8);hold on;
             plot(jitter+[i i],[hi lo],linecolor,'linewidth',2);hold on;
@@ -183,7 +183,7 @@ if temp == 'y'
     for ii = 1:maxnummotifs
         jitter = (-1+2*rand)/10;
         tempobyposition{ii} = tempobyposition{ii}(~isnan(tempobyposition{ii}));
-        if length(tempobyposition{ii})>=15
+        if length(tempobyposition{ii})>=10
             [hi lo mn] = mBootstrapCI(tempobyposition{ii});
             plot(jitter+ii,mn,marker,'markersize',8);hold on;
             plot(jitter+[ii ii],[hi lo],linecolor,'linewidth',2);hold on;
@@ -200,7 +200,7 @@ if temp == 'y'
     for ii = 1:maxnummotifs
         jitter = (-1+2*rand)/10;
         tempobyposition{ii} = tempobyposition{ii}(~isnan(tempobyposition{ii}));
-        if length(tempobyposition{ii})>=15
+        if length(tempobyposition{ii})>=10
             [mn hi lo] = mBootstrapCI_CV(tempobyposition{ii});
             plot(jitter+ii,mn,marker,'markersize',8);hold on;
             plot(jitter+[ii ii],[hi lo],linecolor,'linewidth',2);hold on;
