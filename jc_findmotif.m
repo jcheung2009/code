@@ -248,123 +248,128 @@ for i = 1:length(ff)
         end
         
         if length(ons) ~= length(motif)
-            continue
-        end
-%         if length(ons) < length(syllablepositions) 
-%             continue
-%         end
-        syllabledurations = offs-ons;%in seconds
-        gapdurations = ons(2:end)-offs(1:end-1);
-        motifduration = offs(end)-ons(1); 
-        
-       %pitch,entropy,volume measurements for specified syllables
-       if measurespecs == 'y'
-           spNFFT = 512;%16 ms window to compute whole syllable spectrogram for entropy
-           overlap = spNFFT-2;
-           t = -spNFFT/2+1:spNFFT/2;
-           sigma=(1/1000)*fs;
-           w=exp(-(t/sigma).^2);
-           USEFIT = 1;
+            syllabledurations = [];
+            gapdurations = [];
+            motifduration = offs(end)-ons(1);
+            pitchestimates = [];
+            volumeestimates = [];
+            entropyestimates = [];
+        else
+        %         if length(ons) < length(syllablepositions) 
+        %             continue
+        %         end
+                syllabledurations = offs-ons;%in seconds
+                gapdurations = ons(2:end)-offs(1:end-1);
+                motifduration = offs(end)-ons(1); 
 
-           if varseq == 'y'
-               for r = 1:length(syllables)
-                    syllablepositions{r} = strfind(labels(p:pend-1),syllables{r});
-               end
-           end
+               %pitch,entropy,volume measurements for specified syllables
+               if measurespecs == 'y'
+                   spNFFT = 512;%16 ms window to compute whole syllable spectrogram for entropy
+                   overlap = spNFFT-2;
+                   t = -spNFFT/2+1:spNFFT/2;
+                   sigma=(1/1000)*fs;
+                   w=exp(-(t/sigma).^2);
+                   USEFIT = 1;
 
-           pitchestimates = [];
-           volumeestimates = [];
-           entropyestimates = [];
-           for syllind = 1:length(syllablepositions)
-               for syllposind = 1:length(syllablepositions{syllind})
-                   pitchestimates = [pitchestimates NaN];
-                   volumeestimates = [volumeestimates NaN];
-                   entropyestimates = [entropyestimates NaN];
-
-                   if ceil(offs(syllind)*fs) <= length(smtemp)
-                       filtsong = bandpass(smtemp,fs,300,10000,'hanningffir'); 
-                       if floor(offs(syllablepositions{syllind}(syllposind))*fs) > length(filtsong)
-                           offs(syllablepositions{syllind}(syllposind)) = (length(filtsong)-129)/fs;
+                   if varseq == 'y'
+                       for r = 1:length(syllables)
+                            syllablepositions{r} = strfind(labels(p:pend-1),syllables{r});
                        end
-                       [sp f tm pxx] = spectrogram(filtsong(ceil(ons(syllablepositions{syllind}(syllposind))*fs):...
-                           floor(offs(syllablepositions{syllind}(syllposind))*fs)),w,overlap,spNFFT,fs);
-                       pc = [];
-                       for m = 1:size(sp,2)
-                           fdat = abs(sp(:,m));
-                                mxtmpvec = zeros([1,size(fvalbnd{syllind},1)]);
-                                for kk = 1:size(fvalbnd{syllind},1)
-                                    tmpinds = find((f>=fvalbnd{syllind}(kk,1))&(f<=fvalbnd{syllind}(kk,2)));
-                                    NPNTS = 10;
-                                    [tmp pf] = max(fdat(tmpinds));
-                                    pf = pf+tmpinds(1)-1;
-                                    if (USEFIT==1)%weighted average 
-                                        tmpxv=pf + [-NPNTS:NPNTS];
-                                        tmpxv=tmpxv(find((tmpxv>0)&(tmpxv<=length(f))));
-                                        mxtmpvec(kk)=f(tmpxv)'*fdat(tmpxv);
-                                        mxtmpvec(kk)=mxtmpvec(kk)./sum(fdat(tmpxv));
-                                    else
-                                        mxtmpvec(kk) = f(pf);
-                                    end
-                                end
-                                pc = cat(1,pc,mean(diff([0,mxtmpvec])));
-                        end
-                        %pitch
-                        pc = [tm' pc];
-                        if length(timeshifts{syllind})==1
-                            ti1 = find(tm<=timeshifts{syllind});
-                            ti1 = ti1(end);
-                            pitchestimates(syllind) = pc(ti1,2);%pitch estimate at timeshift
-                        elseif length(timeshifts{syllind}) == 2
-                            ti1 = find(tm>=timeshifts{syllind}(1)&tm<=timeshifts{syllind}(2));
-                            pitchestimates(end) = mean(pc(ti1,2));%pitch estimate at timeshift
-                        end
-
-                        %Spectral temporal entropy
-                        indf = find(f>=300 & f <= 10000);
-                        pxx = pxx(indf,:);
-                        pxx = bsxfun(@rdivide,pxx,sum(sum(pxx)));
-                        entropyestimates(end) = -sum(sum(pxx.*log2(pxx)))/log2(length(pxx(:)));
-
-                        %volume
-                        volumeestimates(end)=mean(filtsong(ceil(ons(syllablepositions{syllind}(syllposind))*fs):...
-                            ceil(offs(syllablepositions{syllind}(syllposind))*fs)-1).^2);
-                 else
-                        continue
                    end
-               end
-           end
-       else
-           pitchestimates = [];
-           volumeestimates = [];
-           entropyestimates = [];
-       end
-       
-       
-      %extract datenum from rec file, add syllable ton in seconds
-         if (strcmp(CHANSPEC,'obs0'))
-             if isfield(rd,'header')
-                key = 'created:';
-                ind = strfind(rd.header{1},key);
-                tmstamp = rd.header{1}(ind+length(key):end);
-                try
-                    tmstamp = datenum(tmstamp,'ddd, mmm dd, yyyy, HH:MM:SS');%time file was closed
-                    ind2 = strfind(rd.header{5},'=');
-                    filelength = sscanf(rd.header{5}(ind2 + 1:end),'%g');%duration of file
 
-                    tm_st = addtodate(tmstamp,-(filelength),'millisecond');%time at start of filefiltsong
-                    datenm = addtodate(tm_st, round(ton), 'millisecond');%add time to onset of syllable
-                    [yr mon dy hr minutes sec] = datevec(datenm);     
-                catch
-                    datenm = fn2datenum(fn);
+                   pitchestimates = [];
+                   volumeestimates = [];
+                   entropyestimates = [];
+                   for syllind = 1:length(syllablepositions)
+                       for syllposind = 1:length(syllablepositions{syllind})
+                           pitchestimates = [pitchestimates NaN];
+                           volumeestimates = [volumeestimates NaN];
+                           entropyestimates = [entropyestimates NaN];
+
+                           if ceil(offs(syllind)*fs) <= length(smtemp)
+                               filtsong = bandpass(smtemp,fs,300,10000,'hanningffir'); 
+                               if floor(offs(syllablepositions{syllind}(syllposind))*fs) > length(filtsong)
+                                   offs(syllablepositions{syllind}(syllposind)) = (length(filtsong)-129)/fs;
+                               end
+                               [sp f tm pxx] = spectrogram(filtsong(ceil(ons(syllablepositions{syllind}(syllposind))*fs):...
+                                   floor(offs(syllablepositions{syllind}(syllposind))*fs)),w,overlap,spNFFT,fs);
+                               pc = [];
+                               for m = 1:size(sp,2)
+                                   fdat = abs(sp(:,m));
+                                        mxtmpvec = zeros([1,size(fvalbnd{syllind},1)]);
+                                        for kk = 1:size(fvalbnd{syllind},1)
+                                            tmpinds = find((f>=fvalbnd{syllind}(kk,1))&(f<=fvalbnd{syllind}(kk,2)));
+                                            NPNTS = 10;
+                                            [tmp pf] = max(fdat(tmpinds));
+                                            pf = pf+tmpinds(1)-1;
+                                            if (USEFIT==1)%weighted average 
+                                                tmpxv=pf + [-NPNTS:NPNTS];
+                                                tmpxv=tmpxv(find((tmpxv>0)&(tmpxv<=length(f))));
+                                                mxtmpvec(kk)=f(tmpxv)'*fdat(tmpxv);
+                                                mxtmpvec(kk)=mxtmpvec(kk)./sum(fdat(tmpxv));
+                                            else
+                                                mxtmpvec(kk) = f(pf);
+                                            end
+                                        end
+                                        pc = cat(1,pc,mean(diff([0,mxtmpvec])));
+                                end
+                                %pitch
+                                pc = [tm' pc];
+                                if length(timeshifts{syllind})==1
+                                    ti1 = find(tm<=timeshifts{syllind});
+                                    ti1 = ti1(end);
+                                    pitchestimates(syllind) = pc(ti1,2);%pitch estimate at timeshift
+                                elseif length(timeshifts{syllind}) == 2
+                                    ti1 = find(tm>=timeshifts{syllind}(1)&tm<=timeshifts{syllind}(2));
+                                    pitchestimates(end) = mean(pc(ti1,2));%pitch estimate at timeshift
+                                end
+
+                                %Spectral temporal entropy
+                                indf = find(f>=300 & f <= 10000);
+                                pxx = pxx(indf,:);
+                                pxx = bsxfun(@rdivide,pxx,sum(sum(pxx)));
+                                entropyestimates(end) = -sum(sum(pxx.*log2(pxx)))/log2(length(pxx(:)));
+
+                                %volume
+                                volumeestimates(end)=mean(filtsong(ceil(ons(syllablepositions{syllind}(syllposind))*fs):...
+                                    ceil(offs(syllablepositions{syllind}(syllposind))*fs)-1).^2);
+                         else
+                                continue
+                           end
+                       end
+                   end
+                else
+                   pitchestimates = [];
+                   volumeestimates = [];
+                   entropyestimates = [];
                 end
-             else 
-                 datenm = fn2datenum(fn);
-             end
-         elseif strcmp(CHANSPEC,'w')
-             %datenm = fn2datenum(fn);
-             formatIn = 'yyyymmddHHMMSS';
-             datenm = datenum(datevec(fn(end-17:end-4),formatIn));
+        end
+          
+      %extract datenum from rec file, add syllable ton in seconds
+     if (strcmp(CHANSPEC,'obs0'))
+         if isfield(rd,'header')
+            key = 'created:';
+            ind = strfind(rd.header{1},key);
+            tmstamp = rd.header{1}(ind+length(key):end);
+            try
+                tmstamp = datenum(tmstamp,'ddd, mmm dd, yyyy, HH:MM:SS');%time file was closed
+                ind2 = strfind(rd.header{5},'=');
+                filelength = sscanf(rd.header{5}(ind2 + 1:end),'%g');%duration of file
+
+                tm_st = addtodate(tmstamp,-(filelength),'millisecond');%time at start of filefiltsong
+                datenm = addtodate(tm_st, round(ton), 'millisecond');%add time to onset of syllable
+                [yr mon dy hr minutes sec] = datevec(datenm);     
+            catch
+                datenm = fn2datenum(fn);
+            end
+         else 
+             datenm = fn2datenum(fn);
          end
+     elseif strcmp(CHANSPEC,'w')
+         %datenm = fn2datenum(fn);
+         formatIn = 'yyyymmddHHMMSS';
+         datenm = datenum(datevec(fn(end-17:end-4),formatIn));
+     end
          
        motif_cnt = motif_cnt+1;
        motifinfo(motif_cnt).filename = fn;

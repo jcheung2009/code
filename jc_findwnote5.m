@@ -235,7 +235,7 @@ for ifn=1:length(ff)
                 logsm = log(sm);
                 logsm = logsm-min(logsm);
                 logsm = logsm./max(logsm);
-                abovethresh = find(logsm>=0.5);
+                abovethresh = find(logsm>=0.3);
                 sm_ons = abovethresh(1);
                 sm_offs = abovethresh(end);
                 onsamp = onsamp-256+sm_ons;
