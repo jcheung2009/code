@@ -105,6 +105,28 @@ for i = 1:length(ff)
         else
             ton = onsets(p(ii)); toff = offsets(p(ii)+length(motif)-1);
         end
+        
+        %determine if catch or trig (TRIG=1,ISCATCH=1/0 for detect/hit or
+        %catch; TRIG=1,ISCATCH=-1 for detect/hit; TRIG=-1,ISCATCH=-1 for
+        %escape; TRIG=0,ISCATCH=-1 for escape)
+       if (isfield(rd,'ttimes'))
+            trigindtmp=find((rd.ttimes>=ton)&(rd.ttimes<toff));%find trigger time for syllable
+            if (length(trigindtmp)>0)%if exist trigger time for syllable...
+                TRIG=rd.ttimes(trigindtmp);%hits
+                if (isfield(rd,'catch'))
+                    ISCATCH=rd.catch(trigindtmp);%determine whether trigger time was hit or catch
+                else
+                    ISCATCH=-1;%hits
+                end
+            else
+                TRIG=-1;%escapes and misses
+                ISCATCH=-1;
+            end
+       else
+            TRIG=0;%escapes and misses
+            ISCATCH=-1;
+        end     
+                       
         onsamp = ceil((ton*1e-3)*fs);
         offsamp = ceil((toff*1e-3)*fs);
         
@@ -158,9 +180,6 @@ for i = 1:length(ff)
                 firstpeakdistance = locs(1)/fs;%average time in seconds between adjacent syllables from autocorr
             end
         end
-        
-        
-        
         
         if jitter == 'n'
             if isempty(varargin)
@@ -385,6 +404,8 @@ for i = 1:length(ff)
        motifinfo(motif_cnt).syllvol = volumeestimates;
        motifinfo(motif_cnt).syllent = entropyestimates;
        motifinfo(motif_cnt).boutind = ii;%motif number in song file
+       motifinfo(motif_cnt).TRIG = TRIG;
+       motifinfo(motif_cnt).CATCH=ISCATCH;
 
        
     end
