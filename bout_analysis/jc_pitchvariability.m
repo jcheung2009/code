@@ -1,4 +1,4 @@
-function jc_pitchvariability(boutinfo,marker,linecolor,motif,fignum1,fignum2)
+function varargout = jc_pitchvariability(boutinfo,marker,linecolor,motif,varargin)
 %this function generates two figures. One plots the pitch cv for each
 %target syllable in boutinfo for every rendition and compares it to the
 %pitch cv when controlling by bout position. The second correlates pitch
@@ -18,7 +18,11 @@ for i = 1:maxnummotifs
     end
 end
 
-figure(fignum1);hold on;
+if ~isempty(varargin)
+    varargout{1} = figure(varargin{1});hold on;
+else
+    varargout{1} = figure;hold on;
+end
 for ii = 1:numsylls
     subtightplot(numsylls,1,ii,[0.08 0.08],[0.08 0.08],0.15);hold on;
     [mn hi lo] = mBootstrapCI_CV(all_pitch(:,ii));
@@ -37,7 +41,8 @@ end
     
 
 %% correlate pitch by serial position to get percent variability explained by bout position
-figure(fignum2);hold on;
+
+figure;hold on;
 for ii = 1:numsylls
     subtightplot(numsylls,1,ii,[0.08 0.08],[0.08 0.08],0.15);hold on;
     corrdata = [];

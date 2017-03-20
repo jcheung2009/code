@@ -1,4 +1,5 @@
 function [ind] = jc_findoutliers(invect,nstd)
+%find index of outliers in invect 
 
 if isempty(nstd)
     nstd = 2.5;
