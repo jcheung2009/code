@@ -1,10 +1,7 @@
-%script to run jc_findmotif in batch
-%this will still require user input for segmentation 
-%load up fv_parameters
+%script to run jc_findmotifs in batch
 tic
-%start in directory with all data folders
+config
 ff = load_batchf('batch');
-load('analysis/fv_parameters.mat');
 for i = 1:length(ff)
     cd(ff(i).name);
     cmd = ['motif_abcdeeerww_',ff(i).name,'=','jc_findmotif(''batch.keep'',''aabb'',{''a'',''b''},{fvalbnd_syllA1 fvalbnd_syllA2 fvalbnd_syllB1},{[0.03 0.05],[0.025 0.035]},''n'',''n'',''obs0'')'];

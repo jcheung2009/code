@@ -6,6 +6,9 @@
 config 
 ff = load_batchf('batch');
 for i = 1:length(params.boutstructs)
+    if params.boutinfo{i} == 0
+        continue
+    end
     eval([params.boutstructs{i},'pre = [];']);%combines several days of data into single pre condition
     eval([params.boutstructs{i},'post = [];']);
     for ii = 1:length(ff);
@@ -19,6 +22,6 @@ for i = 1:length(params.boutstructs)
         end
     end
     
-    fighandles = jc_pitchvariability(bout_syllA_pre,'ok','k',params.boutmotifs{i});
-    jc_pitchvariability(bout_syllA_post,'or','r',params.boutmotifs{i},fighandles);
+    fighandles = jc_pitchvariability(eval([params.boutstructs{i},'pre']),'ok','k',params.boutmotifs{i});
+    jc_pitchvariability(eval([params.boutstructs{i},'post']),'or','r',params.boutmotifs{i},fighandles);
 end

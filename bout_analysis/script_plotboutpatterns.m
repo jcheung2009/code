@@ -17,8 +17,12 @@ for i = 1:length(params.boutstructs)
         end
     end
 
-    fighandles = jc_plotboutpattern(eval([params.boutstructs{i},'pre']),'ok','k',params.boutmotifs{i});
-    jc_plotboutpattern(eval([params.boutstructs{i},'post']),'or','r',params.boutmotifs{i},fighandles);
+    [fighandles{1} fighandles{2}] = jc_plotboutpattern(eval([params.boutstructs{i},'pre'])...
+        ,'ok','k',params.boutmotifs{i},params.boutinfo{i});
+    jc_plotboutpattern(eval([params.boutstructs{i},'post']),'or','r',...
+        params.boutmotifs{i},params.boutinfo{i},fighandles{1},fighandles{2});
+    
+    clear fighandles
 end
 
 

@@ -3,6 +3,9 @@ config
 
 ff = load_batchf('batch');
 for ii = 1:length(params.boutstructs)
+    if params.boutinfo{i} == 0
+        continue
+    end
     eval([params.boutstructs{i},'pre = [];']);%combines several days of data into single pre condition
     eval([params.boutstructs{i},'post = [];']);
     for ii = 1:length(ff);
