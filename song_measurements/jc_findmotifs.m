@@ -1,29 +1,34 @@
-function motifinfo = jc_findmotif(batch,params)
+function motifinfo = jc_findmotifs(batch,params,CHANSPEC)
 %this function measures spectrotemporal properties of target motif in every
 %song file. params is specified by config file 
 
-motif = params.findmotif.motif;
-jitter = params.findmotif.jitter;
-measurespecs = params.findmotif.measurespecs;
-syllables = params.findmotif.syllables;
-timeshifts = params.findmotif.timeshifts;
-fvalbnd = params.findmotif.fvalbnd;
+motif = params.motif;
+jitter = params.jitter;
+measurespecs = params.measurespecs;
+syllables = params.syllables;
+timeshifts = params.timeshifts;
+fvalbnd = params.fvalbnd;
 if measurespecs == 'y'
     for i = 1:length(syllables)
         k = strfind(motif,syllables{i});
         syllablepositions{i} = k;
     end 
 end
-if ~isempty(params.findmotif.segmentation)
-    minint = params.findmotif.segmentation{1};
-    mindur = params.findmotif.segmentation{2};
-    thresh = params.findmotif.segmentation{3};
+if ~isempty(params.segmentation)
+    minint = params.segmentation{1};
+    mindur = params.segmentation{2};
+    thresh = params.segmentation{3};
 else
     minint = 3;
     mindur = 20;
     thresh = 0.3;
 end
-check_segmentation = params.findmotif.check_segmentation;
+check_segmentation = params.check_segmentation;
+check_peakfind = params.check_peakfind;
+timeband = params.timeband;
+if check_segmentation == 'y' | check_peakfind == 'y'
+    h = figure;hold on;
+end
 
 ff = load_batchf(batch);
 motif_cnt = 0;
@@ -98,22 +103,35 @@ for i = 1:length(ff)
        end
        
        %use autocorrelation to estimate average syll-syll duration
-        if params.findmotif.acorrsm = 'no log'
+        if params.acorrsm == 'no log'
             sm2 = sm;
         else
             sm2 = log(sm);
         end
-        sm2 = sm2-min(sm2);
+        sm2 = sm2-min(sm2);              
         sm2 = sm2./max(sm2);
         [c lag] = xcorr(sm2,'coeff');
         c = c(ceil(length(lag)/2):end);
         lag = lag(ceil(length(lag)/2):end);
-        %peakdistance = 0.05*fs; %50 ms 
         [pks locs] = findpeaks(c,'minpeakwidth',256);
+        if check_peakfind == 'y'
+            clf(h);hold on;
+            plot(lag/fs,c,'k',locs/fs,pks,'or');hold on;
+            pause
+        end
         if isempty(locs)
             firstpeakdistance = NaN;
         else
-            firstpeakdistance = locs(1)/fs;%average time in seconds between adjacent syllables from autocorr
+            if ~isempty(timeband)
+                pkind = find(locs > timeband(1)*fs & locs < timeband(2)*fs);
+                if length(pkind) == 1
+                    firstpeakdistance = locs(pkind)/fs;
+                else
+                    firstpeakdistance = NaN;
+                end
+            else
+                firstpeakdistance = locs(1)/fs;
+            end
         end
         
         %determine syllable onsets and offsets: segment each syllable in motif separately 
@@ -126,25 +144,35 @@ for i = 1:length(ff)
                 smtemp_syll = dat(onsamp_syll:offsamp_syll);
                 sm_syll = evsmooth(smtemp_syll,fs);
                 sm_syll = log(sm_syll);
-                sm_syll = sm-min(sm_syll);
+                sm_syll = sm_syll-min(sm_syll);
                 sm_syll = sm_syll./max(sm_syll);
                 abovethresh = find(sm_syll>=thresh);
                 sm_ons = abovethresh(1);
                 sm_offs = abovethresh(end);
-                onsamp_syll = (onsamp_syll+sm_ons)-onsamp;
-                offsamp_syll = (onsamp_syll+sm_offs)-onsamp;
-                ons = [ons;onsamp_syll/fs];%seconds into smtmp 
-                offs = [offs;offsamp_syll/fs];
+                onsamp_syll2 = (onsamp_syll+sm_ons)-onsamp;
+                offsamp_syll2 = (onsamp_syll+sm_offs)-onsamp;
+                ons = [ons;onsamp_syll2/fs];%seconds into smtmp 
+                offs = [offs;offsamp_syll2/fs];
+            end
+            if check_segmentation == 'y'
+                sm2 = log(sm);
+                sm2 = sm2-min(sm2);
+                sm2 = sm2./max(sm2);
+                clf(h);hold on;
+                plot(sm2,'k');hold on;
+                plot([floor(ons*fs) ceil(offs*fs)],[thresh thresh],'r');hold on;
+                pause
             end
         else %determine onset/offset: segment log transformed and normalized sm 
             sm2 = log(sm);
+            sm2 = sm2-min(sm2);
+            sm2 = sm2./max(sm2);
             [ons offs] = SegmentNotes(sm2,fs,minint,mindur,thresh);
             disp([num2str(length(ons)),' syllables detected']);
             if check_segmentation == 'y'
-                h = figure;hold on;
                 if length(ons) ~= length(motif)
                     while length(ons) ~= length(motif) 
-                        clf(h);
+                        clf(h);hold on;
                         plot(sm2,'k');hold on;
                         plot([floor(ons*fs) ceil(offs*fs)],[thresh thresh],'r');hold on;
                         accept_or_not = input('accept segmentation? (y/n):','s');
