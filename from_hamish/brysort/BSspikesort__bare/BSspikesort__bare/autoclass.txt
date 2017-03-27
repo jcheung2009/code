@@ -1,5 +1,0 @@
-FILE QUARANTINED
-
-Microsoft Forefront Protection for Exchange Server removed a file since it was found to match a filter.
-File name: "BSspikesort__bare.zip->autoclass.exe"
-Filter name: "FILE FILTER= Dangerous File Type: *.exe"

@@ -1,4 +1,0 @@
-function [spkwid]=Find_Spk_Width2(waves);
-    waves2=waves(:,20:40,:)
-    [min,minind]=min(waves2,[],2)
-    
