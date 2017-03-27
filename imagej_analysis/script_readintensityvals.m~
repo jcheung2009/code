@@ -1,16 +1,11 @@
 %% parameters
 %1 mm radius concentric circle roi, 15 divisions, each separation is ~66 microns
-% recordratio = 4;%number of seconds between frames, the multiplying factor used to get the scene ratio when saving image sequence from vlc (3 seconds * 30 frames/second = ratio of 90)
-% numquads = 8;
-% numcircles = 15;
-config
-recordratio = params.recordratio;
-numquads = params.numquads;
-numcircles = params.numcircles;
+recordratio = 8;%image at every 3 seconds, the multiplying factor used to get the scene ratio when saving image sequence from vlc (3 seconds * 30 frames/second = ratio of 90)
+numquads = 8;
+numcircles = 15;
 baseline_time = 1:5;%index from image sequence that correspond to time prior to ejection, establish baseline intensity vals
 
-fn = ls('*.csv');
-data = csvread(fn,0,1);
+data = csvread('test_nanoject_08a.csv',0,1);
 data = data(:,[2:4:end]);
 numslices = size(data,1);%number of images in sequence
 intvals = struct();
@@ -69,8 +64,6 @@ f1 = fit(dist',dorsal_maxconc','exp1');b1 = coeffvalues(f1);
 f2 = fit(dist',rightlateral_maxconc','exp1');b2 = coeffvalues(f2);
 f3 = fit(dist',leftlateral_maxconc','exp1');b3 = coeffvalues(f3);
 f4 = fit(dist',ventral_maxconc','exp1');b4 = coeffvalues(f4);
-rc = -1*[b1(2);b2(2);b3(2);b4(2)].^-1; 
-eval([fn(1:end-5),'_rc = rc;']);
 
 %% plot results
 %spectrogram showing intensity values/diffusion over time for quadrant1
@@ -86,13 +79,21 @@ set(gca,'fontweight','bold','xtick',[1:8:numslices],'xticklabel',num2str([1:8:nu
 %quad6/7 = dorsal, quad1/8 = right lateral, quad4/5 = left lateral, quad2/3
 %= ventral
 subtightplot(1,2,2,0.07,[0.1 0.05],0.1);
-plot(dist,feval(f1,dist),'linewidth',2);hold on;
-plot(dist,feval(f2,dist),'linewidth',2);hold on;
-plot(dist,feval(f3,dist),'linewidth',2);hold on;
-plot(dist,feval(f4,dist),'linewidth',2);hold on;
+plot(f1,dist,dorsal_maxconc);hold on;
+plot(f2,dist,rightlateral_maxconc,'linewidth',2);hold on;
+plot(f3,dist,leftlateral_maxconc,'linewidth',2);hold on;
+plot(f4,dist,ventral_maxconc,'linewidth',2);hold on;
 legend({'dorsal','right lateral','left lateral','ventral'});
 plot(dist,[mean(totalthresh) mean(totalthresh)],'--','color',[0.8 0.8 0.8],'linewidth',2);
 xlabel('distance (mm)');ylabel('max concentration');
 set(gca,'fontweight','bold');
 
-clearvars -except *_rc
+%table showing for each quadrant, the furthest distance at peak intensity,
+%concentration at that distance at peak intensity, furthest distance that
+%experienced intensity greater than threshold, and concentration at that
+%intensity
+figure;
+t = uitable('data',dattable);
+t.ColumnName = {'peak distance','conc','furthest distance','conc'};
+t.RowName = fieldnames(intvals);
+t.Position(3:4) = t.Extent(3:4);
