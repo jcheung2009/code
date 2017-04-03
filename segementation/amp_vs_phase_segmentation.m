@@ -123,15 +123,15 @@ for i = 1:length(ff)
          
      
      motif_cnt = motif_cnt+1;
-     motifinfo(motif_cnt).filename = fn;
-     motifinfo(motif_cnt).datenm = datenm;
-     motifinfo(motif_cnt).sm = sm;
-     motifinfo(motif_cnt).amp_durs = sylldurations;
-     motifinfo(motif_cnt).amp_gaps = gapdurations;
-     motifinfo(motif_cnt).ph_durs = sylldurations2;
-     motifinfo(motif_cnt).ph_gaps = gapdurations2;
-     motifinfo(motif_cnt).amp_motifdur = motifduration;
-     motifinfo(motif_cnt).ph_motifdur = motifduration2;
+     motifsegment(motif_cnt).filename = fn;
+     motifsegment(motif_cnt).datenm = datenm;
+     motifsegment(motif_cnt).sm = sm;
+     motifsegment(motif_cnt).amp_durs = sylldurations;
+     motifsegment(motif_cnt).amp_gaps = gapdurations;
+     motifsegment(motif_cnt).ph_durs = sylldurations2;
+     motifsegment(motif_cnt).ph_gaps = gapdurations2;
+     motifsegment(motif_cnt).amp_motifdur = motifduration;
+     motifsegment(motif_cnt).ph_motifdur = motifduration2;
     end
     
 end
