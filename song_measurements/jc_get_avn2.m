@@ -1,5 +1,7 @@
 function [avsp,tm,f,avsm]=jc_get_avn2(bt,NT,PRETIME,POSTTIME,PRENT,POSTNT,CS,PLTIT);
-%using spectrogram function instead of evsmooth
+%using spectrogram function instead of evsmooth to plot spec of average
+%target syllable. Useful to determining frequency band and timeshifts for
+%song measurements.
 %[avsp,t,f,avsm]=get_avn(bt,NT,PRETIME,POSTTIME,PRENT,POSTNT,CS,PLTIT);
 % bt=batch file
 % NT target note
@@ -49,8 +51,6 @@ while (1)
 end
 fclose(fid);
 
-ontimes=[];
-
 spcnt=0;
 for ii=1:length(files)
 	fn=files(ii).fn;
@@ -87,7 +87,6 @@ for ii=1:length(files)
 		for jj=1:length(pp)
 			tmpon=onsets(pp(jj));
 			tmppp=find(abs(tmpon-onsets)<=max([PRETIME,POSTTIME])*1e3);
-			ontimes=[ontimes;(onsets(tmppp)-tmpon)*1e-3];
 			onind=fix(round(onsets(pp(jj))*1e-3*fs));
 			st=onind-NPRE;
 			en=onind+NPOST;
@@ -135,8 +134,7 @@ avsp=avsp./spcnt;
 avsm=avsm./spcnt;
 disp(num2str(spcnt));
 if (PLTIT==1)
-	imagesc(tm,f,log(abs(avsp)));syn;ylim([0,1e4]);
+	imagesc(tm,f,log(abs(avsp)));set(gca,'YDir','normal');ylim([0,1e4]);
 	hold on;
-	plot(ontimes,500+0*ontimes,'k.');
 end
 return;

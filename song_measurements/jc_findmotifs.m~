@@ -204,7 +204,7 @@ for i = 1:length(ff)
 
        %pitch,entropy,volume measurements for specified syllables
        if measurespecs == 'y'
-           spNFFT = floor(0.016*fs);%16 ms window to compute whole syllable spectrogram for entropy
+           spNFFT = 0.016*fs;%16 ms window to compute whole syllable spectrogram for entropy
            overlap = spNFFT-2;
            t = -spNFFT/2+1:spNFFT/2;
            sigma=(1/1000)*fs;
