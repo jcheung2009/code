@@ -113,28 +113,6 @@ for ii = 1:length(params.findmotif)
         ylabel('mean syll durations (sec)');
         xlabel('mean tempo (sec)');
         title('baseline (phase)');
-        
-        subtightplot(2,2,3,0.1,0.08,0.08);hold on;
-        scatter(tempo_gap_base(:,1),tempo_gap_base(:,2),'k.');hold on;
-        [r p] = corrcoef(tempo_gap_base(:,[1,2]),'rows','complete');
-        lsline;
-        ylim = get(gca,'ylim');
-        xlim = get(gca,'xlim');
-        text(xlim(1),ylim(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
-        ylabel('mean gap durations (sec)');
-        xlabel('mean tempo (sec)');
-        title('baseline (amp)');
-        
-        subtightplot(2,2,4,0.1,0.08,0.08);hold on;
-        scatter(tempo_gap_base(:,1),tempo_gap_base(:,3),'k.');hold on;
-        [r p] = corrcoef(tempo_gap_base(:,[1,3]),'rows','complete');
-        lsline;
-        ylim = get(gca,'ylim');
-        xlim = get(gca,'xlim');
-        text(xlim(1),ylim(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
-        ylabel('mean gap durations (sec)');
-        xlabel('mean tempo (sec)');
-        title('baseline (phase)');
     end
     if ~isempty(motifsegment.([motif]).drug)
         tempo_syll_drug = [arrayfun(@(x) x.firstpeakdistance,motifsegment.([motif]).drug)',...
@@ -149,7 +127,7 @@ for ii = 1:length(params.findmotif)
         
         figure;hold on;
         subtightplot(2,2,1,0.1,0.08,0.08);hold on;
-        scatter(tempo_syll_drug(:,1),tempo_syll_drug(:,2),'r.');hold on;
+        scatter(tempo_syll_drug(:,1),tempo_syll_drug(:,2),'k.');hold on;
         [r p] = corrcoef(tempo_syll_drug(:,[1,2]),'rows','complete');
         lsline;
         ylim = get(gca,'ylim');
@@ -160,7 +138,7 @@ for ii = 1:length(params.findmotif)
         title('drug (amp)');
         
         subtightplot(2,2,2,0.1,0.08,0.08);hold on;
-        scatter(tempo_syll_drug(:,1),tempo_syll_drug(:,3),'r.');hold on;
+        scatter(tempo_syll_drug(:,1),tempo_syll_drug(:,3),'k.');hold on;
         [r p] = corrcoef(tempo_syll_drug(:,[1,3]),'rows','complete');
         lsline;
         ylim = get(gca,'ylim');
@@ -169,30 +147,8 @@ for ii = 1:length(params.findmotif)
         ylabel('mean syll durations (sec)');
         xlabel('mean tempo (sec)');
         title('drug (phase)');
-        
-        subtightplot(2,2,3,0.1,0.08,0.08);hold on;
-        scatter(tempo_gap_drug(:,1),tempo_gap_drug(:,2),'r.');hold on;
-        [r p] = corrcoef(tempo_gap_drug(:,[1,2]),'rows','complete');
-        lsline;
-        ylim = get(gca,'ylim');
-        xlim = get(gca,'xlim');
-        text(xlim(1),ylim(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
-        ylabel('mean gap durations (sec)');
-        xlabel('mean tempo (sec)');
-        title('drug (amp)');
-        
-        subtightplot(2,2,4,0.1,0.08,0.08);hold on;
-        scatter(tempo_gap_drug(:,1),tempo_gap_drug(:,3),'r.');hold on;
-        [r p] = corrcoef(tempo_gap_drug(:,[1,3]),'rows','complete');
-        lsline;
-        ylim = get(gca,'ylim');
-        xlim = get(gca,'xlim');
-        text(xlim(1),ylim(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
-        ylabel('mean gap durations (sec)');
-        xlabel('mean tempo (sec)');
-        title('drug (phase)');
     end
-end
+        
 %% correlate syll and gap duration with mean motif volume
 nstd = 4;
 for ii = 1:length(params.findmotif)

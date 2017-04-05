@@ -3,6 +3,7 @@ function motifsegment = amp_vs_phase_segmentation(batch,params,CHANSPEC);
 %based on amplitude or phase segmentation (for testing)
 
 motif = params.motif;
+timeband = params.timeband;
 if ~isempty(params.segmentation)
     minint = params.segmentation{1};
     mindur = params.segmentation{2};
@@ -64,6 +65,38 @@ for i = 1:length(ff)
         smtemp = dat(onsamp:offsamp);%amplitude envelope of motif
         sm = evsmooth(smtemp,fs,'','','',5);%smoothed amplitude envelop
         
+        %use autocorrelation to estimate average syll-syll duration
+        if strcmp(params.acorrsm,'no log')
+            sm2 = sm;
+        else
+            sm2 = log(sm);
+        end
+        sm2 = sm2-min(sm2);              
+        sm2 = sm2./max(sm2);
+        [c lag] = xcorr(sm2,'coeff');
+        c = c(ceil(length(lag)/2):end);
+        lag = lag(ceil(length(lag)/2):end);
+        [pks locs] = findpeaks(c,'minpeakwidth',256);
+        if strcmp(params.check_peakfind, 'y')
+            clf(h);hold on;
+            plot(lag/fs,c,'k',locs/fs,pks,'or');hold on;
+            pause
+        end
+        if isempty(locs)
+            firstpeakdistance = NaN;
+        else
+            if ~isempty(timeband)
+                pkind = find(locs > timeband(1)*fs & locs < timeband(2)*fs);
+                if length(pkind) == 1
+                    firstpeakdistance = locs(pkind)/fs;
+                else
+                    firstpeakdistance = NaN;
+                end
+            else
+                firstpeakdistance = locs(1)/fs;
+            end
+        end
+        
         %amplitude segmentation
         sm2 = log(sm);
         sm2 = sm2-min(sm2);
@@ -90,7 +123,7 @@ for i = 1:length(ff)
          if length(ons) ~= length(motif)
              sylldurations2 = [];
              gapdurations2 = [];
-             motifduration2 = [];
+             motifduration2 = NaN;
          else
              sylldurations2 = offs-ons;
              gapdurations2 = ons(2:end)-offs(1:end-1);
@@ -132,6 +165,7 @@ for i = 1:length(ff)
      motifsegment(motif_cnt).ph_gaps = gapdurations2;
      motifsegment(motif_cnt).amp_motifdur = motifduration;
      motifsegment(motif_cnt).ph_motifdur = motifduration2;
+     motifsegment(motif_cnt).firstpeakdistance = firstpeakdistance;
     end
     
 end
