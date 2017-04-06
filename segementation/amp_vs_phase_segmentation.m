@@ -63,7 +63,7 @@ for i = 1:length(ff)
             onsamp = onsamp-nbuffer;
         end
         smtemp = dat(onsamp:offsamp);%amplitude envelope of motif
-        sm = evsmooth(smtemp,fs,'','','',5);%smoothed amplitude envelop
+        sm = evsmooth(smtemp,fs,'','','',10);%smoothed amplitude envelop
         
         %use autocorrelation to estimate average syll-syll duration
         if strcmp(params.acorrsm,'no log')
@@ -117,6 +117,9 @@ for i = 1:length(ff)
          %phase segmentation
          sm2 = log(sm);
          sm2 = (sm2-mean(sm2))/std(sm2);
+         if ~isempty(params.phshft)
+             sm2 = sm2+params.phshft;
+         end
          ph = angle(hilbert(sm2));
          syllsegments = (ph>=-0.5*pi & ph<0.5*pi);
          [ons offs] = SegmentNotes(syllsegments,fs,minint,mindur,0.5);

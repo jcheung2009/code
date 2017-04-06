@@ -13,7 +13,11 @@ sdurdata_sal = [];
 gdurdata_sal = [];
 lname = {};
 for i = 1:length(ff)
+    try
      load([ff(i).name,'/analysis/data_structures/summary']);
+    catch
+     load(['deaf_and_naspm/',ff(i).name,'/analysis/data_structures/summary']);
+    end
      
      if exist(['motifnaspm_',ff(i).name])
          x = eval(['motifnaspm_',ff(i).name]);
