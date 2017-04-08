@@ -118,7 +118,7 @@ for i = 1:length(ff)
          filtsong = bandpass(smtemp,fs,300,10000,'hanningffir');
          ampenv = envelope(filtsong);
          filt_ampenv = filter(songfilt,ampenv);
-         ph = angle(hilbert(filt_ampenv-mean(filt_ampenv)));
+         ph = angle(hilbert(filt_ampenv-mean(filt_ampenv;
          
 %          sm2 = log(sm);
 %          sm2 = (sm2-mean(sm2))/std(sm2);

@@ -59,9 +59,12 @@ fs=44100;
 w = {[.3],[5],[2]};
 motifsegment = motifsegment_bcd_11_14_2015_saline;
 for i = 1:length(motifsegment)
-    sm = motifsegment(i).sm;
-    sm_ph = log(sm);sm_ph=(sm_ph-mean(sm_ph))./std(sm_ph);
-    ph = angle(hilbert(sm_ph));
+    smtemp = motifsegment(i).smtemp;
+    sm = bandpass(smtemp,fs,300,10000,'hanningffir');
+    sm = envelope(sm);
+    sm1 = filter(songfilt);
+    %sm_ph = log(sm);sm_ph=(sm_ph-mean(sm_ph))./std(sm_ph);
+    ph = angle(hilbert(sm1-mean(sm1)));
     syllsegments = (ph>=-0.5*pi & ph<=0.5*pi);
     [ons offs] = SegmentNotes(syllsegments,fs,5,20,0.5);
     if length(ons)==3
@@ -86,14 +89,15 @@ for i = 1:length(motifsegment)
             syllsegments=[syllsegments;ones(difflen,1)];
         end
     end
-    sm2 = sm.*syllsegments;
+    
+    sm2 = smtemp.*syllsegments;
 %     len = round(fs*10/1000);
 %     h   = ones(1,len)/len;
 %     sm2 = conv(h, sm2);
 %     offset = round((length(sm2)-length(sm))/2);
 %     sm2=sm2(1+offset:length(sm)+offset);
-    sm2_ph = log(sm2);sm2_ph=(sm2_ph-mean(sm2_ph))./std(sm2_ph);
-    ph = angle(hilbert(sm2_ph));
+    %sm2_ph = log(sm2);sm2_ph=(sm2_ph-mean(sm2_ph))./std(sm2_ph);
+    ph = angle(hilbert(sm2-mean(sm2)));
     syllsegments = (ph>=-0.5*pi & ph<=0.5*pi);
     [ons offs] = SegmentNotes(syllsegments,fs,5,20,0.5);
     if length(ons)==3
