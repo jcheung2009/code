@@ -91,10 +91,10 @@ for i = 1:length(motifsegment)
     end
     
     sm2 = smtemp.*syllsegments;
-%     len = round(fs*10/1000);
-%     h   = ones(1,len)/len;
-%     sm2 = conv(h, sm2);
-%     offset = round((length(sm2)-length(sm))/2);
+    len = round(fs*10/1000);
+    h   = ones(1,len)/len;
+    sm2 = conv(h, sm2);
+    offset = round((length(sm2)-length(sm))/2);
 %     sm2=sm2(1+offset:length(sm)+offset);
     %sm2_ph = log(sm2);sm2_ph=(sm2_ph-mean(sm2_ph))./std(sm2_ph);
     ph = angle(hilbert(sm2-mean(sm2)));

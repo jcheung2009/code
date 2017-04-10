@@ -15,6 +15,50 @@ else
 end
 
 ff = load_batchf(batch);
+gaps = {};
+%determine baseline for thresholding
+for i = 1:length(ff)
+    fn = ff(i).name;
+    fnn=[fn,'.not.mat'];
+    if (~exist(fnn,'file'))
+        continue;
+    end
+    load(fnn);
+    rd = readrecf(fn);
+    [pthstr,tnm,ext] = fileparts(fn);
+    if (strcmp(CHANSPEC,'w'))
+            [dat,fs] = audioread(fn);
+    elseif (strcmp(ext,'.ebin'))
+        [dat,fs]=readevtaf(fn,CHANSPEC);
+    else
+        [dat,fs]=evsoundin('',fn,CHANSPEC);
+    end
+    if (isempty(dat))
+        disp(['hey no data!']);
+        continue;
+    end
+    smtemp = dat;
+    sm = evsmooth(smtemp,fs,'','','',10);
+    
+    %find motifs in bout
+    p = strfind(labels,motif);
+    if isempty(p)
+        continue
+    end
+
+    %get smoothed amp waveform of motif 
+    for ii = 1:length(p)
+        ons = onsets(p(ii):p(ii)+length(motif)-1);
+        offs = offsets(p(ii):p(ii)+length(motif)-1);
+        ons = ons(2:end);offs=offs(1:end-1);
+        for m = 1:length(ons)
+            gaps = [gaps;sm(ceil(offs(m)*1e-3*fs):ceil(ons(m)*1e-3*fs))];
+        end
+    end
+end
+gaps = cell2mat(gaps);
+basethresh = mean(gaps);
+
 motif_cnt = 0;
 motifsegment = struct();
 for i = 1:length(ff)
@@ -98,9 +142,11 @@ for i = 1:length(ff)
         end
         
         %amplitude segmentation
-        sm2 = log(sm);
-        sm2 = sm2-min(sm2);
-        sm2 = sm2./max(sm2);
+%         sm2 = log(sm);
+%         sm2 = sm2-min(sm2);
+%         sm2 = sm2./max(sm2);
+          sm2=log(sm);
+          sm2=sm2-mean(sm2);
         [ons offs] = SegmentNotes(sm2,fs,minint,mindur,thresh);
         disp([num2str(length(ons)),' syllables detected']);
         
@@ -114,18 +160,39 @@ for i = 1:length(ff)
             motifduration = offs(end)-ons(1); 
          end
          
-         %phase segmentation
-         filtsong = bandpass(smtemp,fs,300,10000,'hanningffir');
-         ampenv = envelope(filtsong);
-         filt_ampenv = filter(songfilt,ampenv);
-         ph = angle(hilbert(filt_ampenv-mean(filt_ampenv)));
-         
-%          sm2 = log(sm);
-%          sm2 = (sm2-mean(sm2))/std(sm2);
-%          if ~isempty(params.phshft)
-%              sm2 = sm2+params.phshft;
+         %amplitude segmentation 2
+%          ind = find(sm<=basethresh);
+%          ons2=[];offs2=[];
+%          for m = 1:length(ons)
+%              ind2 = find(ind<=floor(ons(m)*fs));
+%              [c id] = min(abs(ind(ind2)-floor(ons(m)*fs)));
+%              if isempty(id)
+%                  ons2(m)=ons(m);
+%              else
+%                 ons2(m)=ind(ind2(id))/fs;
+%              end
+%              ind2 = find(ind>=ceil(offs(m)*fs));
+%              [c id] = min(abs(ind(ind2)-floor(offs(m)*fs)));
+%              if isempty(id)
+%                  offs2(m)=offs(m);
+%              else
+%                 offs2(m)=ind(ind2(id))/fs;
+%              end
 %          end
-%          ph = angle(hilbert(sm2));
+%          ons2=ons2';offs2=offs2';
+
+         %phase segmentation
+%          filtsong = bandpass(smtemp,fs,300,10000,'hanningffir');
+%          ampenv = envelope(filtsong);
+%          filt_ampenv = filter(songfilt,ampenv);
+%          ph = angle(hilbert(filt_ampenv-mean(filt_ampenv)));
+%          
+         sm2 = log(sm);
+         sm2 = (sm2-mean(sm2));
+         if ~isempty(params.phshft)
+             sm2 = sm2+params.phshft;
+         end
+         ph = angle(hilbert(sm2));
          
          syllsegments = (ph>=-0.5*pi & ph<0.5*pi);
          [ons offs] = SegmentNotes(syllsegments,fs,minint,mindur,0.5);
