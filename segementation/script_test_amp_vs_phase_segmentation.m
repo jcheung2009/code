@@ -459,5 +459,6 @@ for ii = 1:length(params.findmotif)
         title('phase');
     end
 end
-
+%% look at spectrograms and segmentation of select motifs
+mntempo = mean(arramotifsegment.([motif]).base
 

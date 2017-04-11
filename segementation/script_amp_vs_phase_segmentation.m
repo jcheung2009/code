@@ -13,7 +13,7 @@ for i = 1:length(ff)
     end
     
     for ii = 1:length(params.findmotif)
-        cmd = ['motifsegment_',params.findmotif(ii).motif,'_',ff(i).name,'=','amp_vs_phase_segmentation(''batch.keep'',params.findmotif(',num2str(ii),'),songfilt,params.filetype)'];
+        cmd = ['motifsegment_',params.findmotif(ii).motif,'_',ff(i).name,'=','amp_vs_entropy_segmentation(''batch.keep'',params.findmotif(',num2str(ii),'),songfilt,params.filetype)'];
         eval(cmd);
         cd ../analysis/data_structures
         varname = ['''motifsegment_',params.findmotif(ii).motif,'_',ff(i).name,''''];
