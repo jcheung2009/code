@@ -1,4 +1,4 @@
-function motifsegment = amp_vs_entropy_segmentation(batch,params,songfilt,CHANSPEC);
+function motifsegment = amp_vs_dtw_segmentation(batch,params,CHANSPEC);
 %this function extracts the onset/offset of syllables within target motif
 %based on amplitude or entropy segmentation (for testing)
 
@@ -120,39 +120,54 @@ for i = 1:length(ff)
             amp_offs=offs;
          end
 
-        %entropy
-        startind = 1;
-        NFFT=512;
-        t=-NFFT/2+1:NFFT/2;
-        sigma=(1/1000)*fs;
-        w=exp(-(t/sigma).^2);
-        entropy = [];
-        downsamp=44;
-        filtsong = bandpass(smtemp,fs,1000,10000,'hanningffir');
-        while length(filtsong)-startind>=512
-            endind=startind+512-1;
-            win = filtsong(startind:endind);
-            [pxx f]=periodogram(win,w,NFFT,fs);
-            indf=find(f>=1000&f<=10000);
-            pxx=pxx(indf);
-            entropy=[entropy;-sum(pxx.*log2(pxx))/log2(length(pxx))];
-            startind=startind+downsamp;
-        end
-        entropy=log(entropy);entropy=entropy-min(entropy);entropy=entropy/max(entropy);
-         [ons offs] = SegmentNotes(entropy,fs/downsamp,minint,mindur,thresh);
-         if length(ons) ~= length(motif)
+       %dtw of amplitude waveform
+       if motif_cnt==0 | isempty(filtsong1)
+           if length(ons) ~= length(motif)
              sylldurations2 = [];
              gapdurations2 = [];
              motifduration2 = NaN;
              ph_ons=[];
              ph_offs=[];
+             filtsong1=[];
          else
              sylldurations2 = offs-ons;
              gapdurations2 = ons(2:end)-offs(1:end-1);
              motifduration2 = offs(end)-ons(1); 
              ph_ons = ons;
              ph_offs=offs;
+            filtsong1=bandpass(smtemp,fs,1000,10000,'hanningffir');
+            temp_ons = ons;
+            temp_offs=offs;
          end
+       else
+           filtsong2=bandpass(smtemp,fs,1000,10000,'hanningffir');
+           [dist ix iy] =dtw(filtsong1,filtsong2);
+           onind =floor(temp_ons*fs);offind=floor(temp_offs*fs);
+           ons = [];
+           offs = [];
+           for ii = 1:length(onind)
+                ind = find(ix==onind(ii));
+                ind = ind(ceil(length(ind)/2));
+                ons = [ons;iy(ind)];
+                ind = find(ix==offind(ii));
+                ind = ind(ceil(length(ind)/2));
+                offs = [offs;iy(ind)];
+           end
+           ons=ons/fs;offs=offs/fs;
+           if length(ons) ~= length(motif)
+                 sylldurations2 = [];
+                 gapdurations2 = [];
+                 motifduration2 = NaN;
+                 ph_ons=[];
+                 ph_offs=[];
+           else
+                 sylldurations2 = offs-ons;
+                 gapdurations2 = ons(2:end)-offs(1:end-1);
+                 motifduration2 = offs(end)-ons(1); 
+                 ph_ons = ons;
+                 ph_offs=offs;
+           end
+       end
          
           %extract datenum from rec file, add syllable ton in seconds
       if (strcmp(CHANSPEC,'obs0'))
@@ -198,7 +213,6 @@ for i = 1:length(ff)
     end
     
 end
-        
         
         
         
