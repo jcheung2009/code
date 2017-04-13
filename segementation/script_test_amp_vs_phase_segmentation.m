@@ -461,10 +461,10 @@ for ii = 1:length(params.findmotif)
 end
 %% look at spectrograms and segmentation of select motifs
 motif = params.findmotif(ii).motif;
-range=[0.135 0.1355];
+range=[0.12 0.1201];
 ind1 = find(arrayfun(@(x) x.firstpeakdistance>=range(1) & x.firstpeakdistance<=range(2),motifsegment.([motif]).base));
 ind2 = find(arrayfun(@(x) x.firstpeakdistance>=range(1) & x.firstpeakdistance<=range(2),motifsegment.([motif]).drug));
-fs=32000;
+fs=44100;
 NFFT = 512;
 overlap = NFFT-2;
 t=-NFFT/2+1:NFFT/2;

@@ -12,13 +12,13 @@ for i = 1:length(ff)
     end
     
     for ii = 1:length(params.findmotif)
-        cmd = ['motifsegment_',params.findmotif(ii).motif,'_',ff(i).name,'=','amp_vs_dtw_segmentation(''batch.keep'',params.findmotif(',num2str(ii),'),params.filetype)'];
+        cmd = ['motifsegment_',params.findmotif(ii).motif,'_',ff(i).name,'=','amp_vs_dtw_segmentation(''batch.keep'',params.findmotif(',num2str(ii),'),dtwtemplate,params.filetype)'];
         eval(cmd);
         cd ../analysis/data_structures
         varname = ['''motifsegment_',params.findmotif(ii).motif,'_',ff(i).name,''''];
         savecmd = ['save(',varname,',',varname,',','''-v7.3'')'];
         eval(savecmd);
-        clearvars -except ff params songfilt
+        clearvars -except ff params dtwtemplate
         cd ../../
     end
 end

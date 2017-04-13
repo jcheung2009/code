@@ -13,7 +13,6 @@ else
     mindur = 20;
     thresh = 0.3;
 end
-downsamp=2;%factor for downsampling the amp env for dtw to shorten computation time
 
 ff = load_batchf(batch);
 motif_cnt = 0;
@@ -64,7 +63,7 @@ for i = 1:length(ff)
             onsamp = onsamp-nbuffer;
         end
         smtemp = dat(onsamp:offsamp);%amplitude envelope of motif
-        sm = evsmooth(smtemp,fs,'','','',2);%smoothed amplitude envelop
+        sm = evsmooth(smtemp,fs,'','','',10);%smoothed amplitude envelop
         
         %use autocorrelation to estimate average syll-syll duration
         if strcmp(params.acorrsm,'no log')
@@ -122,13 +121,12 @@ for i = 1:length(ff)
          end
 
        %dtw of amplitude waveform
-        temp=downsample(log(dtwtemplate.sm),downsamp);
-        temp=temp-mean(temp);
+        temp=dtwtemplate.sm;
         temp_ons=dtwtemplate.ons;
         temp_offs=dtwtemplate.offs;
         
-       [dist ix iy] =dtw(temp,downsample(sm2,downsamp));
-       onind =floor(temp_ons*fs/downsamp);offind=floor(temp_offs*fs/downsamp);
+       [dist ix iy] =dtw(log(temp),);
+       onind =floor(temp_ons*fs);offind=floor(temp_offs*fs);
        ons = [];
        offs = [];
        for ii = 1:length(onind)
@@ -139,7 +137,7 @@ for i = 1:length(ff)
             ind = ind(ceil(length(ind)/2));
             offs = [offs;iy(ind)];
        end
-       ons=ons/(fs/downsamp);offs=offs/(fs/downsamp);
+       ons=ons/fs;offs=offs/fs;
        if length(ons) ~= length(motif)
              sylldurations2 = [];
              gapdurations2 = [];
