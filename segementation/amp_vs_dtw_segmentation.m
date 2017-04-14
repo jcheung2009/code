@@ -13,7 +13,7 @@ else
     mindur = 20;
     thresh = 0.3;
 end
-downsamp=2;%factor for downsampling the amp env for dtw to shorten computation time
+downsamp=1;%factor for downsampling the amp env for dtw to shorten computation time
 
 ff = load_batchf(batch);
 motif_cnt = 0;
@@ -122,14 +122,48 @@ for i = 1:length(ff)
          end
 
        %dtw of amplitude waveform
-        temp=downsample(log(dtwtemplate.sm),downsamp);
-        temp=temp-mean(temp);
+        %temp=downsample(log(dtwtemplate.sm),downsamp);
+        %temp=temp-mean(temp);
+        temp = downsample(dtwtemplate.filtsong,downsamp);
         temp_ons=dtwtemplate.ons;
         temp_offs=dtwtemplate.offs;
+        NFFT = 512;
+        overlap = NFFT-10;
+        t=-NFFT/2+1:NFFT/2;
+        sigma=(1/1000)*fs;
+        w=exp(-(t/sigma).^2);
+        [sp f tm1] = spectrogram(temp,w,overlap,NFFT,fs/downsamp);
+        indf = find(f>1000 & f<10000);
+        temp = sp(indf,:);
         
-       [dist ix iy] =dtw(temp,downsample(sm2,downsamp));
-       onind =floor(temp_ons*fs/downsamp);offind=floor(temp_offs*fs/downsamp);
-       ons = [];
+%         sm2=log(sm);
+%         sm2=sm2-mean(sm2);
+        filtsong = bandpass(smtemp,fs,1000,10000,'hanningffir');
+        filtsong = downsample(filtsong,downsamp);
+        [sp f tm2] = spectrogram(filtsong,w,overlap,NFFT,fs/downsamp);
+        indf = find(f>1000 & f <10000);
+        sm2 = sp(indf,:);
+        
+       %[dist ix iy] =dtw(temp,downsample(sm2,downsamp));
+       %onind =floor(temp_ons*fs/downsamp);offind=floor(temp_offs*fs/downsamp);
+%        ons = [];
+%        offs = [];
+%        for ii = 1:length(onind)
+%             ind = find(ix==onind(ii));
+%             ind = ind(ceil(length(ind)/2));
+%             ons = [ons;iy(ind)];
+%             ind = find(ix==offind(ii));
+%             ind = ind(ceil(length(ind)/2));
+%             offs = [offs;iy(ind)];
+%        end
+%        ons=ons/(fs/downsamp);offs=offs/(fs/downsamp);
+        [dist ix iy] = dtw(temp,sm2);
+        onind = [];offind = [];
+        for ii = 1:length(temp_ons)
+            [~, onind(ii)] = min(abs(temp_ons(ii)-tm1));
+            [~, offind(ii)]=min(abs(temp_offs(ii)-tm1));
+        end
+        ons = [];
        offs = [];
        for ii = 1:length(onind)
             ind = find(ix==onind(ii));
@@ -139,7 +173,8 @@ for i = 1:length(ff)
             ind = ind(ceil(length(ind)/2));
             offs = [offs;iy(ind)];
        end
-       ons=ons/(fs/downsamp);offs=offs/(fs/downsamp);
+       ons = tm2(ons)';offs=tm2(offs)';
+       
        if length(ons) ~= length(motif)
              sylldurations2 = [];
              gapdurations2 = [];

@@ -55,7 +55,7 @@ for i = 1:length(ff)
         toff=offsets(p(ii)+length(motif)-1);
         onsamp = ceil((ton*1e-3)*fs);
         offsamp = ceil((toff*1e-3)*fs);
-        nbuffer = floor(0.032*fs);%buffer by 32 ms
+        nbuffer = floor(0.016*fs);%buffer by 16 ms
         if offsamp+nbuffer > length(dat)
             offsamp = length(dat);
         else
