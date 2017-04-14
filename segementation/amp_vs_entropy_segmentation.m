@@ -1,6 +1,6 @@
-function motifsegment = amp_vs_entropy_segmentation(batch,params,songfilt,CHANSPEC);
+function motifsegment = amp_vs_entropy_segmentation(batch,params,CHANSPEC);
 %this function extracts the onset/offset of syllables within target motif
-%based on amplitude or entropy segmentation (for testing)
+%based on amplitude2 or entropy segmentation (for testing)
 
 motif = params.motif;
 timeband = params.timeband;
@@ -63,7 +63,7 @@ for i = 1:length(ff)
             onsamp = onsamp-nbuffer;
         end
         smtemp = dat(onsamp:offsamp);%amplitude envelope of motif
-        sm = evsmooth(smtemp,fs,'','','',10);%smoothed amplitude envelop
+        sm = evsmooth(smtemp,fs,'','','',2);%smoothed amplitude envelop
         
         %use autocorrelation to estimate average syll-syll duration
         if strcmp(params.acorrsm,'no log')
@@ -127,7 +127,7 @@ for i = 1:length(ff)
         sigma=(1/1000)*fs;
         w=exp(-(t/sigma).^2);
         entropy = [];
-        downsamp=44;
+        downsamp=1;
         filtsong = bandpass(smtemp,fs,1000,10000,'hanningffir');
         while length(filtsong)-startind>=512
             endind=startind+512-1;
@@ -135,11 +135,12 @@ for i = 1:length(ff)
             [pxx f]=periodogram(win,w,NFFT,fs);
             indf=find(f>=1000&f<=10000);
             pxx=pxx(indf);
+            pxx = pxx/sum(pxx);
             entropy=[entropy;-sum(pxx.*log2(pxx))/log2(length(pxx))];
             startind=startind+downsamp;
         end
-        entropy=log(entropy);entropy=entropy-min(entropy);entropy=entropy/max(entropy);
-         [ons offs] = SegmentNotes(entropy,fs/downsamp,minint,mindur,thresh);
+       entropy=entropy-mean(entropy);
+         [ons offs] = SegmentNotes(entropy,fs/downsamp,minint,mindur,0);
          if length(ons) ~= length(motif)
              sylldurations2 = [];
              gapdurations2 = [];
@@ -195,6 +196,7 @@ for i = 1:length(ff)
      motifsegment(motif_cnt).amp_ons = amp_ons;
      motifsegment(motif_cnt).amp_offs = amp_offs;
      motifsegment(motif_cnt).firstpeakdistance = firstpeakdistance;
+     motifsegment(motif_cnt).entropy=entropy;
     end
     
 end

@@ -1,4 +1,4 @@
-%this script tests the robustness of phase segmentation vs amp segmentation
+%this script tests the robustness of amp segmentation vs alternative segmentation
 %for changes in volume
 
 config;
@@ -58,8 +58,8 @@ for ii = 1:length(params.findmotif)
         xlim = get(gca,'xlim');set(gca,'xlim',xlim);
         text(xlim(1),ylim(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
         ylabel('motif volume (log)');
-        xlabel('mean tempo (sec)');
-        title('baseline');
+        xlabel('interval duration (sec)');
+        title('baseline');set(gca,'fontweight','bold');
     end
     if ~isempty(motifsegment.([motif]).drug)
         tempo_vol_drug = [arrayfun(@(x) x.firstpeakdistance,motifsegment.([motif]).drug)',...
@@ -74,8 +74,8 @@ for ii = 1:length(params.findmotif)
         xlim = get(gca,'xlim');set(gca,'xlim',xlim);
         text(xlim(1),ylim(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
         ylabel('motif volume (log)');
-        xlabel('mean tempo (sec)');
-        title('drug');
+        xlabel('interval duration (sec)');
+        title('drug');set(gca,'fontweight','bold');
     end
     if ~isempty(motifsegment.([motif]).base) & ~isempty(motifsegment.([motif]).drug)
         subtightplot(1,3,3,0.08,0.1,0.07);hold on;
@@ -90,7 +90,7 @@ for ii = 1:length(params.findmotif)
         xlim = get(gca,'xlim');set(gca,'xlim',xlim);
         text(xlim(1),ylim(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
         ylabel('motif volume (log)');
-        xlabel('mean tempo (sec)');
+        xlabel('interval duration (sec)');set(gca,'fontweight','bold');
     end
 end
 %% correlate tempo (acorr) and syll dur and gaps 
@@ -461,7 +461,7 @@ for ii = 1:length(params.findmotif)
 end
 %% look at spectrograms and segmentation of select motifs
 motif = params.findmotif(ii).motif;
-range=[0.12 0.1201];
+range=[0.115 0.1152];
 ind1 = find(arrayfun(@(x) x.firstpeakdistance>=range(1) & x.firstpeakdistance<=range(2),motifsegment.([motif]).base));
 ind2 = find(arrayfun(@(x) x.firstpeakdistance>=range(1) & x.firstpeakdistance<=range(2),motifsegment.([motif]).drug));
 fs=44100;
@@ -485,16 +485,20 @@ for i = 1:8
     figure(h1);hold on;
     subtightplot(2,4,i,0.08,0.1,0.07);hold on;
     imagesc(tm,f(indf),log(abs(sp)));set(gca,'YDir','normal');hold on;
-    plot([ons ons],[1000 10000],'r');hold on;
-    plot([offs offs],[1000 10000],'r');hold on;
+    if ~isempty(ons)
+        plot([ons ons],[1000 10000],'r');hold on;
+        plot([offs offs],[1000 10000],'r');hold on;
+    end
     set(gca,'ylim',[1000 10000]);
     title('base phase');
     
     figure(h2);hold on;
     subtightplot(2,4,i,0.08,0.1,0.07);hold on;
     plot([1:length(sm)]/fs,sm);hold on;
-    plot([ons ons],[min(sm) max(sm)],'r');hold on;
-    plot([offs offs],[min(sm) max(sm)],'r');hold on;
+    if ~isempty(ons)
+        plot([ons ons],[min(sm) max(sm)],'r');hold on;
+        plot([offs offs],[min(sm) max(sm)],'r');hold on;
+    end
     title('base phase');
 end
     
@@ -512,16 +516,20 @@ for i = 1:8
     figure(h1);hold on;
     subtightplot(2,4,i,0.08,0.1,0.07);hold on;
     imagesc(tm,f(indf),log(abs(sp)));set(gca,'YDir','normal');hold on;
-    plot([ons ons],[1000 10000],'r');hold on;
-    plot([offs offs],[1000 10000],'r');hold on;
+    if ~isempty(ons)
+        plot([ons ons],[1000 10000],'r');hold on;
+        plot([offs offs],[1000 10000],'r');hold on;
+    end
     set(gca,'ylim',[1000 10000]);
     title('drug phase');
     
     figure(h2);hold on;
     subtightplot(2,4,i,0.08,0.1,0.07);hold on;
     plot([1:length(sm)]/fs,sm);hold on;
-    plot([ons ons],[min(sm) max(sm)],'r');hold on;
-    plot([offs offs],[min(sm) max(sm)],'r');hold on;
+    if ~isempty(ons)
+        plot([ons ons],[min(sm) max(sm)],'r');hold on;
+        plot([offs offs],[min(sm) max(sm)],'r');hold on;
+    end
     title('drug phase');
 end
 
@@ -539,16 +547,20 @@ for i = 1:8
     figure(h1);hold on;
     subtightplot(2,4,i,0.08,0.1,0.07);hold on;
     imagesc(tm,f(indf),log(abs(sp)));set(gca,'YDir','normal');hold on;
-    plot([ons ons],[1000 10000],'r');hold on;
-    plot([offs offs],[1000 10000],'r');hold on;
+    if ~isempty(ons)
+        plot([ons ons],[1000 10000],'r');hold on;
+        plot([offs offs],[1000 10000],'r');hold on;
+    end
     set(gca,'ylim',[1000 10000]);
     title('base amp');
     
     figure(h2);hold on;
     subtightplot(2,4,i,0.08,0.1,0.07);hold on;
     plot([1:length(sm)]/fs,sm);hold on;
-    plot([ons ons],[min(sm) max(sm)],'r');hold on;
-    plot([offs offs],[min(sm) max(sm)],'r');hold on;
+    if ~isempty(ons)
+        plot([ons ons],[min(sm) max(sm)],'r');hold on;
+        plot([offs offs],[min(sm) max(sm)],'r');hold on;
+    end
     title('base amp');
 end
     
@@ -566,21 +578,21 @@ for i = 1:8
     figure(h1);hold on;
     subtightplot(2,4,i,0.08,0.1,0.07);hold on;
     imagesc(tm,f(indf),log(abs(sp)));set(gca,'YDir','normal');hold on;
-    plot([ons ons],[1000 10000],'r');hold on;
-    plot([offs offs],[1000 10000],'r');hold on;
+    if ~isempty(ons)
+        plot([ons ons],[1000 10000],'r');hold on;
+        plot([offs offs],[1000 10000],'r');hold on;
+    end
     set(gca,'ylim',[1000 10000]);
     title('drug amp');
     
     figure(h2);hold on;
     subtightplot(2,4,i,0.08,0.1,0.07);hold on;
     plot([1:length(sm)]/fs,sm);hold on;
-    plot([ons ons],[min(sm) max(sm)],'r');hold on;
-    plot([offs offs],[min(sm) max(sm)],'r');hold on;
+    if ~isempty(ons)
+        plot([ons ons],[min(sm) max(sm)],'r');hold on;
+        plot([offs offs],[min(sm) max(sm)],'r');hold on;
+    end
     title('drug amp');
 end
 
-smtemp=motifsegment.([motif]).base(ind1(1)).smtemp;
-filtsong1 = bandpass(smtemp,44100,1000,10000,'hanningffir');
-smtemp=motifsegment.([motif]).drug(ind2(1)).smtemp;
-filtsong2 = bandpass(smtemp,44100,1000,10000,'hanningffir');
-[dist ix iy] = dtw(filtsong1,filtsong2);
+

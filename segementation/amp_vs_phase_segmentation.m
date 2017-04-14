@@ -1,6 +1,9 @@
-function motifsegment = amp_vs_phase_segmentation(batch,params,songfilt,CHANSPEC);
+function motifsegment = amp_vs_phase_segmentation(batch,params,CHANSPEC);
 %this function extracts the onset/offset of syllables within target motif
-%based on amplitude or phase segmentation (for testing)
+%based on amplitude or phase segmentation (for testing). Phase segmentation
+%= mean subtracting amplitude waveform and thresholding at 0. Versus
+%original usage of minimum subtract and normalization by max and
+%thresholding at 0.3 (or manually selected). 
 
 motif = params.motif;
 timeband = params.timeband;
@@ -15,50 +18,52 @@ else
 end
 
 ff = load_batchf(batch);
-gaps = {};
-%determine baseline for thresholding
-for i = 1:length(ff)
-    fn = ff(i).name;
-    fnn=[fn,'.not.mat'];
-    if (~exist(fnn,'file'))
-        continue;
-    end
-    load(fnn);
-    rd = readrecf(fn);
-    [pthstr,tnm,ext] = fileparts(fn);
-    if (strcmp(CHANSPEC,'w'))
-            [dat,fs] = audioread(fn);
-    elseif (strcmp(ext,'.ebin'))
-        [dat,fs]=readevtaf(fn,CHANSPEC);
-    else
-        [dat,fs]=evsoundin('',fn,CHANSPEC);
-    end
-    if (isempty(dat))
-        disp(['hey no data!']);
-        continue;
-    end
-    smtemp = dat;
-    sm = evsmooth(smtemp,fs,'','','',10);
-    
-    %find motifs in bout
-    p = strfind(labels,motif);
-    if isempty(p)
-        continue
-    end
+%% determine baseline for thresholding
+% gaps = {};
+% for i = 1:length(ff)
+%     fn = ff(i).name;
+%     fnn=[fn,'.not.mat'];
+%     if (~exist(fnn,'file'))
+%         continue;
+%     end
+%     load(fnn);
+%     rd = readrecf(fn);
+%     [pthstr,tnm,ext] = fileparts(fn);
+%     if (strcmp(CHANSPEC,'w'))
+%             [dat,fs] = audioread(fn);
+%     elseif (strcmp(ext,'.ebin'))
+%         [dat,fs]=readevtaf(fn,CHANSPEC);
+%     else
+%         [dat,fs]=evsoundin('',fn,CHANSPEC);
+%     end
+%     if (isempty(dat))
+%         disp(['hey no data!']);
+%         continue;
+%     end
+%     smtemp = dat;
+%     sm = evsmooth(smtemp,fs,'','','',10);
+%     
+%     %find motifs in bout
+%     p = strfind(labels,motif);
+%     if isempty(p)
+%         continue
+%     end
+% 
+%     %get smoothed amp waveform of motif 
+%     for ii = 1:length(p)
+%         ons = onsets(p(ii):p(ii)+length(motif)-1);
+%         offs = offsets(p(ii):p(ii)+length(motif)-1);
+%         ons = ons(2:end);offs=offs(1:end-1);
+%         for m = 1:length(ons)
+%             gaps = [gaps;sm(ceil(offs(m)*1e-3*fs):ceil(ons(m)*1e-3*fs))];
+%         end
+%     end
+% end
+% gaps = cell2mat(gaps);
+% basethresh = mean(gaps);
 
-    %get smoothed amp waveform of motif 
-    for ii = 1:length(p)
-        ons = onsets(p(ii):p(ii)+length(motif)-1);
-        offs = offsets(p(ii):p(ii)+length(motif)-1);
-        ons = ons(2:end);offs=offs(1:end-1);
-        for m = 1:length(ons)
-            gaps = [gaps;sm(ceil(offs(m)*1e-3*fs):ceil(ons(m)*1e-3*fs))];
-        end
-    end
-end
-gaps = cell2mat(gaps);
-basethresh = mean(gaps);
 
+%% measure onsets and offsets of motifs using regular amp segmentation vs phase
 motif_cnt = 0;
 motifsegment = struct();
 for i = 1:length(ff)
@@ -107,7 +112,7 @@ for i = 1:length(ff)
             onsamp = onsamp-nbuffer;
         end
         smtemp = dat(onsamp:offsamp);%amplitude envelope of motif
-        sm = evsmooth(smtemp,fs,'','','',10);%smoothed amplitude envelop
+        sm = evsmooth(smtemp,fs,'','','',2);%smoothed amplitude envelop
         
         %use autocorrelation to estimate average syll-syll duration
         if strcmp(params.acorrsm,'no log')
@@ -142,11 +147,9 @@ for i = 1:length(ff)
         end
         
         %amplitude segmentation
-%         sm2 = log(sm);
-%         sm2 = sm2-min(sm2);
-%         sm2 = sm2./max(sm2);
-          sm2=log(sm);
-          sm2=sm2-mean(sm2);
+        sm2 = log(sm);
+        sm2 = sm2-min(sm2);
+        sm2 = sm2./max(sm2);
         [ons offs] = SegmentNotes(sm2,fs,minint,mindur,thresh);
         disp([num2str(length(ons)),' syllables detected']);
         
@@ -154,13 +157,18 @@ for i = 1:length(ff)
             sylldurations = [];
             gapdurations = [];
             motifduration = offs(end)-ons(1);
+            amp_ons = [];
+            amp_offs=[];
          else
             sylldurations = offs-ons;%in seconds
             gapdurations = ons(2:end)-offs(1:end-1);
             motifduration = offs(end)-ons(1); 
+            amp_ons = ons;
+            amp_offs=offs;
          end
          
-         %amplitude segmentation 2
+         %amplitude segmentation 2 using baseline thresh in pooled gaps to
+         %threshold the amplitude waveform 
 %          ind = find(sm<=basethresh);
 %          ons2=[];offs2=[];
 %          for m = 1:length(ons)
@@ -172,7 +180,7 @@ for i = 1:length(ff)
 %                 ons2(m)=ind(ind2(id))/fs;
 %              end
 %              ind2 = find(ind>=ceil(offs(m)*fs));
-%              [c id] = min(abs(ind(ind2)-floor(offs(m)*fs)));
+%              [c id] = min(abs(ind(ind2)-floor(offs(m)*fs)));ph = angle(hilbert(sm2));
 %              if isempty(id)
 %                  offs2(m)=offs(m);
 %              else
@@ -181,29 +189,26 @@ for i = 1:length(ff)
 %          end
 %          ons2=ons2';offs2=offs2';
 
-         %phase segmentation
-%          filtsong = bandpass(smtemp,fs,300,10000,'hanningffir');
-%          ampenv = envelope(filtsong);
-%          filt_ampenv = filter(songfilt,ampenv);
-%          ph = angle(hilbert(filt_ampenv-mean(filt_ampenv)));
-%          
+         %phase segmentation        
          sm2 = log(sm);
          sm2 = (sm2-mean(sm2));
          if ~isempty(params.phshft)
              sm2 = sm2+params.phshft;
          end
-         ph = angle(hilbert(sm2));
          
-         syllsegments = (ph>=-0.5*pi & ph<0.5*pi);
-         [ons offs] = SegmentNotes(syllsegments,fs,minint,mindur,0.5);
+         [ons offs] = SegmentNotes(sm2,fs,minint,mindur,0);
          if length(ons) ~= length(motif)
              sylldurations2 = [];
              gapdurations2 = [];
              motifduration2 = NaN;
+             ph_ons = [];
+             ph_offs=[];
          else
              sylldurations2 = offs-ons;
              gapdurations2 = ons(2:end)-offs(1:end-1);
              motifduration2 = offs(end)-ons(1); 
+             ph_ons = ons;
+             ph_offs=offs;
          end
          
           %extract datenum from rec file, add syllable ton in seconds
@@ -243,6 +248,10 @@ for i = 1:length(ff)
      motifsegment(motif_cnt).amp_motifdur = motifduration;
      motifsegment(motif_cnt).ph_motifdur = motifduration2;
      motifsegment(motif_cnt).firstpeakdistance = firstpeakdistance;
+     motifsegment(motif_cnt).ph_ons = ph_ons;
+     motifsegment(motif_cnt).ph_offs = ph_offs;
+     motifsegment(motif_cnt).amp_ons = amp_ons;
+     motifsegment(motif_cnt).amp_offs = amp_offs;
     end
     
 end
