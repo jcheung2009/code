@@ -199,7 +199,7 @@ for ii=1:length(w)
         interval=[interval;seg'];
     end
     interval=sort(interval);
-    sm2 = sm(interval);
+    sm2 = sm(interval);sm2=sm2-mean(sm2);
     [ons2 offs2] = SegmentNotes(sm2,fs/downsamp,5,20,0);
     figure;hold on;
     plot(temp,'k');hold on;plot(sm2,'r');hold on;
