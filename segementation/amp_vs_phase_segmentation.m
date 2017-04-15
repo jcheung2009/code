@@ -112,7 +112,8 @@ for i = 1:length(ff)
             onsamp = onsamp-nbuffer;
         end
         smtemp = dat(onsamp:offsamp);%amplitude envelope of motif
-        sm = evsmooth(smtemp,fs,'','','',2);%smoothed amplitude envelop
+        filtsong = abs(bandpass(smtemp,fs,1000,10000,'hanningffir'));
+        sm = evsmooth(filtsong,fs,'','','',2);%smoothed amplitude envelop
         
         %use autocorrelation to estimate average syll-syll duration
         if strcmp(params.acorrsm,'no log')

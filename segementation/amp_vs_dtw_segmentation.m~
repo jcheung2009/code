@@ -128,13 +128,14 @@ for i = 1:length(ff)
         temp_ons=dtwtemplate.ons;
         temp_offs=dtwtemplate.offs;
         NFFT = 512;
-        overlap = NFFT-3;
+        overlap = NFFT-10;
         t=-NFFT/2+1:NFFT/2;
         sigma=(1/1000)*fs;
         w=exp(-(t/sigma).^2);
         [sp f tm1] = spectrogram(temp,w,overlap,NFFT,fs/downsamp);
         indf = find(f>1000 & f<10000);
-        temp = sp(indf,:);
+        temp = abs(sp(indf,:));
+        temp = temp./sum(temp,2);
         
 %         sm2=log(sm);
 %         sm2=sm2-mean(sm2);
@@ -142,7 +143,8 @@ for i = 1:length(ff)
         filtsong = downsample(filtsong,downsamp);
         [sp f tm2] = spectrogram(filtsong,w,overlap,NFFT,fs/downsamp);
         indf = find(f>1000 & f <10000);
-        sm2 = sp(indf,:);
+        sm2 = abs(sp(indf,:));
+        sm2 = sm2./sum(sm2,2);
         
        %[dist ix iy] =dtw(temp,downsample(sm2,downsamp));
        %onind =floor(temp_ons*fs/downsamp);offind=floor(temp_offs*fs/downsamp);
@@ -173,7 +175,7 @@ for i = 1:length(ff)
             ind = ind(ceil(length(ind)/2));
             offs = [offs;iy(ind)];
        end
-       ons = tm2(ons);offs=tm2(offs);
+       ons = tm2(ons)';offs=tm2(offs)';
        
        if length(ons) ~= length(motif)
              sylldurations2 = [];

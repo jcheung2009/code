@@ -1,3 +1,5 @@
+%% this script tests the robustness of dtw on amp waveforms for segmentation
+
 %% adjust SNR of single amp waveform by scaling syllables and test dtw vs amp segmentation
 fs=44100;
 downsamp=2;

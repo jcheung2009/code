@@ -6,14 +6,12 @@ wgt = [0.85:0.05:1.15];%scaling factors for syllables
 motifsegment = motifsegment_bcd_11_14_2015_saline;
 
 %extract one amp wv to manipulate
-smtemp = motifsegment(1).smtemp;
-filtsong = bandpass(smtemp,fs,1000,10000,'hanningffir');
-filtsong=abs(filtsong);
-% sm=log(motifsegment(1).sm);
-% sm_amp=sm;sm_amp=sm_amp-min(sm_amp);sm_amp=sm_amp/max(sm_amp);
-% sm_amp2=sm;sm_amp2=sm_amp2-mean(sm_amp2);
-ons=motifsegment(1).amp_ons;
-offs=motifsegment(1).amp_offs;
+smtemp = 
+sm=log(motifsegment(1).sm);
+sm_amp=sm;sm_amp=sm_amp-min(sm_amp);sm_amp=sm_amp/max(sm_amp);
+sm_amp2=sm;sm_amp2=sm_amp2-mean(sm_amp2);
+ons=motifsegment(1).amp_ons-0.004;
+offs=motifsegment(1).amp_offs+0.008;
 
 %measure gaps/syllables after scaling syllables
 ampdurs = [];ampgaps = [];
