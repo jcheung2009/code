@@ -28,30 +28,47 @@ filtsong = bandpass(smtemp,fs,1000,10000,'hanningffir');
 filtsong=abs(filtsong);
 ons=motifsegment(1).amp_ons;
 offs=motifsegment(1).amp_offs;
-sm=motifsegment(1).sm;
-sm=log(sm);sm=sm-mean(sm);
+sm = log(evsmooth(filtsong,fs,'','','',2));
+sm=sm-mean(sm);
 
 %measure gaps/syllables after scaling syllables
 ampdurs = [];ampgaps = [];
 dtwdurs=[];dtwgaps=[];
 for ii=1:length(wgt)
     interval=zeros(length(filtsong),1);
-    for i = 1:length(ons) %sylls
+    for i = 1:length(ons)%sylls
         seg = floor(ons(i)*fs):floor(offs(i)*fs);
-        interval(seg)=normrnd(wgt(ii),0.001,[length(seg),1]);
+        interval(seg) = normrnd(1+(1-wgt(ii)),0.001,[length(seg),1]);
+        %interval(seg)=normrnd(1+(1-w(ii)),0.001,[length(seg),1]);%(1+(1-w(ii)) because wav files bc multiplying to negative vals in wav file
     end
     seg=1:floor(ons(1)*fs);%beginning
     interval(seg)=normrnd(1,0.001,[length(seg),1]);
     seg=floor(offs(3)*fs):length(interval);%end
     interval(seg)=normrnd(1,0.001,[length(seg),1]);
-    for i = 1:length(ons)-1 %gaps
+    for i = 1:length(ons)-1%gaps
         seg = floor(offs(i)*fs):floor(ons(i+1)*fs);
         interval(seg)=normrnd(1,0.001,[length(seg),1]);
     end
-    filtsong2 = abs(filtsong.*interval);
+    filtsong2 = filtsong.^interval;
+    sm_scaled = log(evsmooth(filtsong2,fs,'','','',2));
+    
+%     interval=zeros(length(filtsong),1);
+%     for i = 1:length(ons) %sylls
+%         seg = floor(ons(i)*fs):floor(offs(i)*fs);
+%         interval(seg)=normrnd(wgt(ii),0.001,[length(seg),1]);
+%     end
+%     seg=1:floor(ons(1)*fs);%beginning
+%     interval(seg)=normrnd(1,0.001,[length(seg),1]);
+%     seg=floor(offs(3)*fs):length(interval);%end
+%     interval(seg)=normrnd(1,0.001,[length(seg),1]);
+%     for i = 1:length(ons)-1 %gaps
+%         seg = floor(offs(i)*fs):floor(ons(i+1)*fs);
+%         interval(seg)=normrnd(1,0.001,[length(seg),1]);
+%     end
+%     filtsong2 = abs(filtsong.*interval);
     
     %amp
-    sm2 = evsmooth(filtsong2,fs,'','','',2);sm2=log(sm2);sm2=sm2-mean(sm2);
+    sm2=sm_scaled-mean(sm_scaled);
     [ons2 offs2] = SegmentNotes(sm2,fs,5,20,0);
     figure;hold on;
     plot(sm,'k');hold on;plot(sm2,'r');hold on;
@@ -128,29 +145,31 @@ dtwdurs=[];dtwgaps=[];
 for i = 1:length(motifsegment)
     smtemp=motifsegment(i).smtemp;
     filtsong = abs(bandpass(smtemp,fs,1000,10000,'hanningffir'));
-    if isempty(motifsegment(i).amp_ons)
+    filtsong=abs(filtsong);
+    ons=motifsegment(i).ph_ons;
+    offs=motifsegment(i).ph_offs;
+    if isempty(ons) | floor(offs(end)*fs) > length(filtsong)
         continue
     end
-    ons=motifsegment(i).amp_ons;
-    offs=motifsegment(i).amp_offs;
     
     interval=zeros(length(filtsong),1);
-    for ii = 1:length(ons) %sylls
+    for ii = 1:length(ons)%sylls
         seg = floor(ons(ii)*fs):floor(offs(ii)*fs);
-        interval(seg)=normrnd(wgt,0.001,[length(seg),1]);
+        interval(seg)=normrnd(1+(1-wgt),0.001,[length(seg),1]);
     end
     seg=1:floor(ons(1)*fs);%beginning
     interval(seg)=normrnd(1,0.001,[length(seg),1]);
     seg=floor(offs(3)*fs):length(interval);%end
-    interval(seg)=normrnd(1,0.001,[length(seg),1]);
+    interval(seg)=normrnd(1,0.01,[length(seg),1]);
     for ii = 1:length(ons)-1%gaps
         seg = floor(offs(ii)*fs):floor(ons(ii+1)*fs);
         interval(seg)=normrnd(1,0.001,[length(seg),1]);
     end
-    filtsong2 = abs(filtsong.*interval);
+    filtsong2 = filtsong.^interval;
+    sm_scaled = log(evsmooth(filtsong2,fs,'','','',2));
     
     %amp
-    sm2 = evsmooth(filtsong2,fs,'','','',2);sm2=log(sm2);sm2=sm2-mean(sm2);
+    sm2=sm_scaled-mean(sm_scaled);
     [ons2 offs2] = SegmentNotes(sm2,fs,5,20,0);
     ampdurs = [ampdurs;mean(offs2-ons2)];
     ampgaps = [ampgaps;mean(ons2(2:end)-offs2(1:end-1))];
@@ -248,18 +267,19 @@ temp=abs(dtwtemplate.filtsong);
 temp_ons=dtwtemplate.ons;
 temp_offs=dtwtemplate.offs;
 temp_sm = log(dtwtemplate.sm);temp_sm = temp_sm-mean(temp_sm);
-[sp f tm1] = spectrogram(temp,w,overlap,NFFT,fs); 
+[sp f tm1] = spectrogram(temp,w,overlap,NFFT,fs);
 indf = find(f>1000 & f<10000);
 temp = abs(sp(indf,:));
 temp = temp./sum(temp,2);
 
-%extract one amp waveform to manipulate
+%extract one amp wv to manipulate
 smtemp=motifsegment(1).smtemp;
-filtsong = abs(bandpass(smtemp,fs,1000,10000,'hanningffir'));
-ons=motifsegment(1).amp_ons-0.004;
-offs=motifsegment(1).amp_offs+0.004;
-sm=motifsegment(1).sm;
-sm=log(sm);sm=sm-mean(sm);
+filtsong = bandpass(smtemp,fs,1000,10000,'hanningffir');
+filtsong=abs(filtsong);
+ons=motifsegment(1).amp_ons;
+offs=motifsegment(1).amp_offs;
+sm = log(evsmooth(filtsong,fs,'','','',2));
+sm=sm-mean(sm);
 
 %measure sylls/gaps at different gap lengths
 ampdurs = [];ampgaps = [];
@@ -281,9 +301,10 @@ for ii=1:length(wgt)
     end
     interval=sort(interval);
     filtsong2 = filtsong(interval);
+    sm_scaled = log(evsmooth(filtsong2,fs,'','','',2));
     
     %amp
-    sm2 = evsmooth(filtsong2,fs,'','','',2);sm2=log(sm2);sm2=sm2-mean(sm2);
+    sm2=sm_scaled-mean(sm_scaled);
     [ons2 offs2] = SegmentNotes(sm2,fs,5,20,0);
     figure;hold on;
     plot(sm,'k');hold on;plot(sm2,'r');hold on;
@@ -346,8 +367,8 @@ t=-NFFT/2+1:NFFT/2;
 sigma=(1/1000)*fs;
 w=exp(-(t/sigma).^2);
 
-%extract template spectrogram to use for dtw 
-temp=abs(dtwtemplate.filtsong);
+%extract template 
+temp=dtwtemplate.filtsong;
 temp_ons=dtwtemplate.ons;
 temp_offs=dtwtemplate.offs;
 temp_sm = log(dtwtemplate.sm);temp_sm = temp_sm-mean(temp_sm);
@@ -362,11 +383,11 @@ dtwdurs=[];dtwgaps=[];
 for ii=1:length(motifsegment)
     smtemp=motifsegment(ii).smtemp;
     filtsong = abs(bandpass(smtemp,fs,1000,10000,'hanningffir'));
-    if isempty(motifsegment(ii).amp_ons)
+    ons=motifsegment(ii).ph_ons;
+    offs=motifsegment(ii).ph_offs;
+    if isempty(ons) | floor(offs(end)*fs) > length(filtsong)
         continue
     end
-    ons=motifsegment(ii).amp_ons+0.004;
-    offs=motifsegment(ii).amp_offs-0.004;
     
     interval = [];
     seg=1:floor(ons(1)*fs);%beginning
@@ -384,9 +405,10 @@ for ii=1:length(motifsegment)
     end
     interval=sort(interval);
     filtsong2 = filtsong(interval);
+    sm_scaled = log(evsmooth(filtsong2,fs,'','','',2));
     
     %amp segmentation
-    sm2 = evsmooth(filtsong2,fs,'','','',2);sm2=log(sm2);sm2=sm2-mean(sm2);
+    sm2=sm_scaled-mean(sm_scaled);
     [ons2 offs2] = SegmentNotes(sm2,fs,5,20,0);
     ampdurs = [ampdurs;mean(offs2-ons2)];
     ampgaps = [ampgaps;mean(ons2(2:end)-offs2(1:end-1))];

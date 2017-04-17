@@ -13,19 +13,19 @@ else
     mindur = 20;
     thresh = 0.3;
 end
-downsamp=1;%factor for downsampling the amp env for dtw to shorten computation time
 fs = params.fs;
 
+%params for spectrogram
 NFFT = 512;
 overlap = NFFT-10;
 t=-NFFT/2+1:NFFT/2;
 sigma=(1/1000)*fs;
 w=exp(-(t/sigma).^2);
 
-temp = abs(downsample(dtwtemplate.filtsong,downsamp));
+temp = abs(dtwtemplate.filtsong);
 temp_ons=dtwtemplate.ons;
 temp_offs=dtwtemplate.offs;
-[sp f tm1] = spectrogram(temp,w,overlap,NFFT,fs/downsamp);
+[sp f tm1] = spectrogram(temp,w,overlap,NFFT,fs);
 indf = find(f>1000 & f<10000);
 temp = abs(sp(indf,:));
 temp = temp./sum(temp,2);
@@ -79,7 +79,8 @@ for i = 1:length(ff)
             onsamp = onsamp-nbuffer;
         end
         smtemp = dat(onsamp:offsamp);%amplitude envelope of motif
-        sm = evsmooth(smtemp,fs,'','','',2);%smoothed amplitude envelop
+        filtsong = abs(bandpass(smtemp,fs,1000,10000,'hanningffir'));
+        sm = evsmooth(filtsong,fs,'','','',2);%smoothed amplitude envelop
 
         %use autocorrelation to estimate average syll-syll duration
         if strcmp(params.acorrsm,'no log')
@@ -114,9 +115,7 @@ for i = 1:length(ff)
         end
         
         %amplitude segmentation
-        filtsong = abs(bandpass(smtemp,fs,1000,10000,'hanningffir'));%to match the testing in script_testdtw2
-        sm2 = evsmooth(filtsong,fs,'','','',2);
-        sm2=log(sm2);
+        sm2 = log(sm);
         sm2=sm2-mean(sm2);
         [ons offs] = SegmentNotes(sm2,fs,minint,mindur,0);
         disp([num2str(length(ons)),' syllables detected']);
@@ -136,8 +135,7 @@ for i = 1:length(ff)
          end
 
        %dtw of amplitude waveform
-        filtsong = downsample(filtsong,downsamp);
-        [sp f tm2] = spectrogram(filtsong,w,overlap,NFFT,fs/downsamp);
+        [sp f tm2] = spectrogram(filtsong,w,overlap,NFFT,fs);
         indf = find(f>1000 & f <10000);
         sm2 = abs(sp(indf,:));
         sm2 = sm2./sum(sm2,2);

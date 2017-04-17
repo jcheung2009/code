@@ -2,16 +2,16 @@
 
 %% adjust SNR of single amp waveform by scaling syllables and test amp vs amp2 segmentation
 fs=44100;
-wgt = [0.85:0.05:1.15];%scaling factors for syllables
+w = [0.85:0.05:1.15];%scaling factors for syllables
 motifsegment = motifsegment_bcd_11_14_2015_saline;
 
 %extract one amp wv to manipulate
 smtemp = motifsegment(1).smtemp;
 filtsong = bandpass(smtemp,fs,1000,10000,'hanningffir');
 filtsong=abs(filtsong);
-% sm=log(motifsegment(1).sm);
-% sm_amp=sm;sm_amp=sm_amp-min(sm_amp);sm_amp=sm_amp/max(sm_amp);
-% sm_amp2=sm;sm_amp2=sm_amp2-mean(sm_amp2);
+sm = log(evsmooth(filtsong,fs,'','','',2));
+sm_amp=sm;sm_amp=sm_amp-min(sm_amp);sm_amp=sm_amp/max(sm_amp);
+sm_amp2=sm;sm_amp2=sm_amp2-mean(sm_amp2);
 ons=motifsegment(1).amp_ons;
 offs=motifsegment(1).amp_offs;
 
@@ -19,26 +19,25 @@ offs=motifsegment(1).amp_offs;
 ampdurs = [];ampgaps = [];
 amp2durs=[];amp2gaps=[];
 for ii=1:length(w)
-%     interval=zeros(length(sm),1);
-%     for i = 1:length(ons)%sylls
-%         seg = floor(ons(i)*fs):floor(offs(i)*fs);
-%         interval(seg)=normrnd(1+(1-w(ii)),0.001,[length(seg),1]);%(1+(1-w(ii)) because wav files bc multiplying to negative vals in wav file
-%     end
-%     seg=1:floor(ons(1)*fs);%beginning
-%     interval(seg)=normrnd(1,0.001,[length(seg),1]);
-%     seg=floor(offs(3)*fs):length(interval);%end
-%     interval(seg)=normrnd(1,0.001,[length(seg),1]);
-%     for i = 1:length(ons)-1%gaps
-%         seg = floor(offs(i)*fs):floor(ons(i+1)*fs);
-%         interval(seg)=normrnd(1,0.001,[length(seg),1]);
-%     end
+    interval=zeros(length(filtsong),1);
+    for i = 1:length(ons)%sylls
+        seg = floor(ons(i)*fs):floor(offs(i)*fs);
+        interval(seg) = normrnd(1+(1-w(ii)),0.001,[length(seg),1]);
+        %interval(seg)=normrnd(1+(1-w(ii)),0.001,[length(seg),1]);%(1+(1-w(ii)) because wav files bc multiplying to negative vals in wav file
+    end
+    seg=1:floor(ons(1)*fs);%beginning
+    interval(seg)=normrnd(1,0.001,[length(seg),1]);
+    seg=floor(offs(3)*fs):length(interval);%end
+    interval(seg)=normrnd(1,0.001,[length(seg),1]);
+    for i = 1:length(ons)-1%gaps
+        seg = floor(offs(i)*fs):floor(ons(i+1)*fs);
+        interval(seg)=normrnd(1,0.001,[length(seg),1]);
+    end
+    filtsong2 = filtsong.^interval;
+    sm_scaled = log(evsmooth(filtsong2,fs,'','','',2));
     
     %amp1
-    %sm2 = sm.*interval;
-%     idx = find(sm2 < min(sm));
-%     sm2(idx) = min(sm);
-    sm2 = sm+normrnd(1,0.1,[length(sm),1]);
-    sm2=sm2-min(sm2);sm2=sm2/max(sm2);
+    sm2=sm_scaled-min(sm_scaled);sm2=sm2/max(sm2);
     [ons2 offs2] = SegmentNotes(sm2,fs,5,20,0.3);
     figure;hold on;
     plot(sm_amp,'k');hold on;plot(sm2,'r');hold on;
@@ -49,11 +48,7 @@ for ii=1:length(w)
     ampgaps = [ampgaps;mean(ons2(2:end)-offs2(1:end-1))];
     
     %amp2
-%     sm2 = sm.*interval;
-%     idx = find(sm2 < min(sm));
-%     sm2(idx) = min(sm);
-    sm2 = sm+normrnd(1,0.1,[length(sm),1]);
-    sm2=sm2-mean(sm2);
+    sm2=sm_scaled-mean(sm_scaled);
     [ons2 offs2] = SegmentNotes(sm2,fs,5,20,0);
     figure;hold on;
     plot(sm_amp2,'k');hold on;plot(sm2,'r');hold on;
@@ -75,34 +70,44 @@ legend('amp','amp2');
 
 %% adjust SNR of amp wv from condition by scaling syllables and test amp1 vs amp2 segmentation
 fs=44100;
-w = 3;
+w = 1.05;%percentage to increase sylls
 motifsegment = motifsegment_bcd_11_14_2015_saline;
 ampdurs = [];ampgaps = [];
 amp2durs=[];amp2gaps=[];
 for i = 1:length(motifsegment)
-    sm=log(motifsegment(i).sm);
+    smtemp = motifsegment(i).smtemp;
+    filtsong = bandpass(smtemp,fs,1000,10000,'hanningffir');
+    filtsong=abs(filtsong);
     ons=motifsegment(i).ph_ons;
     offs=motifsegment(i).ph_offs;
-    interval=zeros(length(sm),1);
-    for ii = 1:length(ons)
-        seg = floor(ons(ii)*fs):floor(offs(ii)*fs);
-        interval(seg)=normrnd(w,0.1,[length(seg),1]);
-    end
-    seg=1:floor(ons(1)*fs);
-    interval(seg)=normrnd(0,0.1,[length(seg),1]);
-    seg=floor(offs(3)*fs):length(interval);
-    interval(seg)=normrnd(0,0.1,[length(seg),1]);
-    for ii = 1:length(ons)-1
-        seg = floor(offs(ii)*fs):floor(ons(ii+1)*fs);
-        interval(seg)=normrnd(0,0.1,[length(seg),1]);
+    if isempty(ons) | floor(offs(end)*fs) > length(filtsong)
+        continue
     end
     
-    sm2 = sm+interval;sm2=sm2-min(sm2);sm2=sm2/max(sm2);
+    interval=zeros(length(filtsong),1);
+    for ii = 1:length(ons)%sylls
+        seg = floor(ons(ii)*fs):floor(offs(ii)*fs);
+        interval(seg)=normrnd(1+(1-w),0.001,[length(seg),1]);
+    end
+    seg=1:floor(ons(1)*fs);%beginning
+    interval(seg)=normrnd(1,0.001,[length(seg),1]);
+    seg=floor(offs(3)*fs):length(interval);%end
+    interval(seg)=normrnd(1,0.01,[length(seg),1]);
+    for ii = 1:length(ons)-1%gaps
+        seg = floor(offs(ii)*fs):floor(ons(ii+1)*fs);
+        interval(seg)=normrnd(1,0.001,[length(seg),1]);
+    end
+    filtsong2 = filtsong.^interval;
+    sm_scaled = log(evsmooth(filtsong2,fs,'','','',2));
+    
+    %amp1
+    sm2=sm_scaled-min(sm_scaled);sm2=sm2/max(sm2);
     [ons2 offs2] = SegmentNotes(sm2,fs,5,20,0.3);
     ampdurs = [ampdurs;mean(offs2-ons2)];
     ampgaps = [ampgaps;mean(ons2(2:end)-offs2(1:end-1))];
     
-    sm2 = sm+interval;sm2=sm2-mean(sm2);
+    %amp2
+    sm2=sm_scaled-mean(sm_scaled);
     [ons2 offs2] = SegmentNotes(sm2,fs,5,20,0);
     amp2durs=[amp2durs;mean(offs2-ons2)];
     amp2gaps=[amp2gaps;mean(ons2(2:end)-offs2(1:end-1))];
@@ -161,12 +166,16 @@ fs=44100;
 w = [0:0.01:0.1];%percentage of gaps to shorten
 motifsegment = motifsegment_bcd_11_14_2015_saline;
 
-%extract one amp waveform to manipulate
-sm=log(motifsegment(1).sm);
-sm_amp = sm;sm_amp=sm_amp-min(sm_amp);sm_amp=sm_amp/max(sm_amp);
+%extract one amp wv to manipulate
+smtemp = motifsegment(1).smtemp;
+filtsong = bandpass(smtemp,fs,1000,10000,'hanningffir');
+filtsong=abs(filtsong);
+sm = log(evsmooth(filtsong,fs,'','','',2));
+%sm=log(motifsegment(1).sm);
+sm_amp=sm;sm_amp=sm_amp-min(sm_amp);sm_amp=sm_amp/max(sm_amp);
 sm_amp2=sm;sm_amp2=sm_amp2-mean(sm_amp2);
-ons=motifsegment(1).amp_ons-0.004;
-offs=motifsegment(1).amp_offs+0.004;
+ons=motifsegment(1).amp_ons;
+offs=motifsegment(1).amp_offs;
 
 %measure sylls/gaps for both methods
 ampdurs = [];ampgaps = [];
@@ -175,7 +184,7 @@ for ii=1:length(w)
     interval = [];
     seg=1:floor(ons(1)*fs);%beginning
     interval=[interval;seg'];
-    seg=floor(offs(end)*fs):length(sm);%end
+    seg=floor(offs(end)*fs):length(filtsong);%end
     interval=[interval;seg'];
     for i = 1:length(ons)-1%gaps
         seg = floor(offs(i)*fs):floor(ons(i+1)*fs);
@@ -187,9 +196,11 @@ for ii=1:length(w)
         interval=[interval;seg'];
     end
     interval=sort(interval);
+    filtsong2 = filtsong(interval);
+    sm_scaled = log(evsmooth(filtsong2,fs,'','','',2));
     
     %amp1
-    sm2 = sm(interval);sm2=sm2-min(sm2);sm2=sm2/max(sm2);
+    sm2=sm_scaled-min(sm_scaled);sm2=sm2/max(sm2);
     [ons2 offs2] = SegmentNotes(sm2,fs,5,20,0.3);
     figure;hold on;
     plot(sm_amp,'k');hold on;plot(sm2,'r');hold on;
@@ -200,7 +211,7 @@ for ii=1:length(w)
     ampgaps = [ampgaps;mean(ons2(2:end)-offs2(1:end-1))];
     
     %amp2
-    sm2 = sm(interval);sm2=sm2-mean(sm2);
+    sm2=sm_scaled-mean(sm_scaled);
     [ons2 offs2] = SegmentNotes(sm2,fs,5,20,0);
     figure;hold on;
     plot(sm_amp2,'k');hold on;plot(sm2,'r');hold on;
@@ -219,7 +230,7 @@ xlabel('percent shorten');ylabel('duration (sec)');title('gaps');
 set(gca,'fontweight','bold');
 legend('amp','amp2');
 
-%% adjust gap of amp wv from condition and test dtw vs amp segmentation
+%% adjust gap of amp wv from condition and test amp segmentation
 fs=44100;
 w = 0.05;%percentage of gap to reduce
 motifsegment = motifsegment_bcd_11_14_2015_saline;
@@ -227,17 +238,19 @@ motifsegment = motifsegment_bcd_11_14_2015_saline;
 ampdurs = [];ampgaps = [];
 amp2durs=[];amp2gaps=[];
 for ii=1:length(motifsegment)
-    sm=log(motifsegment(ii).sm);
-    ons=motifsegment(ii).ph_ons-0.004;
-    offs=motifsegment(ii).ph_offs+0.004;
-    if isempty(ons)
+    smtemp = motifsegment(ii).smtemp;
+    filtsong = bandpass(smtemp,fs,1000,10000,'hanningffir');
+    filtsong=abs(filtsong);
+    ons=motifsegment(ii).ph_ons;
+    offs=motifsegment(ii).ph_offs;
+    if isempty(ons) | floor(offs(end)*fs) > length(filtsong)
         continue
     end
     
     interval = [];
     seg=1:floor(ons(1)*fs);%beginning
     interval=[interval;seg'];
-    seg=floor(offs(end)*fs):length(sm);%end
+    seg=floor(offs(end)*fs):length(filtsong);%end
     interval=[interval;seg'];
     for i = 1:length(ons)-1%gaps
         seg = floor(offs(i)*fs):floor(ons(i+1)*fs);
@@ -249,15 +262,17 @@ for ii=1:length(motifsegment)
         interval=[interval;seg'];
     end
     interval=sort(interval);
+    filtsong2 = filtsong(interval);
+    sm_scaled = log(evsmooth(filtsong2,fs,'','','',2));
     
     %amp1
-    sm2 = sm(interval);sm2=sm2-min(sm2);sm2=sm2/max(sm2);
+    sm2=sm_scaled-min(sm_scaled);sm2=sm2/max(sm2);
     [ons2 offs2] = SegmentNotes(sm2,fs,5,20,0.3);
     ampdurs = [ampdurs;mean(offs2-ons2)];
     ampgaps = [ampgaps;mean(ons2(2:end)-offs2(1:end-1))];
     
     %amp2
-    sm2 = sm(interval);sm2=sm2-mean(sm2);
+    sm2=sm_scaled-mean(sm_scaled);
     [ons2 offs2] = SegmentNotes(sm2,fs,5,20,0);
     amp2durs=[amp2durs;mean(offs2-ons2)];
     amp2gaps=[amp2gaps;mean(ons2(2:end)-offs2(1:end-1))];

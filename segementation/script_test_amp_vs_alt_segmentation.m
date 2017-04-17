@@ -596,5 +596,165 @@ for i = 1:8
     end
     title('drug amp');
 end
-
-
+%% partial correlation of tempo, syll/gap dur, and volume
+nstd = 4;
+for ii = 1:length(params.findmotif)
+    motif = params.findmotif(ii).motif;
+    if ~isempty(motifsegment.([motif]).base)
+        tempo_syll_vol_base = [arrayfun(@(x) x.firstpeakdistance,motifsegment.([motif]).base)',...
+            arrayfun(@(x) mean(x.amp_durs),motifsegment.([motif]).base)',arrayfun(@(x) ...
+            mean(x.ph_durs),motifsegment.([motif]).base)',arrayfun(@(x) log(mean(x.sm)),motifsegment.([motif]).base)'];
+        tempo_gap_vol_base = [arrayfun(@(x) x.firstpeakdistance,motifsegment.([motif]).base)',...
+            arrayfun(@(x) mean(x.amp_gaps),motifsegment.([motif]).base)',arrayfun(@(x) ...
+            mean(x.ph_gaps),motifsegment.([motif]).base)',arrayfun(@(x) log(mean(x.sm)),motifsegment.([motif]).base)'];
+        
+        tempo_syll_vol_base = jc_removeoutliers(tempo_syll_vol_base,nstd);
+        tempo_gap_vol_base = jc_removeoutliers(tempo_gap_vol_base,nstd);
+        
+        %partial correlation for tempo, sylls, volume (amp)
+        [r p] = partialcorr(tempo_syll_vol_base(:,[1,2,4]),'rows','complete');
+        r = array2table(r,'VariableNames',{'tempo','syllamp','volume'},...
+            'RowNames',{'tempo','syllamp','volume'});
+        disp('Partial Correlation (base)');
+        disp(r);
+        p = array2table(p,'VariableNames',{'tempo','syllamp','volume'},...
+            'RowNames',{'tempo','syllamp','volume'});
+        disp('p-values');
+        disp(p);
+        
+        %partial correlation for tempo, sylls, volume (ph)
+        [r p] = partialcorr(tempo_syll_vol_base(:,[1,3,4]),'rows','complete');
+        r = array2table(r,'VariableNames',{'tempo','syllph','volume'},...
+            'RowNames',{'tempo','syllph','volume'});
+        disp('Partial Correlation (base)');
+        disp(r);
+        p = array2table(p,'VariableNames',{'tempo','syllph','volume'},...
+            'RowNames',{'tempo','syllph','volume'});
+        disp('p-values');
+        disp(p);
+        
+        %partial correlation for tempo, gaps, volume (amp)
+        [r p] = partialcorr(tempo_gap_vol_base(:,[1,2,4]),'rows','complete');
+        r = array2table(r,'VariableNames',{'tempo','gapsamp','volume'},...
+            'RowNames',{'tempo','gapsamp','volume'});
+        disp('Partial Correlation (base)');
+        disp(r);
+        p = array2table(p,'VariableNames',{'tempo','gapsamp','volume'},...
+            'RowNames',{'tempo','gapsamp','volume'});
+        disp('p-values');
+        disp(p);
+        
+        %partial correlation for tempo, gaps, volume (ph)
+        [r p] = partialcorr(tempo_gap_vol_base(:,[1,3,4]),'rows','complete');
+        r = array2table(r,'VariableNames',{'tempo','gapsph','volume'},...
+            'RowNames',{'tempo','gapsph','volume'});
+        disp('Partial Correlation (base)');
+        disp(r);
+        p = array2table(p,'VariableNames',{'tempo','gapsph','volume'},...
+            'RowNames',{'tempo','gapsph','volume'});
+        disp('p-values');
+        disp(p);
+    end
+    if ~isempty(motifsegment.([motif]).drug)
+        tempo_syll_vol_drug = [arrayfun(@(x) x.firstpeakdistance,motifsegment.([motif]).drug)',...
+            arrayfun(@(x) mean(x.amp_durs),motifsegment.([motif]).drug)',arrayfun(@(x) ...
+            mean(x.ph_durs),motifsegment.([motif]).drug)',arrayfun(@(x) log(mean(x.sm)),motifsegment.([motif]).drug)'];
+        tempo_gap_vol_drug = [arrayfun(@(x) x.firstpeakdistance,motifsegment.([motif]).drug)',...
+            arrayfun(@(x) mean(x.amp_gaps),motifsegment.([motif]).drug)',arrayfun(@(x) ...
+            mean(x.ph_gaps),motifsegment.([motif]).drug)',arrayfun(@(x) log(mean(x.sm)),motifsegment.([motif]).drug)'];
+        
+        tempo_syll_vol_drug = jc_removeoutliers(tempo_syll_vol_drug,nstd);
+        tempo_gap_vol_drug = jc_removeoutliers(tempo_gap_vol_drug,nstd); 
+        
+        %partial correlation for tempo, sylls, volume (amp)
+        [r p] = partialcorr(tempo_syll_vol_drug(:,[1,2,4]),'rows','complete');
+        r = array2table(r,'VariableNames',{'tempo','syllamp','volume'},...
+            'RowNames',{'tempo','syllamp','volume'});
+        disp('Partial Correlation (drug)');
+        disp(r);
+        p = array2table(p,'VariableNames',{'tempo','syllamp','volume'},...
+            'RowNames',{'tempo','syllamp','volume'});
+        disp('p-values');
+        disp(p);
+        
+         %partial correlation for tempo, sylls, volume (ph)
+        [r p] = partialcorr(tempo_syll_vol_drug(:,[1,3,4]),'rows','complete');
+        r = array2table(r,'VariableNames',{'tempo','syllph','volume'},...
+            'RowNames',{'tempo','syllph','volume'});
+        disp('Partial Correlation (drug)');
+        disp(r);
+        p = array2table(p,'VariableNames',{'tempo','syllph','volume'},...
+            'RowNames',{'tempo','syllph','volume'});
+        disp('p-values');
+        disp(p);
+        
+        %partial correlation for tempo, gaps, volume (amp)
+        [r p] = partialcorr(tempo_gap_vol_drug(:,[1,2,4]),'rows','complete');
+        r = array2table(r,'VariableNames',{'tempo','gapsamp','volume'},...
+            'RowNames',{'tempo','gapsamp','volume'});
+        disp('Partial Correlation (drug)');
+        disp(r);
+        p = array2table(p,'VariableNames',{'tempo','gapsamp','volume'},...
+            'RowNames',{'tempo','gapsamp','volume'});
+        disp('p-values');
+        disp(p);
+        
+        %partial correlation for tempo, gaps, volume (ph)
+        [r p] = partialcorr(tempo_gap_vol_drug(:,[1,3,4]),'rows','complete');
+        r = array2table(r,'VariableNames',{'tempo','gapsph','volume'},...
+            'RowNames',{'tempo','gapsph','volume'});
+        disp('Partial Correlation (drug)');
+        disp(r);
+        p = array2table(p,'VariableNames',{'tempo','gapsph','volume'},...
+            'RowNames',{'tempo','gapsph','volume'});
+        disp('p-values');
+        disp(p);
+    end
+    if ~isempty(motifsegment.([motif]).base) & ~isempty(motifsegment.([motif]).drug)
+        combo = [tempo_syll_vol_base(:,[1,2,4]);tempo_syll_vol_drug(:,[1,2,4])];
+        [r p] = partialcorr(combo,'rows','complete');
+        r = array2table(r,'VariableNames',{'tempo','syllamp','volume'},...
+            'RowNames',{'tempo','syllamp','volume'});
+        disp('Partial Correlation (amp combined)');
+        disp(r);
+        p = array2table(p,'VariableNames',{'tempo','syllamp','volume'},...
+            'RowNames',{'tempo','syllamp','volume'});
+        disp('p-values');
+        disp(p);
+        
+        combo = [tempo_gap_vol_base(:,[1,2,4]);tempo_gap_vol_drug(:,[1,2,4])];
+        [r p] = partialcorr(combo,'rows','complete');
+        r = array2table(r,'VariableNames',{'tempo','gapamp','volume'},...
+            'RowNames',{'tempo','gapamp','volume'});
+        disp('Partial Correlation (amp combined)');
+        disp(r);
+        p = array2table(p,'VariableNames',{'tempo','gapamp','volume'},...
+            'RowNames',{'tempo','gapamp','volume'});
+        disp('p-values');
+        disp(p);
+        
+        combo = [tempo_syll_vol_base(:,[1,3,4]);tempo_syll_vol_drug(:,[1,3,4])];
+        [r p] = partialcorr(combo,'rows','complete');
+        r = array2table(r,'VariableNames',{'tempo','syllph','volume'},...
+            'RowNames',{'tempo','syllph','volume'});
+        disp('Partial Correlation (combined)');
+        disp(r);
+        p = array2table(p,'VariableNames',{'tempo','syllph','volume'},...
+            'RowNames',{'tempo','syllph','volume'});
+        disp('p-values');
+        disp(p);
+        
+        combo = [tempo_gap_vol_base(:,[1,3,4]);tempo_gap_vol_drug(:,[1,3,4])];
+        [r p] = partialcorr(combo,'rows','complete');
+        r = array2table(r,'VariableNames',{'tempo','gapph','volume'},...
+            'RowNames',{'tempo','gapph','volume'});
+        disp('Partial Correlation (amp combined)');
+        disp(r);
+        p = array2table(p,'VariableNames',{'tempo','gapph','volume'},...
+            'RowNames',{'tempo','gapph','volume'});
+        disp('p-values');
+        disp(p);
+    end
+end
+    
+        
