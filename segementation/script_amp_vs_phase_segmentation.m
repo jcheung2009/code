@@ -4,7 +4,11 @@
 config
 batch = uigetfile;
 ff = load_batchf(batch);
-dtwtemplate = [];
+if exist('analysis/dtwtemplate.mat')
+    load('analysis/dtwtemplate.mat')
+else
+    dtwtemplate = [];
+end
 for i = 1:length(ff)
     if isempty(ff(i).name)
         continue
@@ -16,7 +20,7 @@ for i = 1:length(ff)
         if isempty(dtwtemplate)
             dtwtemplate = make_dtw_temp('batch.keep',params.findmotif,params.filetype);
         end
-        cmd = ['motifsegment_',params.findmotif(ii).motif,'_',ff(i).name,'=','amp_vs_dtw2_segmentation(''batch.keep'',params.findmotif(',num2str(ii),'),dtwtemplate,params.filetype)'];
+        cmd = ['motifsegment_',params.findmotif(ii).motif,'_',ff(i).name,'=','amp_vs_phase_segmentation(''batch.keep'',params.findmotif(',num2str(ii),'),params.filetype)'];
         eval(cmd);
         cd ../analysis/data_structures
         varname = ['''motifsegment_',params.findmotif(ii).motif,'_',ff(i).name,''''];

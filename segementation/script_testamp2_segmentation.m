@@ -2,18 +2,17 @@
 
 %% adjust SNR of single amp waveform by scaling syllables and test amp vs amp2 segmentation
 fs=44100;
-w = [0.85:0.05:1.15];%scaling factors for syllables
+w = [0.95:0.01:1.05];%scaling factors for syllables
 motifsegment = motifsegment_bcd_11_14_2015_saline;
 
 %extract one amp wv to manipulate
 smtemp = motifsegment(1).smtemp;
-filtsong = bandpass(smtemp,fs,1000,10000,'hanningffir');
-filtsong=abs(filtsong);
+filtsong = abs(bandpass(smtemp,fs,1000,10000,'hanningffir'));
 sm = log(evsmooth(filtsong,fs,'','','',2));
 sm_amp=sm;sm_amp=sm_amp-min(sm_amp);sm_amp=sm_amp/max(sm_amp);
-sm_amp2=sm;sm_amp2=sm_amp2-mean(sm_amp2);
-ons=motifsegment(1).amp_ons;
-offs=motifsegment(1).amp_offs;
+sm_amp2=sm;sm_amp2=(sm_amp2-mean(sm_amp2))/std(sm_amp2);
+ons=motifsegment(1).amp_ons-0.004;
+offs=motifsegment(1).amp_offs+0.004;
 
 %measure gaps/syllables after scaling syllables
 ampdurs = [];ampgaps = [];
@@ -23,11 +22,10 @@ for ii=1:length(w)
     for i = 1:length(ons)%sylls
         seg = floor(ons(i)*fs):floor(offs(i)*fs);
         interval(seg) = normrnd(1+(1-w(ii)),0.001,[length(seg),1]);
-        %interval(seg)=normrnd(1+(1-w(ii)),0.001,[length(seg),1]);%(1+(1-w(ii)) because wav files bc multiplying to negative vals in wav file
     end
     seg=1:floor(ons(1)*fs);%beginning
     interval(seg)=normrnd(1,0.001,[length(seg),1]);
-    seg=floor(offs(3)*fs):length(interval);%end
+    seg=floor(offs(end)*fs):length(interval);%end
     interval(seg)=normrnd(1,0.001,[length(seg),1]);
     for i = 1:length(ons)-1%gaps
         seg = floor(offs(i)*fs):floor(ons(i+1)*fs);
@@ -48,12 +46,12 @@ for ii=1:length(w)
     ampgaps = [ampgaps;mean(ons2(2:end)-offs2(1:end-1))];
     
     %amp2
-    sm2=sm_scaled-mean(sm_scaled);
+    sm2=(sm_scaled-mean(sm_scaled))/std(sm_scaled);
     [ons2 offs2] = SegmentNotes(sm2,fs,5,20,0);
     figure;hold on;
     plot(sm_amp2,'k');hold on;plot(sm2,'r');hold on;
-    plot([ons2 ons2]*fs,[-5 5],'g');hold on;
-    plot([offs2 offs2]*fs,[-5 5],'g');hold on;
+    plot([ons2 ons2]*fs,[min(sm2) max(sm2)],'g');hold on;
+    plot([offs2 offs2]*fs,[min(sm2) max(sm2)],'g');hold on;
     title(['amp2 ',num2str(w(ii))]);
     amp2durs=[amp2durs;mean(offs2-ons2)];
     amp2gaps=[amp2gaps;mean(ons2(2:end)-offs2(1:end-1))];
@@ -76,11 +74,10 @@ ampdurs = [];ampgaps = [];
 amp2durs=[];amp2gaps=[];
 for i = 1:length(motifsegment)
     smtemp = motifsegment(i).smtemp;
-    filtsong = bandpass(smtemp,fs,1000,10000,'hanningffir');
-    filtsong=abs(filtsong);
-    ons=motifsegment(i).ph_ons;
-    offs=motifsegment(i).ph_offs;
-    if isempty(ons) | floor(offs(end)*fs) > length(filtsong)
+    filtsong = abs(bandpass(smtemp,fs,1000,10000,'hanningffir'));
+    ons=motifsegment(i).amp_ons-0.004;
+    offs=motifsegment(i).amp_offs+0.004;
+    if isempty(ons) | floor(offs(end)*fs) > length(filtsong) | ons(1)<0
         continue
     end
     
@@ -91,8 +88,8 @@ for i = 1:length(motifsegment)
     end
     seg=1:floor(ons(1)*fs);%beginning
     interval(seg)=normrnd(1,0.001,[length(seg),1]);
-    seg=floor(offs(3)*fs):length(interval);%end
-    interval(seg)=normrnd(1,0.01,[length(seg),1]);
+    seg=floor(offs(end)*fs):length(interval);%end
+    interval(seg)=normrnd(1,0.001,[length(seg),1]);
     for ii = 1:length(ons)-1%gaps
         seg = floor(offs(ii)*fs):floor(ons(ii+1)*fs);
         interval(seg)=normrnd(1,0.001,[length(seg),1]);
@@ -107,7 +104,7 @@ for i = 1:length(motifsegment)
     ampgaps = [ampgaps;mean(ons2(2:end)-offs2(1:end-1))];
     
     %amp2
-    sm2=sm_scaled-mean(sm_scaled);
+    sm2=(sm_scaled-mean(sm_scaled))/std(sm_scaled);
     [ons2 offs2] = SegmentNotes(sm2,fs,5,20,0);
     amp2durs=[amp2durs;mean(offs2-ons2)];
     amp2gaps=[amp2gaps;mean(ons2(2:end)-offs2(1:end-1))];
@@ -128,6 +125,7 @@ x = get(gca,'xlim');set(gca,'xlim',x);
 text(x(1),y(2),{['p=',num2str(p)]});
 legend('before','after');
 set(gca,'fontweight','bold');title('syllables');
+ylabel('probability');
 subplot(2,1,2);hold on;
 minval = min([ampgaps;gaps1']);maxval = max([ampgaps;gaps1']);
 [n b] = hist(gaps1,[minval:0.001:maxval]);stairs(b,n/sum(n),'k');
@@ -138,6 +136,7 @@ x = get(gca,'xlim');set(gca,'xlim',x);
 text(x(1),y(2),{['p=',num2str(p)]});
 legend('before','after');
 set(gca,'fontweight','bold');title('gaps');
+xlabel('duration (seconds)');ylabel('probability');
 
 %plot distribution of durations for amp2 segmentation
 figure;subplot(2,1,1);hold on;
@@ -150,6 +149,7 @@ x = get(gca,'xlim');set(gca,'xlim',x);
 text(x(1),y(2),{['p=',num2str(p)]});
 legend('before','after');
 set(gca,'fontweight','bold');title('syllables');
+ylabel('probability');
 subplot(2,1,2);hold on;
 minval = min([amp2gaps;gaps2']);maxval = max([amp2gaps;gaps2']);
 [n b] = hist(gaps2,[minval:0.001:maxval]);stairs(b,n/sum(n),'k');
@@ -160,6 +160,7 @@ x = get(gca,'xlim');set(gca,'xlim',x);
 text(x(1),y(2),{['p=',num2str(p)]});
 legend('before','after');
 set(gca,'fontweight','bold');title('gaps');
+xlabel('duration (seconds)');ylabel('probability');
 
 %% shorten the gaps in one amp wv and test amp segmentations 
 fs=44100;
@@ -168,14 +169,12 @@ motifsegment = motifsegment_bcd_11_14_2015_saline;
 
 %extract one amp wv to manipulate
 smtemp = motifsegment(1).smtemp;
-filtsong = bandpass(smtemp,fs,1000,10000,'hanningffir');
-filtsong=abs(filtsong);
+filtsong = abs(bandpass(smtemp,fs,1000,10000,'hanningffir'));
 sm = log(evsmooth(filtsong,fs,'','','',2));
-%sm=log(motifsegment(1).sm);
 sm_amp=sm;sm_amp=sm_amp-min(sm_amp);sm_amp=sm_amp/max(sm_amp);
-sm_amp2=sm;sm_amp2=sm_amp2-mean(sm_amp2);
-ons=motifsegment(1).amp_ons;
-offs=motifsegment(1).amp_offs;
+sm_amp2=sm;sm_amp2=(sm_amp2-mean(sm_amp2))/std(sm_amp2);
+ons=motifsegment(1).amp_ons-0.004;
+offs=motifsegment(1).amp_offs+0.004;
 
 %measure sylls/gaps for both methods
 ampdurs = [];ampgaps = [];
@@ -211,12 +210,12 @@ for ii=1:length(w)
     ampgaps = [ampgaps;mean(ons2(2:end)-offs2(1:end-1))];
     
     %amp2
-    sm2=sm_scaled-mean(sm_scaled);
+    sm2=(sm_scaled-mean(sm_scaled))/std(sm_scaled);
     [ons2 offs2] = SegmentNotes(sm2,fs,5,20,0);
     figure;hold on;
     plot(sm_amp2,'k');hold on;plot(sm2,'r');hold on;
-    plot([ons2 ons2]*fs,[-5 5],'g');hold on;
-    plot([offs2 offs2]*fs,[-5 5],'g');hold on;
+    plot([ons2 ons2]*fs,[min(sm2) max(sm2)],'g');hold on;
+    plot([offs2 offs2]*fs,[min(sm2) max(sm2)],'g');hold on;
     title(['amp2 ',num2str(w(ii))]);
     amp2durs=[amp2durs;mean(offs2-ons2)];
     amp2gaps=[amp2gaps;mean(ons2(2:end)-offs2(1:end-1))];
@@ -239,11 +238,10 @@ ampdurs = [];ampgaps = [];
 amp2durs=[];amp2gaps=[];
 for ii=1:length(motifsegment)
     smtemp = motifsegment(ii).smtemp;
-    filtsong = bandpass(smtemp,fs,1000,10000,'hanningffir');
-    filtsong=abs(filtsong);
-    ons=motifsegment(ii).ph_ons;
-    offs=motifsegment(ii).ph_offs;
-    if isempty(ons) | floor(offs(end)*fs) > length(filtsong)
+    filtsong = abs(bandpass(smtemp,fs,1000,10000,'hanningffir'));
+    ons=motifsegment(ii).amp_ons-0.004;
+    offs=motifsegment(ii).amp_offs+0.004;
+    if isempty(ons) | floor(offs(end)*fs) > length(filtsong) | ons(1)<0
         continue
     end
     
@@ -272,7 +270,7 @@ for ii=1:length(motifsegment)
     ampgaps = [ampgaps;mean(ons2(2:end)-offs2(1:end-1))];
     
     %amp2
-    sm2=sm_scaled-mean(sm_scaled);
+    sm2=(sm_scaled-mean(sm_scaled))/std(sm_scaled);
     [ons2 offs2] = SegmentNotes(sm2,fs,5,20,0);
     amp2durs=[amp2durs;mean(offs2-ons2)];
     amp2gaps=[amp2gaps;mean(ons2(2:end)-offs2(1:end-1))];
@@ -293,6 +291,7 @@ x = get(gca,'xlim');set(gca,'xlim',x);
 text(x(1),y(2),{['p=',num2str(p)]});
 legend('before','after');
 set(gca,'fontweight','bold');title('syllables');
+ylabel('probability');
 subplot(2,1,2);hold on;
 minval = min([ampgaps;gaps1']);maxval = max([ampgaps;gaps1']);
 [n b] = hist(gaps1,[minval:0.001:maxval]);stairs(b,n/sum(n),'k');
@@ -303,6 +302,7 @@ x = get(gca,'xlim');set(gca,'xlim',x);
 text(x(1),y(2),{['p=',num2str(p)]});
 legend('before','after');
 set(gca,'fontweight','bold');title('gaps');
+xlabel('duration (seconds)');ylabel('probability');
 
 %plot distribution of durations for amp2 segmentation
 figure;subplot(2,1,1);hold on;
@@ -315,6 +315,7 @@ x = get(gca,'xlim');set(gca,'xlim',x);
 text(x(1),y(2),{['p=',num2str(p)]});
 legend('before','after');
 set(gca,'fontweight','bold');title('syllables');
+ylabel('probability');
 subplot(2,1,2);hold on;
 minval = min([amp2gaps;gaps2']);maxval = max([amp2gaps;gaps2']);
 [n b] = hist(gaps2,[minval:0.001:maxval]);stairs(b,n/sum(n),'k');
@@ -325,3 +326,4 @@ x = get(gca,'xlim');set(gca,'xlim',x);
 text(x(1),y(2),{['p=',num2str(p)]});
 legend('before','after');
 set(gca,'fontweight','bold');title('gaps');
+xlabel('duration (seconds)');ylabel('probability');

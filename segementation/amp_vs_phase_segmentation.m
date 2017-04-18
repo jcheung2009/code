@@ -192,7 +192,7 @@ for i = 1:length(ff)
 
          %phase segmentation        
          sm2 = log(sm);
-         sm2 = (sm2-mean(sm2));
+         sm2 = (sm2-mean(sm2))./std(sm2);
          if ~isempty(params.phshft)
              sm2 = sm2+params.phshft;
          end

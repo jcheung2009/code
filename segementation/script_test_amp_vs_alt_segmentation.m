@@ -118,7 +118,7 @@ for ii = 1:length(params.findmotif)
         xlim = get(gca,'xlim');set(gca,'xlim',xlim);
         text(xlim(1),ylim(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
         ylabel('mean syll durations (sec)');
-        xlabel('mean tempo (sec)');
+        xlabel('interval duration (sec)');
         title('baseline (amp)');
         
         subtightplot(2,3,4,0.08,0.1,0.07);hold on;
@@ -129,7 +129,7 @@ for ii = 1:length(params.findmotif)
         xlim = get(gca,'xlim');set(gca,'xlim',xlim);
         text(xlim(1),ylim(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
         ylabel('mean gap durations (sec)');
-        xlabel('mean tempo (sec)');
+        xlabel('interval duration (sec)');
         title('baseline (amp)');
         
         figure(h2);hold on;
@@ -141,7 +141,7 @@ for ii = 1:length(params.findmotif)
         xlim = get(gca,'xlim');set(gca,'xlim',xlim);
         text(xlim(1),ylim(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
         ylabel('mean syll durations (sec)');
-        xlabel('mean tempo (sec)');
+        xlabel('interval duration (sec)');
         title('baseline (phase)');
         
         subtightplot(2,3,4,0.08,0.1,0.07);hold on;
@@ -152,7 +152,7 @@ for ii = 1:length(params.findmotif)
         xlim = get(gca,'xlim');set(gca,'xlim',xlim);
         text(xlim(1),ylim(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
         ylabel('mean gap durations (sec)');
-        xlabel('mean tempo (sec)');
+        xlabel('interval duration (sec)');
         title('baseline (phase)');
     end
     
@@ -176,7 +176,7 @@ for ii = 1:length(params.findmotif)
         xlim = get(gca,'xlim');set(gca,'xlim',xlim);
         text(xlim(1),ylim(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
         ylabel('mean syll durations (sec)');
-        xlabel('mean tempo (sec)');
+        xlabel('interval duration (sec)');
         title('drug (amp)');
         
         subtightplot(2,3,5,0.08,0.1,0.07);hold on;
@@ -187,7 +187,7 @@ for ii = 1:length(params.findmotif)
         xlim = get(gca,'xlim');set(gca,'xlim',xlim);
         text(xlim(1),ylim(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
         ylabel('mean gap durations (sec)');
-        xlabel('mean tempo (sec)');
+        xlabel('interval duration (sec)');
         title('drug (amp)');
         
         figure(h2);hold on;
@@ -199,7 +199,7 @@ for ii = 1:length(params.findmotif)
         xlim = get(gca,'xlim');set(gca,'xlim',xlim);
         text(xlim(1),ylim(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
         ylabel('mean syll durations (sec)');
-        xlabel('mean tempo (sec)');
+        xlabel('interval duration (sec)');
         title('drug (phase)');
         
         subtightplot(2,3,5,0.08,0.1,0.07);hold on;
@@ -210,7 +210,7 @@ for ii = 1:length(params.findmotif)
         xlim = get(gca,'xlim');set(gca,'xlim',xlim);
         text(xlim(1),ylim(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
         ylabel('mean gap durations (sec)');
-        xlabel('mean tempo (sec)');
+        xlabel('interval duration (sec)');
         title('drug (phase)');
     end
     
@@ -228,7 +228,7 @@ for ii = 1:length(params.findmotif)
         xlim = get(gca,'xlim');set(gca,'xlim',xlim);
         text(xlim(1),ylim(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
         ylabel('mean syll durations (sec)');
-        xlabel('mean tempo (sec)');
+        xlabel('interval duration (sec)');
         title('amp');
 
         subtightplot(2,3,6,0.08,0.1,0.07);hold on;
@@ -243,7 +243,7 @@ for ii = 1:length(params.findmotif)
         xlim = get(gca,'xlim');set(gca,'xlim',xlim);
         text(xlim(1),ylim(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
         ylabel('mean gap durations (sec)');
-        xlabel('mean tempo (sec)');
+        xlabel('interval duration (sec)');
         title('amp');
         
         figure(h2);hold on;
@@ -259,7 +259,7 @@ for ii = 1:length(params.findmotif)
         xlim = get(gca,'xlim');set(gca,'xlim',xlim);
         text(xlim(1),ylim(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
         ylabel('mean syll durations (sec)');
-        xlabel('mean tempo (sec)');
+        xlabel('interval duration (sec)');
         title('phase');
 
         subtightplot(2,3,6,0.08,0.1,0.07);hold on;
@@ -274,7 +274,7 @@ for ii = 1:length(params.findmotif)
         xlim = get(gca,'xlim');set(gca,'xlim',xlim);
         text(xlim(1),ylim(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
         ylabel('mean gap durations (sec)');
-        xlabel('mean tempo (sec)');
+        xlabel('interval duration (sec)');
         title('phase');
     end
 end
@@ -748,7 +748,7 @@ for ii = 1:length(params.findmotif)
         [r p] = partialcorr(combo,'rows','complete');
         r = array2table(r,'VariableNames',{'tempo','gapph','volume'},...
             'RowNames',{'tempo','gapph','volume'});
-        disp('Partial Correlation (amp combined)');
+        disp('Partial Correlation (combined)');
         disp(r);
         p = array2table(p,'VariableNames',{'tempo','gapph','volume'},...
             'RowNames',{'tempo','gapph','volume'});

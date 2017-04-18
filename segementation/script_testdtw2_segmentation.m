@@ -2,7 +2,7 @@
 
 %% adjust SNR of single spectrogram by scaling syllables and test dtw vs amp segmentation
 fs=44100;
-wgt = [0.85:0.05:1.15];%scaling factors for syllables
+wgt = [0.95:0.01:1.05];%scaling factors for syllables
 motifsegment = motifsegment_bcd_11_14_2015_saline;
 
 %params for spectrogram
@@ -13,10 +13,9 @@ sigma=(1/1000)*fs;
 w=exp(-(t/sigma).^2);
 
 %extract template
-temp=dtwtemplate.filtsong;
+temp=abs(dtwtemplate.filtsong);
 temp_ons=dtwtemplate.ons;
 temp_offs=dtwtemplate.offs;
-temp_sm = log(dtwtemplate.sm);temp_sm = temp_sm-mean(temp_sm);
 [sp f tm1] = spectrogram(temp,w,overlap,NFFT,fs);
 indf = find(f>1000 & f<10000);
 temp = abs(sp(indf,:));
@@ -24,12 +23,10 @@ temp = temp./sum(temp,2);
 
 %extract one amp wv to manipulate
 smtemp=motifsegment(1).smtemp;
-filtsong = bandpass(smtemp,fs,1000,10000,'hanningffir');
-filtsong=abs(filtsong);
-ons=motifsegment(1).amp_ons;
-offs=motifsegment(1).amp_offs;
+filtsong = abs(bandpass(smtemp,fs,1000,10000,'hanningffir'));
+ons=motifsegment(1).amp_ons-0.004;
+offs=motifsegment(1).amp_offs+0.004;
 sm = log(evsmooth(filtsong,fs,'','','',2));
-sm=sm-mean(sm);
 
 %measure gaps/syllables after scaling syllables
 ampdurs = [];ampgaps = [];
@@ -38,8 +35,7 @@ for ii=1:length(wgt)
     interval=zeros(length(filtsong),1);
     for i = 1:length(ons)%sylls
         seg = floor(ons(i)*fs):floor(offs(i)*fs);
-        interval(seg) = normrnd(1+(1-wgt(ii)),0.001,[length(seg),1]);
-        %interval(seg)=normrnd(1+(1-w(ii)),0.001,[length(seg),1]);%(1+(1-w(ii)) because wav files bc multiplying to negative vals in wav file
+        interval(seg) = normrnd(1+(1-wgt(ii)),0.001,[length(seg),1]);%(1+(1-w(ii)) because wav files bc multiplying to negative vals in wav file
     end
     seg=1:floor(ons(1)*fs);%beginning
     interval(seg)=normrnd(1,0.001,[length(seg),1]);
@@ -52,28 +48,13 @@ for ii=1:length(wgt)
     filtsong2 = filtsong.^interval;
     sm_scaled = log(evsmooth(filtsong2,fs,'','','',2));
     
-%     interval=zeros(length(filtsong),1);
-%     for i = 1:length(ons) %sylls
-%         seg = floor(ons(i)*fs):floor(offs(i)*fs);
-%         interval(seg)=normrnd(wgt(ii),0.001,[length(seg),1]);
-%     end
-%     seg=1:floor(ons(1)*fs);%beginning
-%     interval(seg)=normrnd(1,0.001,[length(seg),1]);
-%     seg=floor(offs(3)*fs):length(interval);%end
-%     interval(seg)=normrnd(1,0.001,[length(seg),1]);
-%     for i = 1:length(ons)-1 %gaps
-%         seg = floor(offs(i)*fs):floor(ons(i+1)*fs);
-%         interval(seg)=normrnd(1,0.001,[length(seg),1]);
-%     end
-%     filtsong2 = abs(filtsong.*interval);
-    
     %amp
-    sm2=sm_scaled-mean(sm_scaled);
+    sm2=(sm_scaled-mean(sm_scaled))/std(sm_scaled);
     [ons2 offs2] = SegmentNotes(sm2,fs,5,20,0);
     figure;hold on;
-    plot(sm,'k');hold on;plot(sm2,'r');hold on;
-    plot([ons2 ons2]*fs,[-5 5],'g');hold on;
-    plot([offs2 offs2]*fs,[-5 5],'g');hold on;
+    plot((sm-mean(sm))/std(sm),'k');hold on;plot(sm2,'r');hold on;
+    plot([ons2 ons2]*fs,[min(sm2) max(sm2)],'g');hold on;
+    plot([offs2 offs2]*fs,[min(sm2) max(sm2)],'g');hold on;
     title(['amp ',num2str(wgt(ii))]);
     ampdurs = [ampdurs;mean(offs2-ons2)];
     ampgaps = [ampgaps;mean(ons2(2:end)-offs2(1:end-1))];
@@ -101,9 +82,9 @@ for ii=1:length(wgt)
     end
     ons2 = tm2(ons2)';offs2=tm2(offs2)';
     figure;hold on;
-    plot(temp_sm,'k');hold on;plot(sm2,'r');hold on;
-    plot([ons2 ons2]*fs,[-5 5],'g');hold on;
-    plot([offs2 offs2]*fs,[-5 5],'g');hold on;
+    plot(sm,'k');hold on;plot(sm_scaled,'r');hold on;
+    plot([ons2 ons2]*fs,[min(sm) max(sm)],'g');hold on;
+    plot([offs2 offs2]*fs,[min(sm) max(sm)],'g');hold on;
     title(['dtw ',num2str(wgt(ii))]);
     dtwdurs=[dtwdurs;mean(offs2-ons2)];
     dtwgaps=[dtwgaps;mean(ons2(2:end)-offs2(1:end-1))];
@@ -130,10 +111,9 @@ sigma=(1/1000)*fs;
 w=exp(-(t/sigma).^2);
 
 %extract template 
-temp=dtwtemplate.filtsong;
+temp=abs(dtwtemplate.filtsong);
 temp_ons=dtwtemplate.ons;
 temp_offs=dtwtemplate.offs;
-temp_sm = log(dtwtemplate.sm);temp_sm = temp_sm-mean(temp_sm);
 [sp f tm1] = spectrogram(temp,w,overlap,NFFT,fs);
 indf = find(f>1000 & f<10000);
 temp = abs(sp(indf,:));
@@ -145,9 +125,8 @@ dtwdurs=[];dtwgaps=[];
 for i = 1:length(motifsegment)
     smtemp=motifsegment(i).smtemp;
     filtsong = abs(bandpass(smtemp,fs,1000,10000,'hanningffir'));
-    filtsong=abs(filtsong);
-    ons=motifsegment(i).ph_ons;
-    offs=motifsegment(i).ph_offs;
+    ons=motifsegment(i).amp_ons-0.004;
+    offs=motifsegment(i).amp_offs+0.004;
     if isempty(ons) | floor(offs(end)*fs) > length(filtsong)
         continue
     end
@@ -159,8 +138,8 @@ for i = 1:length(motifsegment)
     end
     seg=1:floor(ons(1)*fs);%beginning
     interval(seg)=normrnd(1,0.001,[length(seg),1]);
-    seg=floor(offs(3)*fs):length(interval);%end
-    interval(seg)=normrnd(1,0.01,[length(seg),1]);
+    seg=floor(offs(end)*fs):length(interval);%end
+    interval(seg)=normrnd(1,0.001,[length(seg),1]);
     for ii = 1:length(ons)-1%gaps
         seg = floor(offs(ii)*fs):floor(ons(ii+1)*fs);
         interval(seg)=normrnd(1,0.001,[length(seg),1]);
@@ -169,7 +148,7 @@ for i = 1:length(motifsegment)
     sm_scaled = log(evsmooth(filtsong2,fs,'','','',2));
     
     %amp
-    sm2=sm_scaled-mean(sm_scaled);
+    sm2=(sm_scaled-mean(sm_scaled))/std(sm_scaled);
     [ons2 offs2] = SegmentNotes(sm2,fs,5,20,0);
     ampdurs = [ampdurs;mean(offs2-ons2)];
     ampgaps = [ampgaps;mean(ons2(2:end)-offs2(1:end-1))];
@@ -215,6 +194,7 @@ x = get(gca,'xlim');set(gca,'xlim',x);
 text(x(1),y(2),{['p=',num2str(p)]});
 legend('before','after');
 set(gca,'fontweight','bold');title('syllables amp');
+ylabel('probability');
 subplot(2,1,2);hold on;
 minval = min([ampgaps;gaps1']);maxval = max([ampgaps;gaps1']);
 [n b] = hist(gaps1,[minval:0.001:maxval]);stairs(b,n/sum(n),'k');
@@ -225,7 +205,7 @@ x = get(gca,'xlim');set(gca,'xlim',x);
 text(x(1),y(2),{['p=',num2str(p)]});
 legend('before','after');
 set(gca,'fontweight','bold');title('gaps amp');
-xlabel('duration (sec)');
+xlabel('duration (sec)');ylabel('probability')
 
 %plot distribution of durations for dtw segmentation
 figure;subplot(2,1,1);hold on;
@@ -238,6 +218,7 @@ x = get(gca,'xlim');set(gca,'xlim',x);
 text(x(1),y(2),{['p=',num2str(p)]});
 legend('before','after');
 set(gca,'fontweight','bold');title('syllables dtw');
+ylabel('probability');
 subplot(2,1,2);hold on;
 minval = min([dtwgaps;gaps2']);maxval = max([dtwgaps;gaps2']);
 [n b] = hist(gaps2,[minval:0.001:maxval]);stairs(b,n/sum(n),'k');
@@ -248,7 +229,7 @@ x = get(gca,'xlim');set(gca,'xlim',x);
 text(x(1),y(2),{['p=',num2str(p)]});
 legend('before','after');
 set(gca,'fontweight','bold');title('gaps dtw');
-xlabel('duration (sec)');
+xlabel('duration (sec)');ylabel('probability');
 
 %% shorten the gaps in one amp wv and test dtw 
 fs=44100;
@@ -266,7 +247,6 @@ w=exp(-(t/sigma).^2);
 temp=abs(dtwtemplate.filtsong);
 temp_ons=dtwtemplate.ons;
 temp_offs=dtwtemplate.offs;
-temp_sm = log(dtwtemplate.sm);temp_sm = temp_sm-mean(temp_sm);
 [sp f tm1] = spectrogram(temp,w,overlap,NFFT,fs);
 indf = find(f>1000 & f<10000);
 temp = abs(sp(indf,:));
@@ -274,12 +254,10 @@ temp = temp./sum(temp,2);
 
 %extract one amp wv to manipulate
 smtemp=motifsegment(1).smtemp;
-filtsong = bandpass(smtemp,fs,1000,10000,'hanningffir');
-filtsong=abs(filtsong);
-ons=motifsegment(1).amp_ons;
-offs=motifsegment(1).amp_offs;
+filtsong = abs(bandpass(smtemp,fs,1000,10000,'hanningffir'));
+ons=motifsegment(1).amp_ons-0.008;
+offs=motifsegment(1).amp_offs+0.008;
 sm = log(evsmooth(filtsong,fs,'','','',2));
-sm=sm-mean(sm);
 
 %measure sylls/gaps at different gap lengths
 ampdurs = [];ampgaps = [];
@@ -304,12 +282,12 @@ for ii=1:length(wgt)
     sm_scaled = log(evsmooth(filtsong2,fs,'','','',2));
     
     %amp
-    sm2=sm_scaled-mean(sm_scaled);
+    sm2=(sm_scaled-mean(sm_scaled))/std(sm_scaled);
     [ons2 offs2] = SegmentNotes(sm2,fs,5,20,0);
     figure;hold on;
-    plot(sm,'k');hold on;plot(sm2,'r');hold on;
-    plot([ons2 ons2]*fs,[-5 5],'g');hold on;
-    plot([offs2 offs2]*fs,[-5 5],'g');hold on;
+    plot((sm-mean(sm))/std(sm),'k');hold on;plot(sm2,'r');hold on;
+    plot([ons2 ons2]*fs,[min(sm2) max(sm2)],'g');hold on;
+    plot([offs2 offs2]*fs,[min(sm2) max(sm2)],'g');hold on;
     title(['amp ',num2str(wgt(ii))]);
     ampdurs = [ampdurs;mean(offs2-ons2)];
     ampgaps = [ampgaps;mean(ons2(2:end)-offs2(1:end-1))];
@@ -337,9 +315,9 @@ for ii=1:length(wgt)
     end
     ons2 = tm2(ons2)';offs2=tm2(offs2)';
     figure;hold on;
-    plot(sm,'k');hold on;plot(sm2,'r');hold on;
-    plot([ons2 ons2]*fs,[-5 5],'g');hold on;
-    plot([offs2 offs2]*fs,[-5 5],'g');hold on;
+    plot(sm,'k');hold on;plot(sm_scaled,'r');hold on;
+    plot([ons2 ons2]*fs,[min(sm) max(sm)],'g');hold on;
+    plot([offs2 offs2]*fs,[min(sm) max(sm)],'g');hold on;
     title(['dtw ',num2str(wgt(ii))]);
     dtwdurs=[dtwdurs;mean(offs2-ons2)];
     dtwgaps=[dtwgaps;mean(ons2(2:end)-offs2(1:end-1))];
@@ -368,10 +346,9 @@ sigma=(1/1000)*fs;
 w=exp(-(t/sigma).^2);
 
 %extract template 
-temp=dtwtemplate.filtsong;
+temp=abs(dtwtemplate.filtsong);
 temp_ons=dtwtemplate.ons;
 temp_offs=dtwtemplate.offs;
-temp_sm = log(dtwtemplate.sm);temp_sm = temp_sm-mean(temp_sm);
 [sp f tm1] = spectrogram(temp,w,overlap,NFFT,fs);
 indf = find(f>1000 & f<10000);
 temp = abs(sp(indf,:));
@@ -383,8 +360,8 @@ dtwdurs=[];dtwgaps=[];
 for ii=1:length(motifsegment)
     smtemp=motifsegment(ii).smtemp;
     filtsong = abs(bandpass(smtemp,fs,1000,10000,'hanningffir'));
-    ons=motifsegment(ii).ph_ons;
-    offs=motifsegment(ii).ph_offs;
+    ons=motifsegment(ii).amp_ons-0.008;
+    offs=motifsegment(ii).amp_offs+0.008;
     if isempty(ons) | floor(offs(end)*fs) > length(filtsong)
         continue
     end
@@ -408,7 +385,7 @@ for ii=1:length(motifsegment)
     sm_scaled = log(evsmooth(filtsong2,fs,'','','',2));
     
     %amp segmentation
-    sm2=sm_scaled-mean(sm_scaled);
+    sm2=(sm_scaled-mean(sm_scaled))/std(sm_scaled);
     [ons2 offs2] = SegmentNotes(sm2,fs,5,20,0);
     ampdurs = [ampdurs;mean(offs2-ons2)];
     ampgaps = [ampgaps;mean(ons2(2:end)-offs2(1:end-1))];
@@ -456,6 +433,7 @@ x = get(gca,'xlim');set(gca,'xlim',x);
 text(x(1),y(2),{['p=',num2str(p)]});
 legend('before','after');
 set(gca,'fontweight','bold');title('syllables amp');
+ylabel('probability');
 subplot(2,1,2);hold on;
 minval = min([ampgaps;gaps1']);maxval = max([ampgaps;gaps1']);
 [n b] = hist(gaps1,[minval:0.001:maxval]);stairs(b,n/sum(n),'k');
@@ -466,6 +444,7 @@ x = get(gca,'xlim');set(gca,'xlim',x);
 text(x(1),y(2),{['p=',num2str(p)]});
 legend('before','after');
 set(gca,'fontweight','bold');title('gaps amp');
+xlabel('duration (seconds)');ylabel('probability');
 
 %plot distribution of durations for dtw segmentation
 figure;subplot(2,1,1);hold on;
@@ -478,6 +457,7 @@ x = get(gca,'xlim');set(gca,'xlim',x);
 text(x(1),y(2),{['p=',num2str(p)]});
 legend('before','after');
 set(gca,'fontweight','bold');title('syllables dtw');
+ylabel('probability');
 subplot(2,1,2);hold on;
 minval = min([dtwgaps;gaps2']);maxval = max([dtwgaps;gaps2']);
 [n b] = hist(gaps2,[minval:0.001:maxval]);stairs(b,n/sum(n),'k');
@@ -488,3 +468,4 @@ x = get(gca,'xlim');set(gca,'xlim',x);
 text(x(1),y(2),{['p=',num2str(p)]});
 legend('before','after');
 set(gca,'fontweight','bold');title('gaps dtw');
+xlabel('duration (seconds)');ylabel('probability');

@@ -116,7 +116,7 @@ for i = 1:length(ff)
         
         %amplitude segmentation
         sm2 = log(sm);
-        sm2=sm2-mean(sm2);
+        sm2=(sm2-mean(sm2))/std(sm2);
         [ons offs] = SegmentNotes(sm2,fs,minint,mindur,0);
         disp([num2str(length(ons)),' syllables detected']);
         
