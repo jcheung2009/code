@@ -80,16 +80,19 @@ while isempty(dtwtemplate.filtsong)
         w=exp(-(t/sigma).^2);
         [sp f tm] = spectrogram(abs(filtsong),w,overlap,NFFT,fs);
         indf = find(f>1000 & f <10000);
-        imagesc(tm,f(indf),log(abs(sp(indf,:))));set(gca,'YDir','normal');
-        keep_or_nokeep = input('use as template?: ','s');
-        if keep_or_nokeep == 'n'
-            continue
-        end
-
+        imagesc(tm,f(indf),log(abs(sp(indf,:))));set(gca,'YDir','normal');hold on;
+        
         sm = evsmooth(smtemp,fs,'','','',2);%smoothed amplitude envelop
         sm2=log(sm);
         sm2=sm2-mean(sm2);
         [ons offs] = SegmentNotes(sm2,fs,minint,mindur,0);
+        plot([ons ons],[1000 10000],'r');hold on;
+        plot([offs offs],[1000 10000],'r');hold on;
+        keep_or_nokeep = input('use as template?: ','s');
+        if keep_or_nokeep == 'n'
+            continue
+        end
+       
         if length(ons) ~= length(motif)
              continue
         else
