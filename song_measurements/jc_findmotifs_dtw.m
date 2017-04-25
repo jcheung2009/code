@@ -205,15 +205,16 @@ for i = 1:length(ff)
        %pitch,entropy,volume measurements for specified syllables
        if measurespecs == 'y'
            spNFFT = floor(0.016*fs);%16 ms window to compute whole syllable spectrogram for entropy
-           overlap = spNFFT-2;
-           t = -spNFFT/2+1:spNFFT/2;
-           sigma=(1/1000)*fs;
-           w=exp(-(t/sigma).^2);
+           spoverlap = spNFFT-2;
+           spt = -spNFFT/2+1:spNFFT/2;
+           spsigma=(1/1000)*fs;
+           spw=exp(-(spt/spsigma).^2);
            USEFIT = 1;
            numsylls = sum(cellfun(@length,syllablepositions));
            pitchestimates = NaN(numsylls,1);
            volumeestimates = NaN(numsylls,1);
            entropyestimates = NaN(numsylls,1);
+           syllcnt = 1;
            for syllind = 1:length(syllablepositions)
                for syllposind = 1:length(syllablepositions{syllind})
                    if ceil(offs(syllind)*fs) <= length(smtemp)
@@ -222,7 +223,7 @@ for i = 1:length(ff)
                            offs(syllablepositions{syllind}(syllposind)) = (length(filtsong)-129)/fs;
                        end
                        [sp f tm pxx] = spectrogram(filtsong(floor(ons(syllablepositions{syllind}(syllposind))*fs):...
-                           ceil(offs(syllablepositions{syllind}(syllposind))*fs)),w,overlap,spNFFT,fs);
+                           ceil(offs(syllablepositions{syllind}(syllposind))*fs)),spw,spoverlap,spNFFT,fs);
                        pc = [];
                        for m = 1:size(sp,2)
                            fdat = abs(sp(:,m));
@@ -246,17 +247,19 @@ for i = 1:length(ff)
                         %pitch
                         pc = [tm' pc];
                         ti1 = find(tm>=timeshifts{syllind}(1)&tm<=timeshifts{syllind}(2));
-                        pitchestimates(syllind) = mean(pc(ti1,2));%pitch estimate at timeshift
+                        pitchestimates(syllcnt) = mean(pc(ti1,2));%pitch estimate at timeshift
   
                         %Spectral temporal entropy
                         indf = find(f>=300 & f <= 10000);
                         pxx = pxx(indf,:);
                         pxx = bsxfun(@rdivide,pxx,sum(sum(pxx)));
-                        entropyestimates(syllind) = -sum(sum(pxx.*log2(pxx)))/log2(length(pxx(:)));
+                        entropyestimates(syllcnt) = -sum(sum(pxx.*log2(pxx)))/log2(length(pxx(:)));
 
                         %volume
-                        volumeestimates(syllind)=mean(filtsong(floor(ons(syllablepositions{syllind}(syllposind))*fs):...
+                        volumeestimates(syllcnt)=mean(filtsong(floor(ons(syllablepositions{syllind}(syllposind))*fs):...
                             ceil(offs(syllablepositions{syllind}(syllposind))*fs)-1).^2);
+                        
+                        syllcnt=syllcnt+1;
                  else
                         continue
                  end
