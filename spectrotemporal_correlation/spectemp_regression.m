@@ -21,3 +21,11 @@ syll_post = arrayfun(@(x) x.durations(3),motif)';
 tbl = table(pitch,gap_pre,gap_post,syll,syll_pre,syll_post,vol,vol_pre,vol_post,'VariableNames',...
     {'pitch','gap_pre','gap_post','syll','syll_pre','syll_post','vol','vol_pre','vol_post'});
 lm = fitlm(tbl,'pitch~gap_pre+gap_post+syll+syll_pre+syll_post+vol+vol_pre+vol_post');
+lm = fitlm(tbl,'pitch~gap_pre+gap_post')
+
+x = [pitch,gap_pre,gap_post,syll,syll_pre,syll_post,vol,vol_pre,vol_post];
+[r p] = partialcorr(x,'rows','complete')
+r = array2table(r,'VariableNames',{'pitch','gap_pre','gap_post','syll','syll_pre','syll_post','vol','vol_pre','vol_post'},...
+    'RowNames',{'pitch','gap_pre','gap_post','syll','syll_pre','syll_post','vol','vol_pre','vol_post'})
+p = array2table(p,'VariableNames',{'pitch','gap_pre','gap_post','syll','syll_pre','syll_post','vol','vol_pre','vol_post'},...
+    'RowNames',{'pitch','gap_pre','gap_post','syll','syll_pre','syll_post','vol','vol_pre','vol_post'})
