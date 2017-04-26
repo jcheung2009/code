@@ -263,7 +263,11 @@ for i = 1:length(ff)
             for mx = 1:numsylls
                 volumeestimates(mx)=mean(filtsong(floor(ons(mx)*fs):...
                     ceil(offs(mx)*fs)-1).^2);
-            end
+                
+
+          
+                 
+               
         else
            pitchestimates = [];
            volumeestimates = [];
