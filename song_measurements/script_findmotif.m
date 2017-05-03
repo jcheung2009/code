@@ -1,5 +1,6 @@
 %script to run jc_findmotifs for batch of folders
 tic
+config;
 batch = uigetfile;
 ff = load_batchf(batch);
 for i = 1:length(ff)
