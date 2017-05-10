@@ -1,6 +1,6 @@
 %DISTRIBUTION of singing rate by bird
 
-ff = load_batchf('naspm_birds');
+ff = load_batchf('HVC_NASPM_birds');
 
 singrate = [];
 singrate_sal = [];

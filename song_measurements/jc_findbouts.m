@@ -1,10 +1,14 @@
-function bout = jc_findbout(batch,motifinfo,motif,measure_intro,CHANSPEC)
-%define bout by each song file
-%
+function bout = jc_findbouts(batch,motifinfo,params,CHANSPEC)
+%this function organizes spectrotemporal measurements by bout, also used
+%for counting singing rate
+%params specified by config 
+%define bout by each song file 
 %motifinfo from jc_findmotif
-%measure_intro = 1 if intro notes should
-%be measured, these are intro notes at start of bout labelled "i"
+% measure_intro = 1 if intro notes should be measured, beginning of bout
+% labelled "i"
 
+motif=params.motif;
+measure_intro = params.measure_intro;
 
 ff = load_batchf(batch);
 bout_cnt = 0;
@@ -45,12 +49,6 @@ for i = 1:length(ff)
     %number of intro notes at the beginning of bout
     if measure_intro == 1
         intronoteind = strfind(labels,'i');
-        if varseq == 1'
-            motifind = regexp(labels,motif);
-        else
-            motifind = strfind(labels,motif);
-        end
-        intronoteind = intronoteind(find(intronoteind < motifind(1)));
         ton = onsets(intronoteind(1)); toff = offsets(intronoteind(end));
         onsamp = ceil((ton*1e-3)*fs) - 0.3*fs;%300 ms buffer before intro notes start
         if onsamp  < 1
