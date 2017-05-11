@@ -3,7 +3,8 @@ tic
 config;
 batch = uigetfile;
 ff = load_batchf(batch);
-for i = 1:length(ff)
+ind = input('batch index [st end]:');
+for i = ind(1):ind(2)%1:length(ff)
     cd(ff(i).name);
     for ii = 1:length(params.findmotif)
         cmd = ['motif_',params.findmotif(ii).motif,'_',ff(i).name,'=','jc_findmotifs(''batch.keep'',params.findmotif(',num2str(ii),'),params.filetype)'];

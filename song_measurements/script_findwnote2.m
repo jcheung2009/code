@@ -5,8 +5,9 @@ config;
 noteparams = params.findnote;
 pathname = fileparts([pwd,'/analysis/data_structures/']);
 ff = load_batchf('batch');
+ind = input('batch index [st, end]:');
 tic
-for i = 1:length(ff)
+for i = ind(1):ind(2)%1:length(ff)
     cd(ff(i).name);
     disp(ff(i).name);
     numsylls = length(noteparams.syllables);
