@@ -6,7 +6,7 @@ ff = load_batchf('batch');
 for i = 1:length(params.boutstructs)
     eval([params.boutstructs{i},'pre = [];']);%combines several days of data into single pre condition
     eval([params.boutstructs{i},'post = [];']);
-    for ii = 1:length(ff);
+    for ii = 1:length(ff)
         cmd1 = ['load(''analysis/data_structures/',params.boutstructs{i},ff(ii).name,''')'];
         eval(cmd1);
 
