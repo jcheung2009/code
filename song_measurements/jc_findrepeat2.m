@@ -1,5 +1,5 @@
-function fvalsstr = jc_findrepeat4(batch,note,prenote,fvalbnd,timeshift,NFFT, ...
-    CHANSPEC,computespec)
+function fvalsstr = jc_findrepeat2(batch,note,prenote,fvalbnd,timeshift,USEFIT, ...
+    CHANSPEC,usingregexp,computespec)
 %extract information for each instance of a repeat run and information for
 %each syllable within those repeat runs
 %note = repeating syllable, prenote = syllable that precedes the first
@@ -22,9 +22,17 @@ function fvalsstr = jc_findrepeat4(batch,note,prenote,fvalbnd,timeshift,NFFT, ..
 %   ind = index of run
 %   amp = volume of each syllable in run
 %   sm = smooth filtered amp env of run
+tic 
+%usingregexp = input('using regular expression? (y/n):','s');
 %computespec = input('compute spectral features?:','s');
-%includes a time limit to identify repeat string lengths
 
+fvalsstr=[];
+
+if (~exist('prenote'))
+    prenote='';
+elseif (length(prenote)<1)
+    prenote='';
+end
 
 if (~exist('CHANSPEC'))
     CHANSPEC='obs0';
@@ -38,7 +46,12 @@ elseif (length(NFFT)<1)
     NFFT=1024;
 end
 
-fvalsstr=[];
+if (~exist('USEFIT'))
+    USEFIT=1;
+elseif (length(USEFIT)<1)
+    USEFIT=1;
+end
+
 run_count=0;
 ff=load_batchf(batch);
 for ifn=1:length(ff)
@@ -69,34 +82,33 @@ for ifn=1:length(ff)
         continue;
     end
     
-    p = strfind(labels,note);
-    if isempty(p)
-        continue
-    end
-    runlength = [];
-    onind = [p(1)];
-    offind = [];
-    cnt = 1;
-    for i = 1:length(p)-1
-        if (p(i+1) == p(i)+1) & (onsets(p(i+1))-offsets(p(i)))<=100
-            cnt = cnt+1;
-            if i == length(p)-1
-                runlength = [runlength;cnt];
-                offind = [offind;p(i+1)];
-            end
+    if usingregexp == 'y'
+        [onind offind] = regexp(labels,note);
+        offind = offind-1;
+        runlength = offind-onind+1;
+        if isempty(runlength)
+            continue
+        end
+        pp = onind; 
+    else
+        p = ismember(labels,note);
+        kk = [find(diff([-1 p -1])~=0)];
+        runlength = diff(kk);
+        runlength = runlength(1+(p(1)==0):2:end);
+        if isempty(runlength)
+            continue
+        end
+        if ~isempty(prenote)
+            pp = strfind(labels,[prenote,note]);
+            onind = pp + 1; %start index for each repeat run
+            offind = pp + runlength; %end index for each repeat run
         else
-            runlength = [runlength; cnt];
-            cnt = 1;
-            offind = [offind;p(i)];
-            onind = [onind;p(i+1)];
-            if i == length(p)-1
-                runlength = [runlength;cnt];
-                offind = [offind;p(i+1)];
-                onind = [onind;p(i+1)];
-            end
+            pp = find(diff([0 p])==1);
+            onind = pp;
+            offind = pp+runlength-1;
         end
     end
-
+    
     for i = 1:length(runlength) %for each instance of a repeat run
         ton = onsets(onind(i)); toff = offsets(offind(i));%in ms
 
@@ -141,25 +153,25 @@ for ifn=1:length(ff)
             thresholdforsegmentation{3},thresholdforsegmentation{1});
         disp([num2str(length(ons)),' syllables detected']);
         %% comment this part if don't want to see segmentation
-        if length(ons) ~= runlength(i) | floor(ons(1)*fs) == 1
-            figure;hold on;
-        end
-        
-        while length(ons)~=runlength(i) | floor(ons(1)*fs) == 1
-            clf
-            plot(sm,'k');hold on;%plot([floor(ons(1)*fs) ceil(offs(end)*fs)],...
-                %[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');
-                plot([floor(ons*fs) ceil(offs*fs)],[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');hold on;
-            disp([num2str(length(ons)),' syllables detected']);
-            accept_or_not = input('accept segmentation? (y/n):','s');
-            if accept_or_not=='y'
-                break
-            else
-                thresholdforsegmentation=input('try new {threshold,minint,mindur}:');
-                [ons offs] = SegmentNotes(sm,fs,thresholdforsegmentation{2},...
-                    thresholdforsegmentation{3},thresholdforsegmentation{1});
-            end
-        end
+%         if length(ons) ~= runlength(i) | floor(ons(1)*fs) == 1
+%             figure;hold on;
+%         end
+%         
+%         while length(ons)~=runlength(i) | floor(ons(1)*fs) == 1
+%             clf
+%             plot(sm,'k');hold on;%plot([floor(ons(1)*fs) ceil(offs(end)*fs)],...
+%                 %[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');
+%                 plot([floor(ons*fs) ceil(offs*fs)],[thresholdforsegmentation{1} thresholdforsegmentation{1}],'r');hold on;
+%             disp([num2str(length(ons)),' syllables detected']);
+%             accept_or_not = input('accept segmentation? (y/n):','s');
+%             if accept_or_not=='y'
+%                 break
+%             else
+%                 thresholdforsegmentation=input('try new {threshold,minint,mindur}:');
+%                 [ons offs] = SegmentNotes(sm,fs,thresholdforsegmentation{2},...
+%                     thresholdforsegmentation{3},thresholdforsegmentation{1});
+%             end
+%         end
         %%
        
         if length(ons) ~= runlength(i) | floor(ons(1)*fs) == 1
@@ -232,12 +244,14 @@ for ifn=1:length(ff)
                                 NPNTS = 10;
                                 [tmp pf] = max(fdat(tmpinds));
                                 pf = pf+tmpinds(1)-1;
-                                %weighted average
-                                tmpxv=pf + [-NPNTS:NPNTS];
-                                tmpxv=tmpxv(find((tmpxv>0)&(tmpxv<=length(f))));
-                                mxtmpvec(kk)=f(tmpxv)'*fdat(tmpxv);
-                                mxtmpvec(kk)=mxtmpvec(kk)./sum(fdat(tmpxv));
-                         
+                                if (USEFIT==1)%weighted average 
+                                    tmpxv=pf + [-NPNTS:NPNTS];
+                                    tmpxv=tmpxv(find((tmpxv>0)&(tmpxv<=length(f))));
+                                    mxtmpvec(kk)=f(tmpxv)'*fdat(tmpxv);
+                                    mxtmpvec(kk)=mxtmpvec(kk)./sum(fdat(tmpxv));
+                                else
+                                    mxtmpvec(kk) = f(pf);
+                                end
                             end
                             pc = cat(1,pc,mean(diff([0,mxtmpvec])));
                         end
@@ -302,7 +316,7 @@ for ifn=1:length(ff)
             fvalsstr(run_count).pc = pitchcontours_all_syllables; %pitch contour for each syllable in repeat run, each row is syllable, first row is time vector
             fvalsstr(run_count).amp = amp; %volume for each syllable in run computed by taking average of smooth, rectified waveform
         end
-        fvalsstr(run_count).ind = onind(i);%start index for run in the song
+        fvalsstr(run_count).ind = pp(i);%start index for run in the song
         fvalsstr(run_count).sm = sm;%smooth, rectified and log filtered amp env of repeat run
     end
     

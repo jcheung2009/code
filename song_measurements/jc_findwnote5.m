@@ -1,13 +1,5 @@
-function [fvalsstr]=jc_findwnote5(batch,NOTE,PRENOTE,POSTNOTE,...
-    TIMESHIFT,FVALBND,NFFT,USEFIT,CHANSPEC,evtaf,ADDX,chckpc,varargin);
-%combines jc_findwnote and jc_evtaffv3 and pitch contour code
-%datenum: extracted from rec file which has seconds resolution 
-%ADDX: use X.rec 
-%FVALBND: [harm1_lo harm1_hi; harm2_lo harm2_hi...]
-%USEFIT==1: weighted average for pitch calculation
-%USEFIT == 0: uses max power
-%NFFT: size of window to compute pitch, usually 512 (16 ms)
-%varargin: {cntrng,refrac,tempNFFT,fvalbnd,USEX} used with evtaf == 1 to get evtaf pitch measurements 
+function [fvalsstr]=jc_findwnote5(batch,params,CHANSPEC);
+%extract spectral and temporal information for target syllable
 %fvalsstr:
 %   fn
 %   datenm
@@ -23,44 +15,19 @@ function [fvalsstr]=jc_findwnote5(batch,NOTE,PRENOTE,POSTNOTE,...
 %   sm
 %   maxvol
 %   pitchcontour: [timebase pitchcontour]
-%   we: wiener entropy 
 %   spent: spectral entropy
-%   evtaf: pitch values for hits and escapes 
 %   tmpttime: trig time from tmp file
-%
 
+NOTE = params.syllable;
+PRENOTE = params.prenotes;
+POSTNOTE = params.postnotes;
+TIMESHIFT = params.timeshifts;
+FVALBND = params.fvalbnd;
+NFFT = params.nfft;
+evtaf = params.evtaf;
+chckpc = params.chckpc;
 
 fvalsstr=[];
-if (~exist('PRENOTE'))
-    PRENOTE='';
-elseif (length(PRENOTE)<1)
-    PRENOTE='';
-end
-
-if (~exist('CHANSPEC'))
-    CHANSPEC='obs0';
-elseif (length(CHANSPEC)<1)
-    CHANSPEC='obs0';
-end
-
-if (~exist('NFFT'))
-    NFFT=512;
-elseif (length(NFFT)<1)
-    NFFT=512;
-end
-
-if (~exist('USEFIT'))
-    USEFIT=1;
-elseif (length(USEFIT)<1)
-    USEFIT=1;
-end
-
-if (~exist('ADDX'))
-    ADDX=0;
-elseif (length(ADDX)<1)
-    ADDX=0;
-end
-
 note_cnt=0;
 ff=load_batchf(batch);
 for ifn=1:length(ff)
@@ -75,16 +42,7 @@ for ifn=1:length(ff)
     labels(findstr(labels,'0'))='-';
     
     %load rec file
-    if (ADDX==1)
-        ptemp=findstr(fnn,'.cbin');
-        if (isempty(ptemp))
-            ptemp=findstr(fnn,'.cbin');
-        end
-        fnrt=[fnn(1:ptemp(end)-1),'X.rec'];
-    else
-        fnrt=fn;
-    end
-    rd = readrecf(fnrt);
+    rd = readrecf(fn);
 
     %load raw song data
     [pthstr,tnm,ext] = fileparts(fn);
@@ -98,90 +56,6 @@ for ifn=1:length(ff)
     if (isempty(dat))
         disp(['hey no data!']);
         continue;
-    end
-    
-    if evtaf == 1 %if compute evtaf pitch estimate find temp file detections
-        NCNT = length(varargin{1}); %number of templates
-        cnt = zeros([1,NCNT]);%used for counts in tmp  
-        pp = findstr(fn,'.cbin');
-        
-        %load tmp file
-        if varargin{5} == 1
-            tmpdat = load([fn(1:pp(end)),'X.tmp']);
-        else
-            tmpdat = load([fn(1:pp(end)),'tmp']);
-        end
-        
-        %transforming temp values in tmp file into columns matching template   
-        tmpdat2=zeros([fix(length(tmpdat)/NCNT),NCNT]);
-        for ii=1:NCNT
-            tmpdat2(:,ii)=tmpdat(ii:NCNT:end);
-        end
-        tmpdat=tmpdat2;
-        clear CHANSPECtmpdat2;
-        
-        refracsam=ceil(varargin{2}/(2*varargin{3}/fs));
-        lasttrig=-varargin{2};tt=[];%tt = tmp detections 
-        cnt = 0*cnt;
-
-        for kk=1:NCNT
-            if (varargin{1}(kk).MODE==0)%bird taf mode, set count to max for that column
-                cnt(kk)=varargin{1}(kk).MAX+1;
-            end
-        end
-
-        %find all detections based on tmp file values 
-        for ii = 1:size(tmpdat,1)
-
-            for kk=1:NCNT
-                if (tmpdat(ii,kk)<=varargin{1}(kk).TH)%if cross threshold and evtaf mode, increase count by 1 for that column
-                    if (varargin{1}(kk).MODE==1)
-                        cnt(kk)=cnt(kk)+1;
-                    else
-                        if (cnt(kk)>=varargin{1}(kk).BTMIN)%but if in birdtaf mode and count is greater than BTmin, count set to 0 (count for birdtaf increases when template doesn't match, but reset to 0 when it does. this is so that if Birdtaf hits
-                            cnt(kk)=0;
-                        else
-                            cnt(kk)=cnt(kk)+1;
-                        end
-                    end
-                else
-                    if (varargin{1}(kk).MODE==0)%if don't cross threshold and in birdtaf mode, increase count by 1
-                        cnt(kk)=cnt(kk)+1;
-                    else
-                        cnt(kk)=0;%if don't cross threshold and in evtaf mode, count set to 0
-                    end
-                end
-            end
-
-            for kk=1:NCNT
-                if ((cnt(kk)>=varargin{1}(kk).MIN)&(cnt(kk)<=varargin{1}(kk).MAX))%if count meets min and max, trigger
-                    ntrig=1;
-                else
-                    ntrig=0;
-                end
-                if (varargin{1}(kk).NOT==1)%if count meets min and max, but in NOT mode, not trigger 
-                    ntrig=~ntrig;
-                end
-                %if (DO_OR==0)
-                if (kk==1)%keep trigger if in column 1
-                    trig=ntrig;
-                else
-                    if (varargin{1}(kk-1).AND==1)%if in column 2, check column 1 for AND, trigger 
-                        trig = trig & ntrig;%AND: trig if both are 1
-                    else
-                        trig = trig | ntrig;%OR: trig if either is 1
-                    end
-                end
-            end
-
-            if (trig) %computing trigger time with predata buffer 
-                tbefore = rd.tbefore*fs;
-                if (abs(ii-lasttrig)>refracsam)
-                    tt = [tt;((ii*varargin{3}*2)+tbefore)]; %trig time in samples, NFFT*2 because evtaf uses 256 nfft 
-                    lasttrig=ii;
-                end
-            end
-        end
     end
                
     p=strfind(labels,[PRENOTE,NOTE,POSTNOTE])+length(PRENOTE);
@@ -266,14 +140,11 @@ for ifn=1:length(ff)
                         NPNTS = 10;
                         [tmp pf] = max(fdat(tmpinds));
                         pf = pf+tmpinds(1)-1;
-                        if (USEFIT==1)%weighted average 
-                            tmpxv=pf + [-NPNTS:NPNTS];
-                            tmpxv=tmpxv(find((tmpxv>0)&(tmpxv<=length(f))));
-                            mxtmpvec(kk)=f(tmpxv)'*fdat(tmpxv);
-                            mxtmpvec(kk)=mxtmpvec(kk)./sum(fdat(tmpxv));
-                        else
-                            mxtmpvec(kk) = f(pf);
-                        end
+                        %weighted average 
+                        tmpxv=pf + [-NPNTS:NPNTS];
+                        tmpxv=tmpxv(find((tmpxv>0)&(tmpxv<=length(f))));
+                        mxtmpvec(kk)=f(tmpxv)'*fdat(tmpxv);
+                        mxtmpvec(kk)=mxtmpvec(kk)./sum(fdat(tmpxv));
                     end
                     pc = cat(1,pc,mean(diff([0,mxtmpvec])));
                 end
@@ -295,87 +166,28 @@ for ifn=1:length(ff)
                 
                 spent = -sum(sum(pxx.*log2(pxx)))/log2(length(pxx(:)));
 
-                 %evtaf pitch estimates based on tmp detection
-                 if evtaf == 1
-                    evtafv = []; tmpttime = [];
-                    pp = find((tt.*(1e3/fs)>=ton)&(tt.*(1e3/fs)<=toff));
-                    if ~isempty(pp)
-                        nfft = 2*varargin{3};%8 ms before tmp trig time
-                        nbins = 3;
-                        if length(pp) > 1
-                            disp(fn)
-                        end
-                        inds = tt(pp)+[-(nfft-1):0];
-                        datchunk = dat(inds);
-                        fdatchunk = abs(fft(hamming(nfft).*datchunk));
-                        fv = [0:nfft/2]*fs/nfft;
-                        tmpind = find(fv >= varargin{4}(1) & fv <= varargin{4}(2));
-                        [tmp pf] = max(fdatchunk(tmpind));
-                        pf = pf + tmpind(1) -1;
-                        pf = pf + [-nbins:nbins];
-                        evtafv = sum(fv(pf).*fdatchunk(pf).')./sum(fdatchunk(pf));
-                        tmpttime = tt(pp)*1e3/fs;
-                    end
-                 end
-        
-   
              %extract datenum from rec file, add syllable ton in seconds
-             if (strcmp(CHANSPEC,'obs0'))
-                 if isfield(rd,'header')
-                    key = 'created:';
-                    ind = strfind(rd.header{1},key);
-                    tmstamp = rd.header{1}(ind+length(key):end);
-                    try
-                        tmstamp = datenum(tmstamp,'ddd, mmm dd, yyyy, HH:MM:SS');%time file was closed
-                        ind2 = strfind(rd.header{5},'=');
-                        filelength = sscanf(rd.header{5}(ind2 + 1:end),'%g');%duration of file
+             datenm = fn2datenm(fn,CHANSPEC,ton);
 
-                        tm_st = addtodate(tmstamp,-(filelength),'millisecond');%time at start of filefiltsong
-                        datenm = addtodate(tm_st, round(ton), 'millisecond');%add time to onset of syllable
-                        [yr mon dy hr minutes sec] = datevec(datenm);     
-                    catch
-                        datenm = fn2datenum(fn);
-                    end
-                 else
-                     datenm = fn2datenum(fn);
-                 end
-             elseif strcmp(CHANSPEC,'w')
-                 formatIn = 'yyyymmddHHMMSS';
-                 datenm = datenum(datevec(fn(end-17:end-4),formatIn));
-                 %datenm = fn2datenum(fn);
-             end
-%    
-                 fvalsstr(note_cnt).fn     = fn;
-%                 fvalsstr(note_cnt).yr     = yr;
-%                 fvalsstr(note_cnt).mon     = mon;
-%                 fvalsstr(note_cnt).dy     = dy;
-%                 fvalsstr(note_cnt).hr     = hr;
-%                 fvalsstr(note_cnt).min    = minutes;
-%                 fvalsstr(note_cnt).scnd    = sec;
-                fvalsstr(note_cnt).datenm = datenm;
-       
-                    fvalsstr(note_cnt).mxvals = mxvals;%pitch estimate at timeshift
-                    fvalsstr(note_cnt).pitchcontour = pc;
-                    fvalsstr(note_cnt).spent = spent;%spectral entropy 
-  
-                fvalsstr(note_cnt).TRIG   = TRIG;
-                fvalsstr(note_cnt).CATCH  = ISCATCH;
-                fvalsstr(note_cnt).smtmp = smtemp; %unfiltered amp envelope of whole syllable
-                fvalsstr(note_cnt).ons    = ton;%onset of syllable in song
-                fvalsstr(note_cnt).offs   = toff;%offset of syllable in song
-                fvalsstr(note_cnt).lbl    = labels;
-                fvalsstr(note_cnt).ind    = p(ii);%index for syllable in song file
-                fvalsstr(note_cnt).sm     = sm;%smooth amplitude envelop
-                fvalsstr(note_cnt).maxvol = mean(filtsong.^2); 
-                %fvalsstr(note_cnt).we = we;%wiener entropy
-%                 fvalsstr(note_cnt).spec.sp = abs(sp);%spectrogram
-%                 fvalsstr(note_cnt).spec.f = f;%frequency values for spec
-%                 fvalsstr(note_cnt).spec.tm = tm;%time values for spec
- 
-                if evtaf == 1
-                    fvalsstr(note_cnt).evtaf = evtafv;
-                    fvalsstr(note_cnt).tmpttime = tmpttime;
-                end
+            fvalsstr(note_cnt).fn     = fn;
+            fvalsstr(note_cnt).datenm = datenm;
+            fvalsstr(note_cnt).mxvals = mxvals;%pitch estimate at timeshift
+            fvalsstr(note_cnt).pitchcontour = pc;
+            fvalsstr(note_cnt).spent = spent;%spectral entropy 
+            fvalsstr(note_cnt).TRIG   = TRIG;
+            fvalsstr(note_cnt).CATCH  = ISCATCH;
+            fvalsstr(note_cnt).smtmp = smtemp; %unfiltered amp envelope of whole syllable
+            fvalsstr(note_cnt).ons    = ton;%onset of syllable in song
+            fvalsstr(note_cnt).offs   = toff;%offset of syllable in song
+            fvalsstr(note_cnt).lbl    = labels;
+            fvalsstr(note_cnt).ind    = p(ii);%index for syllable in song file
+            fvalsstr(note_cnt).sm     = sm;%smooth amplitude envelop
+            fvalsstr(note_cnt).maxvol = mean(filtsong.^2); 
+
+            if evtaf == 1
+                fvalsstr(note_cnt).evtaf = evtafv;
+                fvalsstr(note_cnt).tmpttime = tmpttime;
+            end
                 
         else
             disp(['onsets and labels mismatch:',fn]);
