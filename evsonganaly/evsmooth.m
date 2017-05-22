@@ -4,7 +4,7 @@ function [smooth,spec,t,f]=SmoothData(rawsong,Fs,SPTH,nfft,olap,sm_win,F_low,F_H
 %
 
 if (~exist('filter_type'))
-	filter_type = 'hanningfirff';
+	filter_type = 'hanningffir';
 end
 if (~exist('F_low'))
 	F_low  = 500.0;

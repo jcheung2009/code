@@ -11,8 +11,8 @@ for i = ind(1):ind(2)
     for ii = 1:length(params.findrepeat)
         if ~exist(params.findrepeat(ii).dtwtemplate)
             load(['../analysis/',params.findrepeat(ii).dtwtemplate]);
-            dtwtemplate = eval([params.findrepeat(ii).dtwtemplate]);
         end
+        dtwtemplate = eval([params.findrepeat(ii).dtwtemplate]);
         cmd = [params.findrepeat(ii).repstructs,ff(i).name,'=','jc_findrepeat5(''batch.keep'',params.findrepeat(',num2str(ii),'),dtwtemplate,params.filetype,params.fs)'];
         eval(cmd);
         varname = [params.findrepeat(ii).repstructs,ff(i).name,''''];

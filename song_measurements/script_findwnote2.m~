@@ -9,13 +9,14 @@ ind = input('batch index [st, end]:');
 for i = ind(1):ind(2)
     cd(ff(i).name);
     disp(ff(i).name);
+    numsylls = length(params.syllables);
     for n = 1:length(params.findnote)
-        if ~exist(params.findnote(n).dtwtemplate)
-            load(['../analysis/',params.findnote(n).dtwtemplate]);
+        if ~exist(params.findrepeat(ii).dtwtemplate)
+            load(['../analysis/',params.findrepeat(ii).dtwtemplate]);
+            dtwtemplate = eval([params.findrepeat(ii).dtwtemplate]);
         end
-        dtwtemplate = eval([params.findnote(n).dtwtemplate]);
         cmd = [params.findnote(n).fvstruct,ff(i).name,'=',...
-            'jc_findwnote5(''batch.keep'',params.findnote(',num2str(n),'),dtwtemplate,params.filetype,params.fs);'];
+            'jc_findwnote5(''batch.keep'',params.findnote(',num2str(n),'),params.filetype);'];
         eval(cmd);
     
         varname = [params.findnote(n).fvstruct,ff(i).name];

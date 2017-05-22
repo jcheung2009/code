@@ -2,6 +2,11 @@ function dtwtemplate=make_dtw_temp(batch,params,CHANSPEC)
 %this function makes an amplitude waveform template to be used for dtw
 %segmentation in amp_vs_dtw_segmentation
 
+if isempty(params)
+    params.motif=input('target syllable/motif:','s');
+    params.segmentation=input('segmentation params {minint,mindur,thresh}:');
+end
+      
 motif = params.motif;
 if ~isempty(params.segmentation) 
     minint = params.segmentation{1};
@@ -12,6 +17,7 @@ else
     mindur = 20;
     thresh = 0.3;
 end
+
 dtwtemplate.filtsong=[];
 dtwtemplate.sm=[];
 dtwtemplate.ons = [];

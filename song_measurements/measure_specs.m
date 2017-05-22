@@ -1,4 +1,4 @@
-function [pitch pitchcontour spectempent] = measure_specs(filtsong,fvalbnd,timeshift,fs);
+function [pitch pitchcontour spectempent varargout] = measure_specs(filtsong,fvalbnd,timeshift,fs);
 %measure pitch at target timepoint in syllab,e measure pitch contour and
 %spectrotemporal entropy
 
@@ -43,9 +43,13 @@ else
         pitch = mean(pitchcontour(ti1));
     end
 
-     %Spectral temporal entropy
+    %Spectral temporal entropy
     indf = find(f>=1000 & f <= 10000);
     pxx = pxx(indf,:);
     pxx = bsxfun(@rdivide,pxx,sum(sum(pxx)));
     spectempent = -sum(sum(pxx.*log2(pxx)))/log2(length(pxx(:)));
+    
+    varargout{1} = abs(sp(indf,:));
+    varargout{2} = f(indf);
+    varargout{3} = tm;
 end
