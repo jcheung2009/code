@@ -1,4 +1,4 @@
-function [avsp,tm,f,avsm]=jc_get_avn2(bt,NT,PRETIME,POSTTIME,PRENT,POSTNT,CS,PLTIT);
+function [avsp,tm,f,avsm]=jc_get_avn2(bt,NT,PRENT,POSTNT,POSTTIME,CS,PLTIT);
 %using spectrogram function instead of evsmooth to plot spec of average
 %target syllable. Useful to determining frequency band and timeshifts for
 %song measurements.
@@ -21,18 +21,6 @@ if (~exist('CS'))
 	CS='obs0';
 elseif (length(CS)==0)
 	CS='obs0';
-end
-
-if (~exist('PRENT'))
-	PRENT='';
-elseif (length(PRENT)==0)
-	PRENT='';
-end
-
-if (~exist('POSTNT'))
-	POSTNT='';
-elseif (length(POSTNT)==0)
-	POSTNT='';
 end
 
 if (PLTIT==1)
@@ -66,9 +54,8 @@ for ii=1:length(files)
 
     if (ii==1)
         [dat,fs]=evsoundin('',fn,CS);
-        
-        NPRE=ceil(PRETIME*fs);
-        NPOST=ceil(POSTTIME*fs);
+        NPRE = 0.016*fs;
+        NPOST = ceil(POSTTIME*fs);
         dat_tmp=zeros([NPRE+NPOST+1,1]);
     end
 
@@ -76,7 +63,6 @@ for ii=1:length(files)
 	srchstr=[PRENT,NT,POSTNT];
 	pp=strfind(labels,srchstr)+length(PRENT);
 	if (length(pp)>0)
-		
 		[filepath,filename,fileext] = fileparts(fn);
         if(strcmpi(fileext,'.wav'))
             [dat,fs] = audioread(fn);
@@ -85,8 +71,6 @@ for ii=1:length(files)
             [dat,fs]=evsoundin('',fn,CS);
         end
 		for jj=1:length(pp)
-			tmpon=onsets(pp(jj));
-			tmppp=find(abs(tmpon-onsets)<=max([PRETIME,POSTTIME])*1e3);
 			onind=fix(round(onsets(pp(jj))*1e-3*fs));
 			st=onind-NPRE;
 			en=onind+NPOST;
@@ -129,7 +113,6 @@ for ii=1:length(files)
 		end
 	end
 end
-tm=tm-PRETIME;
 avsp=avsp./spcnt;
 avsm=avsm./spcnt;
 disp(num2str(spcnt));

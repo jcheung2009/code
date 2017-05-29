@@ -1,6 +1,5 @@
 function jc_plotmotifvals2(motifinfo,marker,tbshift,fignum,fignum2,removeoutliers);
 %plot raw motif tempo values in motifstruct for script_plotdata
-
 if isempty(fignum)
     fignum = input('figure number for plotting motif vals:');
 end
@@ -10,6 +9,7 @@ end
 if isempty(removeoutliers)
     removeoutliers = input('remove outliers?:','s');
 end
+nstd = 4;
 
 motifdur = [[motifinfo(:).datenm]',[motifinfo(:).motifdur]'];
 sylldur = [[motifinfo(:).datenm]',arrayfun(@(x) mean(x.durations),motifinfo)'];
@@ -23,7 +23,6 @@ if ~isempty(tbshift)
     firstpeakdistance(:,1) = jc_tb(firstpeakdistance(:,1),7,0)+(tbshift*24*3600);
 end
 if removeoutliers == 'y'
-    nstd = 4;
     motifdur = jc_removeoutliers(motifdur,nstd,1);
     sylldur = jc_removeoutliers(sylldur,nstd,1);
     gapdur = jc_removeoutliers(gapdur,nstd,1);
@@ -41,12 +40,20 @@ else
 end
 
 if ~isempty(tbshift)
-    xscale_hours_to_days(gca);
-    xlabel('','fontweight','bold');
+    dataob = get(gca,'children');
+    xd = get(dataob,'xdata');
+    if iscell(xd)
+        xd = cell2mat(xd');
+    end
+    xlim = [min(xd) max(xd)];
+    xtick = [xlim(1):24*3600:xlim(2)];
+    xticklabel = round(xtick/3600/24);
+    set(gca,'xlim',xlim,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
+    xlabel('');
 else
     xlabel('Time','fontweight','bold');
 end
-ylabel('Duration (seconds)','fontweight','bold');
+ylabel('Duration (seconds)');
 title('Motif duration');
 
 %% syll duration
@@ -59,8 +66,16 @@ else
 end
 
 if ~isempty(tbshift)
-    xscale_hours_to_days(gca);
-    xlabel('','fontweight','bold');
+    dataob = get(gca,'children');
+    xd = get(dataob,'xdata');
+    if iscell(xd)
+        xd = cell2mat(xd');
+    end
+    xlim = [min(xd) max(xd)];
+    xtick = [xlim(1):24*3600:xlim(2)];
+    xticklabel = round(xtick/3600/24);
+    set(gca,'xlim',xlim,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
+    xlabel('');
 else
     xlabel('Time','fontweight','bold');
 end
@@ -77,8 +92,16 @@ else
 end
 
 if ~isempty(tbshift)
-    xscale_hours_to_days(gca);
-    xlabel('Days','fontweight','bold');
+    dataob = get(gca,'children');
+    xd = get(dataob,'xdata');
+    if iscell(xd)
+        xd = cell2mat(xd');
+    end
+    xlim = [min(xd) max(xd)];
+    xtick = [xlim(1):24*3600:xlim(2)];
+    xticklabel = round(xtick/3600);
+    set(gca,'xlim',xlim,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
+    xlabel('Days');
 else
     xlabel('Time','fontweight','bold');
 end
@@ -95,8 +118,16 @@ else
 end
 
 if~isempty(tbshift)
-    xscale_hours_to_days(gca);
-    xlabel('Days','fontweight','bold');
+    dataob = get(gca,'children');
+    xd = get(dataob,'xdata');
+    if iscell(xd)
+        xd = cell2mat(xd');
+    end
+    xlim = [min(xd) max(xd)];
+    xtick = [xlim(1):24*3600:xlim(2)];
+    xticklabel = round(xtick/3600/24);
+    set(gca,'xlim',xlim,'xtick',xtick,'xticklabel',xticklabel,'fontweight','bold');
+    xlabel('Days');
 else
     xlabel('Time','fontweight','bold');
 end
