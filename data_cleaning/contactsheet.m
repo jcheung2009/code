@@ -29,7 +29,7 @@ while cnt < length(ff)
     figure(fighandle);
     for ii = 1:1:disp_size
         subhandle = subplot(numcells,numcells,thecell);cla reset;
-        mplotcbin_fast(ff(cnt).name,[]);
+        mplotcbin(ff(cnt).name,[]);
         title(ff(cnt).name(5:end-5),'interpreter','none');
         set(gca,'yTickLabel','');
         thecell = thecell +1;

@@ -33,7 +33,7 @@ plainsong=ceil(plainsong(bnds(1)*fs:bnds(2)*fs));
 %[sm,sp,t,f]=SmoothData(plainsong,fs);
 %[sm,sp,t,f]=evsmooth(plainsong,fs,0,512,0.2,4); % SPTH(threshold), nFFT, degree FFT overlap, smooth window(ms)
 
-[sp,t,f] = mFastSpect(plainsong,fs,0,256,0.9,2); % SPTH(threshold), nFFT, degree FFT overlap, smooth window(ms)
+[sp,t,f] = mFastSpect(plainsong,fs,0,1024,0.2,8); % SPTH(threshold), nFFT, degree FFT overlap, smooth window(ms)
 
 if(exist('normfreqs'));
     spt{1}=log(abs(sp));
@@ -43,11 +43,11 @@ if(exist('normfreqs'));
     [colbnds]=1.3*colbnds;
 end
 
-if(strcmpi(fileext,'.cbin'))
-    imagesc(t,f,log(abs(sp)));syn;ylim([0,1e4]);
-elseif(strcmpi(fileext,'.wav'))
-    imagesc(t,f,log(abs(sp)));syn;ylim([0,1e4]);
-end
+% if(strcmpi(fileext,'.cbin'))
+    imagesc(t,f,log(abs(sp)));axis('xy');ylim([0,1e4]);
+% elseif(strcmpi(fileext,'.wav'))
+%     imagesc(t,f,log(abs(sp)));axis('xy');colormap('jet');ylim([0,1e4]);
+% end
 
 if (exist('normfreqs'));
     set(gca,'CLim',colbnds);
