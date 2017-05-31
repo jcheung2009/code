@@ -36,10 +36,10 @@ sp2 = sp2./sum(sp2,2);
 sm_ons = [];sm_offs = [];
 [dist ix iy] = dtw(temp,sp2);
 for m = 1:length(temp_onind)
-    ind = find(ix==temp_onind);
+    ind = find(ix==temp_onind(m));
     ind = ind(ceil(length(ind)/2));
     sm_ons = [sm_ons;tm2(iy(ind))];
-    ind = find(ix==temp_offind);
+    ind = find(ix==temp_offind(m));
     ind = ind(ceil(length(ind)/2));
     sm_offs = [sm_offs;tm2(iy(ind))];
 end

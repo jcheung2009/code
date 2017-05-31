@@ -1,20 +1,30 @@
 %script to run jc_findmotifs for batch of folders
 tic
 config;
+pathname = fileparts([pwd,'/analysis/data_structures/']);
 batch = uigetfile;
 ff = load_batchf(batch);
 ind = input('batch index [st end]:');
-for i = ind(1):ind(2)%1:length(ff)
-    cd(ff(i).name);
-    for ii = 1:length(params.findmotif)
-        cmd = ['motif_',params.findmotif(ii).motif,'_',ff(i).name,'=','jc_findmotifs(''batch.keep'',params.findmotif(',num2str(ii),'),params.filetype)'];
+
+for ii = 1:length(params.findmotif)
+    if ~exist(params.findmotif(ii).dtwtemplate)
+        load(['analysis/',params.findmotif(ii).dtwtemplate]);
+    end
+    dtwtemplate = eval([params.findmotif(ii).dtwtemplate]);
+    for i = ind(1):ind(2)%1:length(ff)
+        if isempty(ff(i).name)
+            continue
+        end
+        disp(ff(i).name);
+        cd(ff(i).name);
+        cmd = [params.findmotif(ii).motifstruct,ff(i).name,'=','jc_findmotifs(params.batchfile,params.findmotif(',num2str(ii),'),dtwtemplate,params.filetype,params.fs)'];
         eval(cmd);
-        cd ../analysis/data_structures
-        varname = ['''motif_',params.findmotif(ii).motif,'_',ff(i).name,''''];
-        savecmd = ['save(',varname,',',varname,',','''-v7.3'')'];
+
+        varname = [params.findmotif(ii).motifstruct,ff(i).name];
+        matfile = fullfile(pathname,varname);
+        savecmd = ['save(matfile,varname,''-v7.3'')'];
         eval(savecmd);
-        clearvars -except ff params
-        cd ../../
+        cd ..
     end
 end
 toc

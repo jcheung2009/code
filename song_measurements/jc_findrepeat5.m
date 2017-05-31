@@ -125,7 +125,7 @@ for ifn=1:length(ff)
         
         %get syll durs and gaps by dtw segmentation
         ons = [];offs = [];
-        nbuffer2 = 0.016*fs;%buffer by 8 ms for each individual syll in repeat
+        nbuffer2 = 0.016*fs;%buffer by 16 ms for each individual syll in repeat
         for n = 1:runlength(i)
             onsamp_syll = floor(onsets(onind(i)+n-1)*1e-3*fs)-nbuffer;
             offsamp_syll = ceil(offsets(onind(i)+n-1)*1e-3*fs)+nbuffer;
@@ -174,8 +174,12 @@ for ifn=1:length(ff)
                 for ii = 1:length(ons)
                     onsamp_syll = floor(ons(ii)*fs)-nbuffer2;
                     offsamp_syll = ceil(offs(ii)*fs)+nbuffer2;
-                    smtemp_syll = dat(onsamp_syll:offsamp_syll);
-                    filtsong_syll = bandpass(smtemp_syll,fs,1000,10000,'hanningffir');
+                    if onsamp_syll < 0 
+                        onsamp_syll = 1;
+                    elseif offsamp_syll > length(filtsong)
+                        offsamp_syll = length(filtsong);
+                    end
+                    filtsong_syll = filtsong(onsamp_syll:offsamp_syll);
                     
                     %volume
                     amp = cat(1,amp,mean(filtsong_syll.^2));
