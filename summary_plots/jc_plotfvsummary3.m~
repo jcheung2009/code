@@ -53,9 +53,9 @@ vol_pval= plot_distribution(h2,vol,vol2,linecolor);
 ent_pval = plot_distribution(h3,ent,ent2,linecolor);
 [~,pcv_pval] = vartest2(pitch,pitch2);
 xlabel(h1,'frequency (hz)');xlabel(h2,'log amplitude');xlabel(h3,'entropy');
-title(h1,[syllable,':',trialname],'interpreter','none');
+title(h1,[trialname,'interpreter','none');
 
-%z-score and summary plot
+%z-score
 pitchn = (pitch2-mean(pitch))./std(pitch);
 voln = (vol2-mean(vol))./std(vol);
 entn = (ent2-mean(ent))./std(ent);
@@ -87,19 +87,15 @@ ent_abs = mean(ent2)-mean(ent);
 
 spec.trialname = trialname;
 spec.condition = trialparams.condition;
-spec.pitch.abs = pitch_abs;
-spec.pitch.percent = pitch_percent;
-spec.pitch.zsc = pitch_zsc;
-spec.pitch.pval = pitch_pval;
-spec.vol.abs = vol_abs;
-spec.vol.percent = vol_percent;
-spec.vol.zsc = vol_zsc;
-spec.vol.pval = vol_pval;
-spec.ent.abs = ent_abs;
-spec.ent.percent = ent_percent;
-spec.ent.zsc = ent_zsc;
-spec.ent.pval = ent_pval;
-spec.pitchcv.percent = pcv_percent;
-spec.pitchcv.pval = pcv_pval;
+spec.pitch.abs
+spec.pitch.percent
+spec.pitch.zsc
+spec.vol.abs
+spec.vol.percent
+spec.vol.zsc
+spec.ent.abs
+spec.ent.percent
+spec.ent.zsc
+spec.pitchcv.percent
 
 

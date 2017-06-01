@@ -2,10 +2,7 @@ function p1 = plot_distribution(ax,distr1,distr2,linecolor,varargin);
 %plots and tests pdfs
 if isempty(varargin)
     nbins = 50;
-else
-    nbins = varargin{1};
-end
-
+nbins = varargin{1};
 axes(ax);hold on;
 minval = min([min(distr1);min(distr2)]);
 maxval = max([max(distr1);max(distr2)]);
@@ -22,9 +19,9 @@ end
 
 str2=['normtest1 p=',num2str(p2)];
 str3=['normtest2 p=',num2str(p3)];
-[n b] = hist(distr1,linspace(minval,maxval,nbins));
+[n b] = hist(distr1,linspace(minval,maxval,50));
 stairs(b,n/sum(n),'k');hold on;
-[n b] = hist(distr2,linspace(minval,maxval,nbins));
+[n b] = hist(distr2,linspace(minval,maxval,50));
 stairs(b,n/sum(n),linecolor);hold on;
 y=get(ax,'ylim');x=get(ax,'xlim');
 set(ax,'ylim',y,'xlim',x);

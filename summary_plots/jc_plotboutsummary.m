@@ -75,9 +75,3 @@ plot([0 3],[1 1],'c','linewidth',2);
         {'saline','iem','iem+apv'},'fontweight','bold');
 ylabel('Change in peak singing rate');
 title('Singing rate');
-
-
-
-
-
-

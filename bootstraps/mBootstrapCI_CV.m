@@ -35,7 +35,7 @@ end
 numreps = 1000;
 shuffvect = zeros(1,numreps);
 
-parfor i=1:numreps
+for i=1:numreps
     thesamp = invect(randi(length(invect),1,length(invect)));
     shuffvect(i) = cv(thesamp);    
 end
