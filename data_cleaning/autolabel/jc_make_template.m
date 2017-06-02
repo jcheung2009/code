@@ -1,6 +1,6 @@
 function template = jc_make_template(batch,syll,chanspec);
 
-[sp tm f sm] = jc_get_avn2(batch,syll,0.01,0.15,'','',chanspec,0);
+[sp tm f sm] = jc_get_avn2(batch,syll,'','',0.15,chanspec,0);
 h = figure;figure(h);hold on;imagesc(tm,f,log(abs(sp)));axis('xy');
 
 timeshft = input('time slice in seconds: ');

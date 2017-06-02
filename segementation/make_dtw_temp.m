@@ -30,10 +30,20 @@ while isempty(dtwtemplate.filtsong)
     %load song data
     fn = ff(i).name;
     fnn=[fn,'.not.mat'];
+
     if (~exist(fnn,'file'))
+        i = i+1;
         continue;
     end
     load(fnn);
+    
+    %find motifs in bout
+    p = strfind(labels,motif);
+    if isempty(p)
+        i=i+1;
+        continue
+    end
+    
     rd = readrecf(fn);
     [pthstr,tnm,ext] = fileparts(fn);
     if (strcmp(CHANSPEC,'w'))
@@ -45,13 +55,8 @@ while isempty(dtwtemplate.filtsong)
     end
     if (isempty(dat))
         disp(['hey no data!']);
+        i=i+1;
         continue;
-    end
-    
-    %find motifs in bout
-    p = strfind(labels,motif);
-    if isempty(p)
-        continue
     end
 
     %get smoothed amp waveform of motif 
