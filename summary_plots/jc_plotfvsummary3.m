@@ -69,11 +69,11 @@ xpt = xpt+jitter;
 pitch_zsc = plot_zscore_bootstrap(h1,xpt,pitchn,marker,linecolor,conditions,'mn');
 title(h1,'pitch');
 vol_zsc = plot_zscore_bootstrap(h2,xpt,voln,marker,linecolor,conditions,'mn');
-title(h1,'volume');
+title(h2,'volume');
 ent_zsc = plot_zscore_bootstrap(h3,xpt,entn,marker,linecolor,conditions,'mn');
-title(h1,'entropy');
+title(h3,'entropy');
 pcv_percent = plot_percent_bootstrapCV(h4,xpt,pitch,pitch2,marker,linecolor,conditions);
-title('pitch cv');
+title(h4,'pitch cv');
 
 %percent change
 pitch_percent = 100*(mean(pitch2)-mean(pitch))/mean(pitch);

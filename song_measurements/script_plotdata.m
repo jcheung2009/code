@@ -37,6 +37,7 @@ for i = ind(1):ind(2)
         continue
     end
     disp(ff(i).name);
+    
     [mrk color] = markercolor(ff(i).name);
     
     if ~isempty(numepochs)

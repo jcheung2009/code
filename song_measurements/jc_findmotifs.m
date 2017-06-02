@@ -91,7 +91,7 @@ for i = 1:length(ff)
         sm = evsmooth(smtemp,fs,'','','',5);
         
         %determine if catch or trig 
-       [TRIG ISCATCH] = trig_or_notrig(rd,ton,toff);
+       [TRIG ISCATCH trigtime] = trig_or_notrig(rd,ton,toff);
        
        %use autocorrelation to estimate average syll-syll duration
         if strcmp(params.acorrsm,'no log')
@@ -111,6 +111,10 @@ for i = 1:length(ff)
 
         %determine syllable onsets and offsets by dtw segmentation
         [ons offs] = dtw_segment(smtemp,dtwtemplate,fs);
+        sm_ons=ons*fs;
+        onsamp = onsamp+sm_ons;
+        ton = (onsamp(1)/fs)*1e3;%best estimate of time onset in song in ms
+        
         if check_segmentation == 'y'
             clf(h);hold on;
             [sp2 f2 tm2] = spectrogram(filtsong,w,overlap,NFFT,fs);
@@ -146,7 +150,7 @@ for i = 1:length(ff)
                for syllposind = 1:length(syllablepositions{syllind})
                    onsamp_syll = floor(ons(syllablepositions{syllind}(syllposind))*fs)-nbuffer;
                    offsamp_syll = floor(offs(syllablepositions{syllind}(syllposind))*fs)+nbuffer;
-                   if offsamp_syll + nbuffer <= length(filtsong)
+                   if offsamp_syll <= length(filtsong) & onsamp_syll > 0
                        [mxvals pc spectempent sp f tm] = measure_specs(filtsong(onsamp_syll:offsamp_syll),...
                            fvalbnd{syllind},timeshifts{syllind},fs);
                        pitchestimates(syllind) = mxvals;
@@ -180,6 +184,8 @@ for i = 1:length(ff)
         motifinfo(motif_cnt).syllent = entropyestimates;
         motifinfo(motif_cnt).boutind = ii;%motif number in song file
         motifinfo(motif_cnt).TRIG = TRIG;
+        motifinfo(motif_cnt).trigtime = trigtime;
+        motifinfo(motif_cnt).ons = ton;%onset of motif in song
         motifinfo(motif_cnt).CATCH=ISCATCH;
 
        

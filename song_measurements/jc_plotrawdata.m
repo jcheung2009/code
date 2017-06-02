@@ -7,7 +7,6 @@ end
 if isempty(removeoutliers)
     removeoutliers = input('remove outliers?:','s');
 end
-nstd = 4;
 
 pitchdat = [[fv(:).datenm]',[fv(:).mxvals]'];
 voldat = [[fv(:).datenm]',log([fv(:).maxvol]')];
@@ -20,6 +19,7 @@ if ~isempty(tbshift)
 end
 
 if removeoutliers == 'y'
+    nstd = 4;
     pitchdat = jc_removeoutliers(pitchdat,nstd,1);
     voldat = jc_removeoutliers(voldat,nstd,1);
     entdat = jc_removeoutliers(entdat,nstd,1);

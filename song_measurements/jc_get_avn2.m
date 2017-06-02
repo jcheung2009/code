@@ -100,7 +100,7 @@ for ii=1:length(files)
             sigma=(1/1000)*fs;
             w=exp(-(t/sigma).^2);
             [sp f tm] = spectrogram(dat_tmp,w,overlap,NFFT,fs);
-			
+			tm=tm-NPRE/fs;
             if(spcnt==0)
 				avsp=abs(sp);
 				avsm=sm;

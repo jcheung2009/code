@@ -32,7 +32,8 @@ else
     end
     pitchcontour = cat(1,pitchcontour,mean(diff([0,mxtmpvec])));
     end
-
+    tm=tm-0.016;%to account for buffer time added to filtsong)
+    
     %estimate pitch at target time
     if length(timeshift) == 1
         ti1 = find(tm<=timeshift);

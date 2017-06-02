@@ -11,7 +11,7 @@ sigma=(1/1000)*fs;
 w=exp(-(t/sigma).^2);
 
 %extract the dtwtemplate spectrogram and ons/offs
-temp = abs(dtwtemplate.filtsong);
+temp = dtwtemplate.filtsong;
 temp_ons=dtwtemplate.ons;
 temp_offs=dtwtemplate.offs;
 [sp f tm1] = spectrogram(temp,w,overlap,NFFT,fs);

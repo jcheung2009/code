@@ -84,7 +84,7 @@ while isempty(dtwtemplate.filtsong)
         t=-NFFT/2+1:NFFT/2;
         sigma=(1/1000)*fs;
         w=exp(-(t/sigma).^2);
-        [sp f tm] = spectrogram(abs(filtsong),w,overlap,NFFT,fs);
+        [sp f tm] = spectrogram(filtsong,w,overlap,NFFT,fs);
         indf = find(f>1000 & f <10000);
         imagesc(tm,f(indf),log(abs(sp(indf,:))));set(gca,'YDir','normal');hold on;
         

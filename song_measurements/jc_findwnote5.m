@@ -25,6 +25,7 @@ TIMESHIFT = params.timeshifts;
 FVALBND = params.fvalbnd;
 chckpc = params.chckpc;
 nbuffer = 0.016*fs;%16 ms buffer for segmenting
+pre_syll_trig = params.pre_syll_trig;
 
 fvalsstr=[];
 note_cnt=0;
@@ -63,8 +64,14 @@ for ifn=1:length(ff)
         if(length(onsets)==length(labels))
             ton=onsets(p(ii));toff=offsets(p(ii));%in milliseconds
             
-            %Determine whether syllable triggered detection 
-            [TRIG ISCATCH] = trig_or_notrig(rd,ton,toff);
+            %Determine whether syllable triggered detection
+            if ~isempty(pre_syll_trig)
+                pre_syll_ton = onsets(p(ii)-pre_syll_trig);
+                pre_syll_toff = offsets(p(ii)-pre_syll_trig);
+                [TRIG ISCATCH trigtime] = trig_or_notrig(rd,pre_syll_ton,pre_syll_toff);
+            else
+                [TRIG ISCATCH trigtime] = trig_or_notrig(rd,ton,toff);
+            end
             
             %dtw segmentation (alternatively use syl_ampsegment)
             onsamp = floor((ton*1e-3)*fs);
@@ -102,6 +109,7 @@ for ifn=1:length(ff)
             fvalsstr(note_cnt).pitchcontour = pc;
             fvalsstr(note_cnt).spent = spectempent;%spectral entropy 
             fvalsstr(note_cnt).TRIG   = TRIG;
+            fvalsstr(note_cnt).trigtime = trigtime;
             fvalsstr(note_cnt).CATCH  = ISCATCH;
             fvalsstr(note_cnt).smtmp = smtemp; %unfiltered amp envelope of whole syllable
             fvalsstr(note_cnt).ons    = ton;%onset of syllable in song
@@ -132,7 +140,7 @@ if chckpc == 1
     figure;hold on;
     imagesc(spec(ind1).tm,spec(ind1).f,log(avgspec));axis('xy');hold on;
     plot(pcstruct.tm,nanmean(pcstruct.pc,2),'k');
-    title(NOTE);
+    title([PRENOTE upper(NOTE) POSTNOTE]);
 end
 
 return;

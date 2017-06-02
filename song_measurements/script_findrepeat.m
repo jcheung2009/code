@@ -16,9 +16,9 @@ for ii = 1:length(params.findrepeat)
         end
         disp(ff(i).name);
         cd(ff(i).name);
-        cmd = [params.findrepeat(ii).repstructs,ff(i).name,'=','jc_findrepeat5(params.batchfile,params.findrepeat(',num2str(ii),'),dtwtemplate,params.filetype,params.fs)'];
+        cmd = [params.findrepeat(ii).repstruct,ff(i).name,'=','jc_findrepeat5(params.batchfile,params.findrepeat(',num2str(ii),'),dtwtemplate,params.filetype,params.fs)'];
         eval(cmd);
-        varname = [params.findrepeat(ii).repstructs,ff(i).name];
+        varname = [params.findrepeat(ii).repstruct,ff(i).name];
         matfile = fullfile(pathname,varname);
         savecmd = ['save(matfile,varname,''-v7.3'')'];
         eval(savecmd);

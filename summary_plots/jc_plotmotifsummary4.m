@@ -85,6 +85,9 @@ for i = 1:numsylls
     pval = plot_distribution(h,sylldur(:,i),sylldur2(:,i),linecolor);
     sylldur_pval=[sylldur_pval;pval];
     xlabel(h,['syllable ',motif(i),' duration (s)']);
+    if i == 1
+        title(h,trialname,'interpreter','none');
+    end
 end
 figure;hold on;
 numgaps = size(sylldur,2)-1;
@@ -94,6 +97,9 @@ for i = 1:numgaps
     pval = plot_distribution(h,gapdur(:,i),gapdur2(:,i),linecolor);
     gapdur_pval=[gapdur_pval;pval];
     xlabel(h,['gap ',num2str(i),' duration (s)']);
+    if i == 1
+        title(h,trialname,'interpreter','none');
+    end
 end
 
 %z-score 
