@@ -1,22 +1,5 @@
-function [fvalsstr]=jc_findwnote5(batch,params,dtwtemplate,CHANSPEC,fs);
+function [fvalsstr]=jc_findwnote5(batch,params,dtwtemplate,CHANSPEC,fs,fb_dur);
 %extract spectral and temporal information for target syllable
-%fvalsstr:
-%   fn
-%   datenm
-%   mxvals: pitch estimate at time shift
-%   TRIG: trigger time if WN delivered, -1 = escape/miss
-%   CATCH: -1 = not catch, catch times (triggered but no WN)
-%   smptmp: amp env of whole syllable     
-%   ons
-%   offs
-%   lbl
-%   ind: index for syllable in song file labels
-%   NPTNS: number of points used to weight fv values
-%   sm
-%   maxvol
-%   pitchcontour: [timebase pitchcontour]
-%   spent: spectral entropy
-%   tmpttime: trig time from tmp file
 
 NOTE = params.syllable;
 PRENOTE = params.prenotes;
@@ -25,7 +8,6 @@ TIMESHIFT = params.timeshifts;
 FVALBND = params.fvalbnd;
 chckpc = params.chckpc;
 nbuffer = 0.016*fs;%16 ms buffer for segmenting
-pre_syll_trig = params.pre_syll_trig;
 
 fvalsstr=[];
 note_cnt=0;
@@ -57,21 +39,22 @@ for ifn=1:length(ff)
         disp(['hey no data!']);
         continue;
     end
-               
-    p=strfind(labels,[PRENOTE,NOTE,POSTNOTE])+length(PRENOTE);
+    
+    if has_nonalphanum([PRENOTE,NOTE,POSTNOTE])
+        p=regexp(labels,[PRENOTE,NOTE,POSTNOTE]);
+        if ~isempty(PRENOTE)
+            p=p+1;
+        end
+    else
+        p = strfind(labels,[PRENOTE,NOTE,POSTNOTE])+length(PRENOTE);
+    end
     
     for ii = 1:length(p)
         if(length(onsets)==length(labels))
             ton=onsets(p(ii));toff=offsets(p(ii));%in milliseconds
             
             %Determine whether syllable triggered detection
-            if ~isempty(pre_syll_trig)
-                pre_syll_ton = onsets(p(ii)-pre_syll_trig);
-                pre_syll_toff = offsets(p(ii)-pre_syll_trig);
-                [TRIG ISCATCH trigtime] = trig_or_notrig(rd,pre_syll_ton,pre_syll_toff);
-            else
-                [TRIG ISCATCH trigtime] = trig_or_notrig(rd,ton,toff);
-            end
+            [TRIG ISCATCH trigtime] = trig_or_notrig(rd,ton,toff,fb_dur);
             
             %dtw segmentation (alternatively use syl_ampsegment)
             onsamp = floor((ton*1e-3)*fs);

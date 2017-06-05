@@ -118,7 +118,7 @@ title([motif,':interval duration (autocorrelation)']);
 %% amplitude env
 if ~isempty(trigind)
     trialname=trialparams.name;
-    lightdur = trialparams.lightdur;
+    lightdur = trialparams.fbdur;
     fs = params.fs;
     trigsm = jc_getsm(motifinfo(trigind));
     catchsm = jc_getsm(motifinfo(catchind));

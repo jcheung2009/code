@@ -94,7 +94,7 @@ ylabel('Entropy','fontweight','bold');
 if ~isempty(trigind)
     fs = params.fs;
     trialname = trialparams.name;
-    lightdur = trialparams.lightdur;
+    lightdur = trialparams.fbdur;
     trigpc = jc_getpc(fv(trigind));
     catchpc = jc_getpc(fv(catchind));
     trigtime = cell2mat(arrayfun(@(x) x.trigtime-x.ons,fv(trigind),'unif',0)');

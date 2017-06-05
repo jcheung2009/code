@@ -17,8 +17,23 @@ for n = 1:length(params.findnote)
         end
         disp(ff(i).name);
         cd(ff(i).name);
+        
+        trialind = find(arrayfun(@(x) strcmp(x.name,ff(i).name),params.trial));
+        if isempty(trialind)
+            trialparams = '';
+        else
+            trialparams = params.trial(trialind);
+        end
+        
+        %for WN or light feedback 
+        if isfield(trialparams,'fbdur')
+            fbdur = trialparams.fbdur;
+        else
+            fbdur = '';
+        end
+        
         cmd = [params.findnote(n).fvstruct,ff(i).name,'=',...
-            'jc_findwnote5(params.batchfile,params.findnote(',num2str(n),'),dtwtemplate,params.filetype,params.fs);'];
+            'jc_findwnote5(params.batchfile,params.findnote(',num2str(n),'),dtwtemplate,params.filetype,params.fs,fbdur);'];
         eval(cmd);
 
         varname = [params.findnote(n).fvstruct,ff(i).name];

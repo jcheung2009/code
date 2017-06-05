@@ -14,3 +14,9 @@ elseif ~isempty(strfind(lower(fn),'musc'))
 else
     mrk='k.';color='k';
 end
+
+if  ~isempty(strfind(lower(fn),'post'))
+    mrk='r.';color='r';
+else
+    mrk='k.';color='k';
+end

@@ -14,7 +14,9 @@ for ii = 1:length(params.findmotif)
     for i = ind(1):ind(2)%1:length(ff)
         if isempty(ff(i).name)
             continue
+        
         end
+        
         disp(ff(i).name);
         cd(ff(i).name);
         cmd = [params.findmotif(ii).motifstruct,ff(i).name,'=','jc_findmotifs(params.batchfile,params.findmotif(',num2str(ii),'),dtwtemplate,params.filetype,params.fs)'];

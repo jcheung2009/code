@@ -95,8 +95,9 @@ while isempty(dtwtemplate.filtsong)
         
         sm = evsmooth(smtemp,fs,'','','',2);%smoothed amplitude envelop
         sm2=log(sm);
-        sm2=sm2-mean(sm2);
-        [ons offs] = SegmentNotes(sm2,fs,minint,mindur,0);
+        sm2=sm2-min(sm2);
+        sm2=sm2./max(sm2);
+        [ons offs] = SegmentNotes(sm2,fs,minint,mindur,thresh);
         plot([ons ons],[1000 10000],'r');hold on;
         plot([offs offs],[1000 10000],'r');hold on;
         keep_or_nokeep = input('use as template?: ','s');
