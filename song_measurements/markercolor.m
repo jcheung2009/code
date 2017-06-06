@@ -11,12 +11,9 @@ elseif ~isempty(strfind(lower(fn),'apv'))
     mrk='b.';color='b';
 elseif ~isempty(strfind(lower(fn),'musc'))
     mrk='c.';color='c';
+elseif ~isempty(strfind(lower(fn),'post'))
+    mrk = 'r.';color = 'r';
 else
     mrk='k.';color='k';
 end
 
-if  ~isempty(strfind(lower(fn),'post'))
-    mrk='r.';color='r';
-else
-    mrk='k.';color='k';
-end

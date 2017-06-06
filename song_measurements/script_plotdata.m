@@ -50,7 +50,7 @@ for i = ind(1):ind(2)
         for n = 1:length(params.findnote)
             load(['analysis/data_structures/',params.findnote(n).fvstruct,ff(i).name]);
             jc_plotrawdata(eval([params.findnote(n).fvstruct,ff(i).name]),...
-                mrk,tb,fvfig(n),params.removeoutliers);
+                params.findnote(n).syllable,mrk,tb,fvfig(n),params.removeoutliers);
         end
     end
     
@@ -58,7 +58,7 @@ for i = ind(1):ind(2)
         for n = 1:length(params.findmotif)
             load(['analysis/data_structures/',params.findmotif(n).motifstruct,ff(i).name]);
             jc_plotmotifvals2(eval([params.findmotif(n).motifstruct,ff(i).name]),...
-                mrk,tb,motiffig(n).a,motiffig(n).b,params.removeoutliers);
+                params.findmotif(n).motif,mrk,tb,motiffig(n).a,motiffig(n).b,params.removeoutliers);
         end
     end
     
@@ -66,7 +66,7 @@ for i = ind(1):ind(2)
         for n = 1:length(params.findrepeat)
             load(['analysis/data_structures/',params.findrepeat(n).repstruct,ff(i).name]);
             jc_plotrepeatvals(eval([params.findrepeat(n).repstruct,ff(i).name]),...
-                mrk,tb,repfig(n).a,repfig(n).b,params.removeoutliers);
+                params.findrepeat(n).repnote,mrk,tb,repfig(n).a,repfig(n).b,params.removeoutliers);
         end
     end
     
@@ -74,7 +74,7 @@ for i = ind(1):ind(2)
         for n = 1:length(params.findbout)
             load(['analysis/data_structures/',params.findbout(n).boutstruct,ff(i).name]);
             jc_plotboutvals(eval([params.findbout(n).boutstruct,ff(i).name]),...
-                mrk,color,tb,boutfig(n),params.findbout(n));
+                params.findbout(n).motif,mrk,color,tb,boutfig(n),params.findbout(n));
         end
     end
 end

@@ -1,4 +1,4 @@
-function jc_plotrawdata(fv,marker,tbshift,fignum,removeoutliers)
+function jc_plotrawdata(fv,syllable,marker,tbshift,fignum,removeoutliers)
 %plots raw spectral information from fvstruct in script_findwnote2/jc_findwnote5
 if isempty(fignum)
     fignum = input('figure number for raw data:');
@@ -41,7 +41,7 @@ else
    xlabel('Time','fontweight','bold') 
 end
 ylabel('Frequency (Hz)','fontweight','bold')
-
+title(syllable);
 %% volume
 subtightplot(3,1,2,0.07,0.08,0.15);hold on;
 if isstr(marker)

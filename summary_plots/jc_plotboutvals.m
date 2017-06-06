@@ -1,4 +1,4 @@
-function jc_plotboutvals(boutinfo,marker,linecolor,tbshift,fignum,params)
+function jc_plotboutvals(boutinfo,motif,marker,linecolor,tbshift,fignum,params)
 %plot bout values for script_plotdata 
 
 nummotifs = [boutinfo(:).nummotifs]';
@@ -32,7 +32,7 @@ else
     xlabel('Time','fontweight','bold');
 end
 ylabel('Number of motifs in bout');
-
+title(motif);
 %% plot number of intronotes in bout over time
 if strcmp(params.measure_intro,'y')
     numintro = [boutinfo(:).numintro]';

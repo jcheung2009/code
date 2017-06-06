@@ -87,18 +87,25 @@ ent_abs = mean(ent2)-mean(ent);
 
 spec.trialname = trialname;
 spec.condition = trialparams.condition;
+spec.pitch.mean = [mean(pitch) mean(pitch2)];
+spec.pitch.std = [std(pitch) std(pitch2)];
 spec.pitch.abs = pitch_abs;
 spec.pitch.percent = pitch_percent;
 spec.pitch.zsc = pitch_zsc;
 spec.pitch.pval = pitch_pval;
+spec.vol.mean = [mean(vol) mean(vol2)];
+spec.vol.std = [std(vol) std(vol2)];
 spec.vol.abs = vol_abs;
 spec.vol.percent = vol_percent;
 spec.vol.zsc = vol_zsc;
 spec.vol.pval = vol_pval;
+spec.ent.mean = [mean(ent) mean(ent2)];
+spec.ent.std = [std(ent) std(ent2)];
 spec.ent.abs = ent_abs;
 spec.ent.percent = ent_percent;
 spec.ent.zsc = ent_zsc;
 spec.ent.pval = ent_pval;
+spec.pitchcv.cv = [cv(pitch) cv(pitch2)];
 spec.pitchcv.percent = pcv_percent;
 spec.pitchcv.pval = pcv_pval;
 

@@ -1,4 +1,4 @@
-function jc_plotrepeatvals(fv_rep,marker,tbshift,fignum,fignum2,removeoutliers)
+function jc_plotrepeatvals(fv_rep,repeat,marker,tbshift,fignum,fignum2,removeoutliers)
 %plots raw repeat vals in repstruct for script_plotdata 
 %does not plot spectral values in repeat
 %use jc_repeatanalysis2 for spectral measurements
@@ -50,7 +50,7 @@ else
     xlabel('Time','fontweight','bold');
 end
 ylabel({'Repeat Length', '(number of syllables)'});
-
+title(repeat);
 
 %% average syllable duration
 subtightplot(3,1,2,0.07,0.08,0.15);hold on;
@@ -100,5 +100,5 @@ if ~isempty(tbshift)
 else
     xlabel('Time','fontweight','bold');
 end
-title('Average syllable-gap duration (autocorrelation)');
+title([repeat,' interval duration']);
 ylabel('Duration (s)');

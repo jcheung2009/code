@@ -1,4 +1,4 @@
-function jc_plotmotifvals2(motifinfo,marker,tbshift,fignum,fignum2,removeoutliers);
+function jc_plotmotifvals2(motifinfo,motif,marker,tbshift,fignum,fignum2,removeoutliers);
 %plot raw motif tempo values in motifstruct for script_plotdata
 
 if isempty(fignum)
@@ -47,7 +47,7 @@ else
     xlabel('Time','fontweight','bold');
 end
 ylabel('Duration (seconds)','fontweight','bold');
-title('Motif duration');
+title([motif,' motif duration']);
 
 %% syll duration
 subtightplot(3,1,2,0.07,0.08,0.15);hold on;
@@ -101,4 +101,4 @@ else
     xlabel('Time','fontweight','bold');
 end
 ylabel('Duration (seconds)');
-title('Average syllable-gap duration (autocorrelation)');
+title([motif, ' Interval duration']);

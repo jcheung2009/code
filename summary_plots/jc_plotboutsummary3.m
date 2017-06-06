@@ -89,7 +89,9 @@ motifsperbout_abs = mean(nummotifsperbout2)-mean(nummotifsperbout);
 
 bout.trialname = trialname;
 bout.condition = trialparams.condition;
+bout.meansingingrate.mean = [mean(numsongs(:,2)) mean(numsongs2(:,2))];
 bout.meansingingrate.percent = meansingingrate_percent;
+bout.motifsperbout.mean = [mean(nummotifsperbout) mean(nummotifsperbout2)];
 bout.motifsperbout.percent = motifsperbout_percent;
 bout.maxsingingrate.percent = 100*(max(numsongs2(:,2))-max(numsongs(:,2)))/max(numsongs(:,2));
 bout.meansingingrate.abs = meansingingrate_abs;
