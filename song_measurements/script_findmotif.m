@@ -1,10 +1,12 @@
+function script_findmotif(batch,ind)
 %script to run jc_findmotifs for batch of folders
 tic
 config;
 pathname = fileparts([pwd,'/analysis/data_structures/']);
-batch = uigetfile;
 ff = load_batchf(batch);
-ind = input('batch index [st end]:');
+if isempty(ind)
+    ind = [1 length(ff)];
+end
 
 for ii = 1:length(params.findmotif)
     if ~exist(params.findmotif(ii).dtwtemplate)

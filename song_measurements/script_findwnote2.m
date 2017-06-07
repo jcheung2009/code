@@ -1,11 +1,15 @@
+function script_findwnote2(batch,ind)
 %script to run jc_findwnote5 in batch with config settings
 %start in directory with all data folders
+%ind = index in batch 
 tic
 config;
 pathname = fileparts([pwd,'/analysis/data_structures/']);
-batch = uigetfile;
 ff = load_batchf(batch);
-ind = input('batch index [st, end]:');
+if isempty(ind)
+    ind = [1 length(ff)];
+end
+
 for n = 1:length(params.findnote)
     if ~exist(params.findnote(n).dtwtemplate)
         load(['analysis/',params.findnote(n).dtwtemplate]);

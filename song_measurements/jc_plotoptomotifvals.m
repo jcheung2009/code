@@ -116,7 +116,7 @@ ylabel('Duration (seconds)');
 title([motif,':interval duration (autocorrelation)']);
 
 %% amplitude env
-if ~isempty(trigind)
+if ~isempty(trialparams)
     trialname=trialparams.name;
     lightdur = trialparams.fbdur;
     fs = params.fs;

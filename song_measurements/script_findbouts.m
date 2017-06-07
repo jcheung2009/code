@@ -1,11 +1,12 @@
+function script_findbouts(batch,ind)
 %script to run jc_findbouts for batch of folders
 tic
 config;
-batch = uigetfile;
 pathname = fileparts([pwd,'/analysis/data_structures/']);
-
 ff = load_batchf(batch);
-ind = input('batch index [st, end]:');
+if isempty(ind)
+    ind = [1 length(ff)];
+end
 for i = ind(1):ind(2)
     if isempty(ff(i).name)
         continue

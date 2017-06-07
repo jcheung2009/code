@@ -1,10 +1,12 @@
+function script_findrepeat(batch,ind)
 %script to run jc_findrepeat5 for batch of folders
 tic
 config;
 pathname = fileparts([pwd,'/analysis/data_structures/']);
-batch = uigetfile;
 ff = load_batchf(batch);
-ind = input('batch index [st end]:');
+if isempty(ind)
+    ind = [1 length(ff)];
+end
 for ii = 1:length(params.findrepeat)
     if ~exist(params.findrepeat(ii).dtwtemplate)
         load(['analysis/',params.findrepeat(ii).dtwtemplate]);
@@ -16,7 +18,13 @@ for ii = 1:length(params.findrepeat)
         end
         disp(ff(i).name);
         cd(ff(i).name);
-        cmd = [params.findrepeat(ii).repstruct,ff(i).name,'=','jc_findrepeat5(params.batchfile,params.findrepeat(',num2str(ii),'),dtwtemplate,params.filetype,params.fs)'];
+        if isfield(params.findrepeat(ii),'batchfile')
+            batch = params.findrepeat(ii).batchfile;
+        else
+            batch = params.batchfile;
+        end
+        
+        cmd = [params.findrepeat(ii).repstruct,ff(i).name,'=','jc_findrepeat5(batch,params.findrepeat(',num2str(ii),'),dtwtemplate,params.filetype,params.fs)'];
         eval(cmd);
         varname = [params.findrepeat(ii).repstruct,ff(i).name];
         matfile = fullfile(pathname,varname);
