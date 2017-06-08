@@ -23,7 +23,7 @@ if ~isempty(tbshift)
     firstpeakdistance(:,1) = jc_tb(firstpeakdistance(:,1),7,0)+(tbshift*24*3600);
 end
 if removeoutliers == 'y'
-    nstd = 4;
+    nstd = 3;
     motifdur = jc_removeoutliers(motifdur,nstd,1);
     sylldur = jc_removeoutliers(sylldur,nstd,1);
     gapdur = jc_removeoutliers(gapdur,nstd,1);

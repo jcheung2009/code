@@ -22,8 +22,11 @@ if (strcmp(CHANSPEC,'obs0'))
         catch
             datenm = fn2datenum(fn);
         end
+        if length(datenm) > 1
+            datenm = fn2date2(fn);
+        end
      else
-         datenm = fn2datenum(fn);
+         datenm = fn2date2(fn);%for old evtaf version
      end
  elseif strcmp(CHANSPEC,'w')
      formatIn = 'yyyymmddHHMMSS';

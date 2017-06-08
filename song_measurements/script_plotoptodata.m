@@ -1,12 +1,13 @@
+function script_plotoptodata(batch,ind)
 %script to plot raw data of spectral and temporal features for OPTO
 %experiments
 %start in directory with all data folders
 
 config;
-
-batch = uigetfile;
 ff = load_batchf(batch);
-ind = input('batch index [st, end]:');
+if isempty(ind)
+    ind = [1 length(ff)];
+end
 numepochs = params.numepochs;
 if ~isempty(numepochs)
     tbshft = repmat([0:length(ff)/numepochs-1],numepochs,1);
