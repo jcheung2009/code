@@ -21,9 +21,19 @@ for ii=1:length(ff)
         for jj=1:length(ind)
              if length(labels)>=ind(jj)+newstrlen-1
                  if ~isempty(maxgap)
-                     if(onsets(ind(jj)+prentln)-offsets(ind(jj)+prentln-1))<maxgap...
-                             & (onsets(ind(jj)+prentln+postln)-offsets(ind(jj)+prentln))<maxgap%gap between orig note and offset of prent
-                        labels(ind(jj):ind(jj)+newstrlen-1)=newstr;
+                     if length(PRENT) > 0 & length(PSTNT) > 0
+                         if(onsets(ind(jj)+prentln)-offsets(ind(jj)+prentln-1))<maxgap...
+                                 & (onsets(ind(jj)+prentln+postln)-offsets(ind(jj)+prentln))<maxgap%gap between orig note and offset of prent
+                            labels(ind(jj):ind(jj)+newstrlen-1)=newstr;
+                         end
+                     elseif length(PRENT) > 0
+                         if(onsets(ind(jj)+prentln)-offsets(ind(jj)+prentln-1))<maxgap
+                             labels(ind(jj):ind(jj)+newstrlen-1)=newstr;
+                         end
+                     elseif length(PSTNT) > 0
+                         if (onsets(ind(jj)+prentln+postln)-offsets(ind(jj)+prentln))<maxgap
+                             labels(ind(jj):ind(jj)+newstrlen-1)=newstr;
+                         end
                      end
                  else
                      labels(ind(jj):ind(jj)+newstrlen-1)=newstr;

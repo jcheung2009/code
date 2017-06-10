@@ -70,7 +70,7 @@ for i = 1:length(ff)
         continue
     end
 
-    %get smoothed amp waveform of motif 
+    %get smoothed amp waveform of motif ton = onsets(p(ii));
     for ii = 1:length(p)
         ton = onsets(p(ii));
         toff=offsets(p(ii)+length(motif)-1);
