@@ -1,5 +1,5 @@
 function [pitch pitchcontour spectempent varargout] = measure_specs(filtsong,fvalbnd,timeshift,fs);
-%measure pitch at target timepoint in syllab,e measure pitch contour and
+%measure pitch at target timepoint in syllable measure pitch contour and
 %spectrotemporal entropy
 
 %spectrogram params

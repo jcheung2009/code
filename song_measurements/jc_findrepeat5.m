@@ -176,10 +176,15 @@ for ifn=1:length(ff)
                     offsamp_syll = ceil(offs(ii)*fs)+nbuffer2;
                     if onsamp_syll < 0 
                         onsamp_syll = 1;
-                    elseif offsamp_syll > length(filtsong)
+                    end
+                    if offsamp_syll > length(filtsong)
                         offsamp_syll = length(filtsong);
                     end
-                    filtsong_syll = filtsong(onsamp_syll:offsamp_syll);
+                    try
+                        filtsong_syll = filtsong(onsamp_syll:offsamp_syll);
+                    catch
+                        error([fn,' time cutoff at end of syllable exceeds file length']);
+                    end
                     
                     %volume
                     amp = cat(1,amp,mean(filtsong_syll.^2));
