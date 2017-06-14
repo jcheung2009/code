@@ -18,19 +18,19 @@ else
     [sp f tm pxx] = spectrogram(filtsong,w,overlap,NFFT,fs);
     pitchcontour = [];
     for m = 1:size(sp,2)
-    fdat = abs(sp(:,m));
-    mxtmpvec = zeros([1,size(fvalbnd,1)]);
-    for kk = 1:size(fvalbnd,1)
-        tmpinds = find((f>=fvalbnd(kk,1))&(f<=fvalbnd(kk,2)));
-        NPNTS = 10;
-        [tmp pf] = max(fdat(tmpinds));
-        pf = pf+tmpinds(1)-1;
-        tmpxv=pf + [-NPNTS:NPNTS];
-        tmpxv=tmpxv(find((tmpxv>0)&(tmpxv<=length(f))));
-        mxtmpvec(kk)=f(tmpxv)'*fdat(tmpxv);
-        mxtmpvec(kk)=mxtmpvec(kk)./sum(fdat(tmpxv));
-    end
-    pitchcontour = cat(1,pitchcontour,mean(diff([0,mxtmpvec])));
+        fdat = abs(sp(:,m));
+        mxtmpvec = zeros([1,size(fvalbnd,1)]);
+        for kk = 1:size(fvalbnd,1)
+            tmpinds = find((f>=fvalbnd(kk,1))&(f<=fvalbnd(kk,2)));
+            NPNTS = 10;
+            [tmp pf] = max(fdat(tmpinds));
+            pf = pf+tmpinds(1)-1;
+            tmpxv=pf + [-NPNTS:NPNTS];
+            tmpxv=tmpxv(find((tmpxv>0)&(tmpxv<=length(f))));
+            mxtmpvec(kk)=f(tmpxv)'*fdat(tmpxv);
+            mxtmpvec(kk)=mxtmpvec(kk)./sum(fdat(tmpxv));
+        end
+        pitchcontour = cat(1,pitchcontour,mean(diff([0,mxtmpvec])));
     end
     tm=tm-0.016;%to account for buffer time added to filtsong)
     

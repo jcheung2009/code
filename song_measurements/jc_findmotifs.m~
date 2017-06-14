@@ -179,7 +179,7 @@ for i = 1:length(ff)
         motifinfo(motif_cnt).datenm = datenm;
         motifinfo(motif_cnt).acorr = {lag c};
         motifinfo(motif_cnt).firstpeakdistance= firstpeakdistance;
-        motifinfo(motif_cnt).smtmp = smtemp;%smoothed motif amp env
+        motifinfo(motif_cnt).sm = sm;%smoothed motif amp env
         motifinfo(motif_cnt).durations = syllabledurations;
         motifinfo(motif_cnt).gaps = gapdurations;
         motifinfo(motif_cnt).motifdur = motifduration;
@@ -192,9 +192,7 @@ for i = 1:length(ff)
         motifinfo(motif_cnt).trigtime = trigtime;
         motifinfo(motif_cnt).ons = ton;%onset of motif in song
         motifinfo(motif_cnt).CATCH=ISCATCH;
-        motifinfo(motif_cnt).syllons = ons;%seconds into smtmp
-        motifinfo(motif_cnt).sylloffs = offs;
- 
+        motifinfo(motif_cnt).
 
        
     end

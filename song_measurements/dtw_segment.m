@@ -18,7 +18,7 @@ temp_offs=dtwtemplate.offs;
 indf = find(f>1000 & f<10000);
 temp = abs(sp(indf,:));
 temp = temp./sum(temp,2);
-temp_onind = [];temp_offind = [];
+temp_onind = NaN(length(temp_ons),1);temp_offind = NaN(length(temp_offs),1);
 for m = 1:length(temp_ons)
     [~, temp_onind(m)] = min(abs(temp_ons(m)-tm1));
     [~, temp_offind(m)]=min(abs(temp_offs(m)-tm1));
@@ -33,14 +33,14 @@ sp2 = abs(sp2(indf,:));
 sp2 = sp2./sum(sp2,2);
 
 %dtw and find corresponding ons/offs to temp
-sm_ons = [];sm_offs = [];
+sm_ons = NaN(length(temp_onind),1);sm_offs = NaN(length(temp_offind),1);
 [dist ix iy] = dtw(temp,sp2);
 for m = 1:length(temp_onind)
     ind = find(ix==temp_onind(m));
     ind = ind(ceil(length(ind)/2));
-    sm_ons = [sm_ons;tm2(iy(ind))];
+    sm_ons(m) = tm2(iy(ind));
     ind = find(ix==temp_offind(m));
     ind = ind(ceil(length(ind)/2));
-    sm_offs = [sm_offs;tm2(iy(ind))];
+    sm_offs(m) = tm2(iy(ind));
 end
 

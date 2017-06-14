@@ -10,7 +10,8 @@ for i = 1:length(params.trial)
             fv = eval([params.findnote(n).fvstruct,params.trial(i).name]);
             for ind = 1:length(fv)
                 smtmp = fv(ind).smtmp;
-                ev = entropy_variance(smtmp,params.fs);
+                filtsong = bandpass(smtmp,params.fs,500,10000,'hanningffir');
+                ev = entropy_variance(filtsong,params.fs);
                 fv(ind).entropyvar = ev;
             end
             cmd = [params.findnote(n).fvstruct,params.trial(i).name, '= fv'];
