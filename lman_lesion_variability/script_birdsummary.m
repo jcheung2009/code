@@ -3,15 +3,27 @@
 
 config;
 
+%% load data
+for i = 1:length(params.trial)
+    if isfield(params,'findnote')  
+        for n = 1:length(params.findnote)
+            load(['analysis/data_structures/',params.findnote(n).fvstruct,params.trial(i).name]);
+        end
+    end
+    if isfield(params,'findmotif')  
+        for n = 1:length(params.findmotif)
+            load(['analysis/data_structures/',params.findmotif(n).motifstruct,params.trial(i).name]);
+        end
+    end
+end
+    
 %% pitch
 summary=struct();
 for i = 1:length(params.trial)
     if isfield(params,'findnote')  
         for n = 1:length(params.findnote)
             syllable = params.findnote(n).syllable;
-            load(['analysis/data_structures/',params.findnote(n).fvstruct,params.trial(i).name]);
             if ~isempty(params.trial(i).prevday)
-                load(['analysis/data_structures/',params.findnote(n).fvstruct,params.trial(i).prevday]);
                 fv_prev = eval([params.findnote(n).fvstruct,params.trial(i).prevday]);
                 tb_prev = jc_tb([fv_prev(:).datenm]',7,0);
                 intv = find(tb_prev >=9);
@@ -128,9 +140,7 @@ for i = 1:length(params.trial)
     if isfield(params,'findnote')  
         for n = 1:length(params.findnote)
             syllable = params.findnote(n).syllable;
-            load(['analysis/data_structures/',params.findnote(n).fvstruct,params.trial(i).name]);
             if ~isempty(params.trial(i).prevday)
-                load(['analysis/data_structures/',params.findnote(n).fvstruct,params.trial(i).prevday]);
                 fv_prev = eval([params.findnote(n).fvstruct,params.trial(i).prevday]);
                 tb_prev = jc_tb([fv_prev(:).datenm]',7,0);
                 intv = find(tb_prev >=9);
@@ -246,9 +256,7 @@ for i = 1:length(params.trial)
     if isfield(params,'findmotif')  
         for n = 1:length(params.findmotif)
             motif = params.findmotif(n).motif;
-            load(['analysis/data_structures/',params.findmotif(n).motifstruct,params.trial(i).name]);
             if ~isempty(params.trial(i).prevday)
-                load(['analysis/data_structures/',params.findmotif(n).motifstruct,params.trial(i).prevday]);
                 motif_prev = eval([params.findmotif(n).motifstruct,params.trial(i).prevday]);
                 tb_prev = jc_tb([motif_prev(:).datenm]',7,0);
                 intv = find(tb_prev >=9);
@@ -365,9 +373,7 @@ for i = 1:length(params.trial)
     if isfield(params,'findnote')  
         for n = 1:length(params.findnote)
             syllable = params.findnote(n).syllable;
-            load(['analysis/data_structures/',params.findnote(n).fvstruct,params.trial(i).name]);
             if ~isempty(params.trial(i).prevday)
-                load(['analysis/data_structures/',params.findnote(n).fvstruct,params.trial(i).prevday]);
                 fv_prev = eval([params.findnote(n).fvstruct,params.trial(i).prevday]);
                 tb_prev = jc_tb([fv_prev(:).datenm]',7,0);
                 intv = find(tb_prev >=9);
@@ -491,7 +497,6 @@ if isfield(params,'findmotif')
         pre_entvar = []; post_entvar = [];
         pre_dur = []; post_dur = [];
         for i = 1:length(params.trial)
-            load(['analysis/data_structures/',params.findmotif(n).motifstruct,params.trial(i).name]);
             mt = eval([params.findmotif(n).motifstruct,params.trial(i).name]);
             syllpitch = cell2mat(arrayfun(@(x) x.syllpitch',mt,'unif',0)');
             syllspent = cell2mat(arrayfun(@(x) x.syllent',mt,'unif',0)');
@@ -510,15 +515,16 @@ if isfield(params,'findmotif')
             end
         end
     end
-    pre_pitch = jc_removeoutliers(pre_pitch,5);
-    pre_spent = jc_removeoutliers(pre_spent,5);
-    pre_entvar = jc_removeoutliers(pre_entvar,5);
-    pre_dur = jc_removeoutliers(pre_dur,5);
+    nstd = 3;
+    pre_pitch = jc_removeoutliers(pre_pitch,nstd);
+    pre_spent = jc_removeoutliers(pre_spent,nstd);
+    pre_entvar = jc_removeoutliers(pre_entvar,nstd);
+    pre_dur = jc_removeoutliers(pre_dur,nstd);
     
-    post_pitch = jc_removeoutliers(post_pitch,5);
-    post_spent = jc_removeoutliers(post_spent,5);
-    post_entvar = jc_removeoutliers(post_entvar,5);
-    post_dur = jc_removeoutliers(post_dur,5);
+    post_pitch = jc_removeoutliers(post_pitch,nstd);
+    post_spent = jc_removeoutliers(post_spent,nstd);
+    post_entvar = jc_removeoutliers(post_entvar,nstd);
+    post_dur = jc_removeoutliers(post_dur,nstd);
     
     pre_pitch = (pre_pitch-nanmean(pre_pitch,1))./nanstd(pre_pitch,1);
     pre_spent = (pre_spent-nanmean(pre_spent,1))./nanstd(pre_spent,1);
@@ -544,7 +550,7 @@ if isfield(params,'findmotif')
         set(h1,'xlim',x,'ylim',y,'fontweight','bold');
         title([syllables{cmb(m,:)},' pre pitch']);
         xlabel('zsc');ylabel('zsc');
-        summary.covar.pitch.([syllables{cmb(m,:)}]).([params.trial(i).condition]) = [r p];
+        summary.covar.pitch.([syllables{cmb(m,:)}]).pre = [r(2) p(2)];
         
         h2 = subtightplot(numpairs,2,m*2,[0.07 0.05],0.08,0.12);
         plot(h2,post_pitch(:,cmb(m,1)),post_pitch(:,cmb(m,2)),'r.');hold on;
@@ -554,7 +560,7 @@ if isfield(params,'findmotif')
         set(h2,'xlim',x,'ylim',y,'fontweight','bold');
         title([syllables{cmb(m,:)},' post pitch']);
         xlabel('zsc');ylabel('zsc');
-        summary.covar.pitch.([syllables{cmb(m,:)}]).([params.trial(i).condition]) = [r p];
+        summary.covar.pitch.([syllables{cmb(m,:)}]).post = [r(2) p(2)];
     end
     
     figure;hold on;
@@ -567,7 +573,7 @@ if isfield(params,'findmotif')
         set(h1,'xlim',x,'ylim',y,'fontweight','bold');
         title([syllables{cmb(m,:)},' pre entropy']);
         xlabel('zsc');ylabel('zsc');
-        summary.covar.spent.([syllables{cmb(m,:)}]).([params.trial(i).condition]) = [r p];
+        summary.covar.spent.([syllables{cmb(m,:)}]).pre = [r(2) p(2)];
         
         h2 = subtightplot(numpairs,2,m*2,[0.07 0.05],0.08,0.12);
         plot(h2,post_spent(:,cmb(m,1)),post_spent(:,cmb(m,2)),'r.');hold on;
@@ -577,7 +583,7 @@ if isfield(params,'findmotif')
         set(h2,'xlim',x,'ylim',y,'fontweight','bold');
         title([syllables{cmb(m,:)},' post entropy']);
         xlabel('zsc');ylabel('zsc');
-        summary.covar.spent.([syllables{cmb(m,:)}]).([params.trial(i).condition]) = [r p];
+        summary.covar.spent.([syllables{cmb(m,:)}]).post = [r(2) p(2)];
     end
             
     figure;hold on;
@@ -590,7 +596,7 @@ if isfield(params,'findmotif')
         set(h1,'xlim',x,'ylim',y,'fontweight','bold');
         title([syllables{cmb(m,:)},' pre entropy variance']);
         xlabel('zsc');ylabel('zsc');
-        summary.covar.spent.([syllables{cmb(m,:)}]).([params.trial(i).condition]) = [r p];
+        summary.covar.entvar.([syllables{cmb(m,:)}]).pre = [r(2) p(2)];
         
         h2 = subtightplot(numpairs,2,m*2,[0.07 0.05],0.08,0.12);
         plot(h2,post_entvar(:,cmb(m,1)),post_entvar(:,cmb(m,2)),'r.');hold on;
@@ -600,29 +606,6 @@ if isfield(params,'findmotif')
         set(h2,'xlim',x,'ylim',y,'fontweight','bold');
         title([syllables{cmb(m,:)},' post entropy variance']);
         xlabel('zsc');ylabel('zsc');
-        summary.covar.spent.([syllables{cmb(m,:)}]).([params.trial(i).condition]) = [r p];
+        summary.covar.entvar.([syllables{cmb(m,:)}]).post = [r(2) p(2)];
     end      
-    
-%     figure;hold on;
-%     for m = 1:numpairs
-%         h1 = subtightplot(numpairs,2,m*2-1,[0.07 0.05],0.08,0.12);
-%         plot(h1,pre_dur(:,cmb(m,1)),pre_dur(:,cmb(m,2)),'k.');hold on;
-%         [r p] = corrcoef(pre_dur(:,cmb(m,1)),pre_dur(:,cmb(m,2)),'rows','complete');
-%         x = get(h1,'xlim');y = get(h1,'ylim');
-%         text(x(1),y(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
-%         set(h1,'xlim',x,'ylim',y,'fontweight','bold');
-%         title([syllables{cmb(m,:)},' pre duration']);
-%         xlabel('zsc');ylabel('zsc');
-%         summary.covar.spent.([syllables{cmb(m,:)}]).([params.trial(i).condition]) = [r p];
-%         
-%         h2 = subtightplot(numpairs,2,m*2,[0.07 0.05],0.08,0.12);
-%         plot(h2,post_dur(:,cmb(m,1)),post_dur(:,cmb(m,2)),'r.');hold on;
-%         [r p] = corrcoef(post_dur(:,cmb(m,1)),post_dur(:,cmb(m,2)),'rows','complete');
-%         x = get(h2,'xlim');y = get(h2,'ylim');
-%         text(x(1),y(2),{['r=',num2str(r(2))];['p=',num2str(p(2))]});
-%         set(h2,'xlim',x,'ylim',y,'fontweight','bold');
-%         title([syllables{cmb(m,:)},' post duration']);
-%         xlabel('zsc');ylabel('zsc');
-%         summary.covar.spent.([syllables{cmb(m,:)}]).([params.trial(i).condition]) = [r p];
-%     end         
 end
