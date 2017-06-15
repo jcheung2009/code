@@ -22,11 +22,15 @@ for n = 1:length(params.findnote)
         disp(ff(i).name);
         cd(ff(i).name);
         
-        trialind = find(arrayfun(@(x) strcmp(x.name,ff(i).name),params.trial));
-        if isempty(trialind)
+        if ~isfield(params,'trial')
             trialparams = '';
         else
-            trialparams = params.trial(trialind);
+            trialind = find(arrayfun(@(x) strcmp(x.name,ff(i).name),params.trial));
+            if isempty(trialind)
+                trialparams = '';
+            else
+                trialparams = params.trial(trialind);
+            end
         end
         
         %for WN or light feedback 

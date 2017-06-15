@@ -125,7 +125,7 @@ for ifn=1:length(ff)
         
         %get syll durs and gaps by dtw segmentation
         ons = [];offs = [];
-        nbuffer2 = 0.016*fs;%buffer by 16 ms for each individual syll in repeat
+        nbuffer2 = floor(0.016*fs);%buffer by 16 ms for each individual syll in repeat
         for n = 1:runlength(i)
             onsamp_syll = floor(onsets(onind(i)+n-1)*1e-3*fs)-nbuffer;
             offsamp_syll = ceil(offsets(onind(i)+n-1)*1e-3*fs)+nbuffer;

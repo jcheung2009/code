@@ -31,5 +31,4 @@ if (strcmp(CHANSPEC,'obs0'))
  elseif strcmp(CHANSPEC,'w')
      formatIn = 'yyyymmddHHMMSS';
      datenm = datenum(datevec(fn(end-17:end-4),formatIn));
-     datenm = addtodate(tm_st, time_to_add, 'millisecond');
  end

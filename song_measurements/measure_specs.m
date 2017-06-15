@@ -1,4 +1,4 @@
-function [pitch pitchcontour spectempent varargout] = measure_specs(filtsong,fvalbnd,timeshift,fs);
+function [pitch pitchcontour spectempent entvar varargout] = measure_specs(filtsong,fvalbnd,timeshift,fs);
 %measure pitch at target timepoint in syllable measure pitch contour and
 %spectrotemporal entropy
 
@@ -14,6 +14,7 @@ if length(w) > length(filtsong)
     pitch = NaN;
     pitchcontour = NaN;
     spectempent = NaN;
+    entvar = NaN;
 else
     [sp f tm pxx] = spectrogram(filtsong,w,overlap,NFFT,fs);
     pitchcontour = [];
@@ -47,6 +48,7 @@ else
     %Spectral temporal entropy
     indf = find(f>=1000 & f <= 10000);
     pxx = pxx(indf,:);
+    entvar = var(log(geomean(pxx)./mean(pxx)));
     pxx = bsxfun(@rdivide,pxx,sum(sum(pxx)));
     spectempent = -sum(sum(pxx.*log2(pxx)))/log2(length(pxx(:)));
     

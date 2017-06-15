@@ -34,7 +34,9 @@ for i = ind(1):ind(2)
     
     if isfield(params,'findnote')  
         for n = 1:length(params.findnote)
-            load(['analysis/data_structures/',params.findnote(n).fvstruct,ff(i).name]);
+            if ~exist([params.findnote(n).fvstruct,ff(i).name])
+                load(['analysis/data_structures/',params.findnote(n).fvstruct,ff(i).name]);
+            end
             jc_plotentropyvar(eval([params.findnote(n).fvstruct,ff(i).name]),...
                 params.findnote(n).syllable,mrk,tb,fvfig(n),params.removeoutliers);
         end

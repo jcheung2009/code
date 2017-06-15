@@ -28,7 +28,7 @@ else
 end
 if ~isempty(tbshift)
     xscale_hours_to_days(gca);
-    xlabel('','fontweight','bold');
+    xlabel('Days','fontweight','bold');
 else
    xlabel('Time','fontweight','bold') 
 end

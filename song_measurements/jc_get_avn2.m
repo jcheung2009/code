@@ -54,7 +54,7 @@ for ii=1:length(files)
 
     if (ii==1)
         [dat,fs]=evsoundin('',fn,CS);
-        NPRE = 0.016*fs;
+        NPRE = floor(0.016*fs);
         NPOST = ceil(POSTTIME*fs);
         dat_tmp=zeros([NPRE+NPOST+1,1]);
     end

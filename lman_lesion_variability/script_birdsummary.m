@@ -7,12 +7,16 @@ config;
 for i = 1:length(params.trial)
     if isfield(params,'findnote')  
         for n = 1:length(params.findnote)
-            load(['analysis/data_structures/',params.findnote(n).fvstruct,params.trial(i).name]);
+            if ~exist([params.findnote(n).fvstruct,params.trial(i).name])
+                load(['analysis/data_structures/',params.findnote(n).fvstruct,params.trial(i).name]);
+            end
         end
     end
     if isfield(params,'findmotif')  
         for n = 1:length(params.findmotif)
-            load(['analysis/data_structures/',params.findmotif(n).motifstruct,params.trial(i).name]);
+            if ~exist([params.findmotif(n).motifstruct,params.trial(i).name])
+                load(['analysis/data_structures/',params.findmotif(n).motifstruct,params.trial(i).name]);
+            end
         end
     end
 end
@@ -26,6 +30,9 @@ for i = 1:length(params.trial)
             if ~isempty(params.trial(i).prevday)
                 fv_prev = eval([params.findnote(n).fvstruct,params.trial(i).prevday]);
                 tb_prev = jc_tb([fv_prev(:).datenm]',7,0);
+                if strcmp(params.trial(i).condition,params.timeshift{1})
+                    tb_prev=tb_prev-params.timeshift{2};
+                end
                 intv = find(tb_prev >=9);
                 prev_night = mean([fv_prev(intv).mxvals]);
                 prev_whole = mean([fv_prev(:).mxvals]);
@@ -35,6 +42,9 @@ for i = 1:length(params.trial)
             end
             fv = eval([params.findnote(n).fvstruct,params.trial(i).name]);
             tb = jc_tb([fv(:).datenm]',7,0)/3600;
+            if strcmp(params.trial(i).condition,'pre')
+                tb = tb-2;
+            end
             st = floor(tb(1)); en = ceil(tb(end));hrs = [st:en];
             wholeday = mean([fv(:).mxvals]);
             
@@ -42,7 +52,7 @@ for i = 1:length(params.trial)
             hour = NaN(length(hrs),1);
             for ind = 1:length(hrs)-1
                 intv = find(tb>=hrs(ind) & tb<hrs(ind+1));   
-                if length(intv) >= 20
+                if length(intv) >= 15
                     samp = [fv(intv).mxvals]';
                     hour(ind) = mean(samp);
                 else
@@ -52,16 +62,16 @@ for i = 1:length(params.trial)
             hour = 100*[diff(hour)./hour(1:end-1)]; 
             
             %morning 
-            intv = find(tb>=hrs(1) & tb<= 3);
-            if length(intv) >= 20
+            intv = find(tb>=0 & tb<= 4);
+            if length(intv) >= 15
                 mornpitch = mean([fv(intv).mxvals]);
             else
                 mornpitch = NaN;
             end
             
             %evening
-            intv = find(tb>=11);
-            if length(intv) >= 20
+            intv = find(tb>=9);
+            if length(intv) >= 15
                 nightpitch = mean([fv(intv).mxvals]);
             else
                 nightpitch = NaN;
@@ -143,6 +153,9 @@ for i = 1:length(params.trial)
             if ~isempty(params.trial(i).prevday)
                 fv_prev = eval([params.findnote(n).fvstruct,params.trial(i).prevday]);
                 tb_prev = jc_tb([fv_prev(:).datenm]',7,0);
+                if strcmp(params.trial(i).condition,params.timeshift{1})
+                    tb_prev=tb_prev-params.timeshift{2};
+                end
                 intv = find(tb_prev >=9);
                 prev_night = mean([fv_prev(intv).spent]);
                 prev_whole = mean([fv_prev(:).spent]);
@@ -152,6 +165,9 @@ for i = 1:length(params.trial)
             end
             fv = eval([params.findnote(n).fvstruct,params.trial(i).name]);
             tb = jc_tb([fv(:).datenm]',7,0)/3600;
+            if strcmp(params.trial(i).condition,'pre')
+                tb = tb-2;
+            end
             st = floor(tb(1)); en = ceil(tb(end));hrs = [st:en];
             wholeday = mean([fv(:).spent]);
             
@@ -159,7 +175,7 @@ for i = 1:length(params.trial)
             hour = NaN(length(hrs),1);
             for ind = 1:length(hrs)-1
                 intv = find(tb>=hrs(ind) & tb<hrs(ind+1));   
-                if length(intv) >= 20
+                if length(intv) >= 15
                     samp = [fv(intv).spent]';
                     hour(ind) = mean(samp);
                 else
@@ -169,16 +185,16 @@ for i = 1:length(params.trial)
             hour = 100*[diff(hour)./hour(1:end-1)]; 
             
             %morning 
-            intv = find(tb>=hrs(1) & tb<= 3);
-            if length(intv) >= 20
+            intv = find(tb>=0 & tb<= 4);
+            if length(intv) >= 15
                 mornpitch = mean([fv(intv).spent]);
             else
                 mornpitch = NaN;
             end
             
             %evening
-            intv = find(tb>=11);
-            if length(intv) >= 20
+            intv = find(tb>=9);
+            if length(intv) >= 15
                 nightpitch = mean([fv(intv).spent]);
             else
                 nightpitch = NaN;
@@ -259,6 +275,9 @@ for i = 1:length(params.trial)
             if ~isempty(params.trial(i).prevday)
                 motif_prev = eval([params.findmotif(n).motifstruct,params.trial(i).prevday]);
                 tb_prev = jc_tb([motif_prev(:).datenm]',7,0);
+                if strcmp(params.trial(i).condition,params.timeshift{1})
+                    tb_prev=tb_prev-params.timeshift{2};
+                end
                 intv = find(tb_prev >=9);
                 prev_night = mean([motif_prev(intv).motifdur]);
                 prev_whole = mean([motif_prev(:).motifdur]);
@@ -268,6 +287,9 @@ for i = 1:length(params.trial)
             end
             mt = eval([params.findmotif(n).motifstruct,params.trial(i).name]);
             tb = jc_tb([mt(:).datenm]',7,0)/3600;
+            if strcmp(params.trial(i).condition,'pre')
+                tb = tb-2;
+            end
             st = floor(tb(1)); en = ceil(tb(end));hrs = [st:en];
             wholeday = mean([mt(:).motifdur]);
             
@@ -275,7 +297,7 @@ for i = 1:length(params.trial)
             hour = NaN(length(hrs),1);
             for ind = 1:length(hrs)-1
                 intv = find(tb>=hrs(ind) & tb<hrs(ind+1));   
-                if length(intv) >= 20
+                if length(intv) >= 15
                     samp = [mt(intv).motifdur]';
                     hour(ind) = mean(samp);
                 else
@@ -285,16 +307,16 @@ for i = 1:length(params.trial)
             hour = 100*[diff(hour)./hour(1:end-1)]; 
             
             %morning 
-            intv = find(tb>=hrs(1) & tb<= 3);
-            if length(intv) >= 20
+            intv = find(tb>=0 & tb<= 4);
+            if length(intv) >= 15
                 mornpitch = mean([mt(intv).motifdur]);
             else
                 mornpitch = NaN;
             end
             
             %evening
-            intv = find(tb>=11);
-            if length(intv) >= 20
+            intv = find(tb>=9);
+            if length(intv) >= 15
                 nightpitch = mean([mt(intv).motifdur]);
             else
                 nightpitch = NaN;
@@ -376,6 +398,9 @@ for i = 1:length(params.trial)
             if ~isempty(params.trial(i).prevday)
                 fv_prev = eval([params.findnote(n).fvstruct,params.trial(i).prevday]);
                 tb_prev = jc_tb([fv_prev(:).datenm]',7,0);
+                if strcmp(params.trial(i).condition,params.timeshift{1})
+                    tb_prev=tb_prev-params.timeshift{2};
+                end
                 intv = find(tb_prev >=9);
                 prev_night = mean([fv_prev(intv).entropyvar]);
                 prev_whole = mean([fv_prev(:).entropyvar]);
@@ -385,6 +410,9 @@ for i = 1:length(params.trial)
             end
             fv = eval([params.findnote(n).fvstruct,params.trial(i).name]);
             tb = jc_tb([fv(:).datenm]',7,0)/3600;
+            if strcmp(params.trial(i).condition,'pre')
+                tb = tb-2;
+            end
             st = floor(tb(1)); en = ceil(tb(end));hrs = [st:en];
             wholeday = mean([fv(:).entropyvar]);
             
@@ -410,7 +438,7 @@ for i = 1:length(params.trial)
             end
             
             %evening
-            intv = find(tb>=11);
+            intv = find(tb>=9);
             if length(intv) >= 20
                 nightpitch = mean([fv(intv).entropyvar]);
             else

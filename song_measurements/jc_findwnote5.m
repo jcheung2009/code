@@ -7,7 +7,7 @@ POSTNOTE = params.postnotes;
 TIMESHIFT = params.timeshifts;
 FVALBND = params.fvalbnd;
 chckpc = params.chckpc;
-nbuffer = 0.016*fs;%16 ms buffer for segmenting
+nbuffer = floor(0.016*fs);%16 ms buffer for segmenting
 
 fvalsstr=[];
 note_cnt=0;
@@ -75,7 +75,7 @@ for ifn=1:length(ff)
             end
             
             %spectral measurements
-            [mxvals pc spectempent sp f tm] = measure_specs(filtsong,FVALBND,TIMESHIFT,fs);
+            [mxvals pc spectempent entvar sp f tm] = measure_specs(filtsong,FVALBND,TIMESHIFT,fs);
             pc = [tm' pc]; 
 
             %extract datenum from rec file, add syllable ton in seconds
@@ -91,6 +91,7 @@ for ifn=1:length(ff)
             fvalsstr(note_cnt).mxvals = mxvals;%pitch estimate at timeshift
             fvalsstr(note_cnt).pitchcontour = pc;
             fvalsstr(note_cnt).spent = spectempent;%spectral entropy 
+            fvalsstr(note_cnt).entvar = entvar;
             fvalsstr(note_cnt).TRIG   = TRIG;
             fvalsstr(note_cnt).trigtime = trigtime;
             fvalsstr(note_cnt).CATCH  = ISCATCH;
