@@ -33,9 +33,9 @@ while (1)
         [dat,fs]=readevtaf(fn,'0r');
         sm=evsmooth(dat,fs,0.01);
     elseif(strcmp(ext,'.cbin'))
-        %[dat,fs]=evsoundin('',fn,CHANSPEC);
-        [dat,fs]  = ReadCbinFile(fn);
-        dat = dat(:,1);
+        [dat,fs]=evsoundin('',fn,CHANSPEC);
+        %[dat,fs]  = ReadCbinFile(fn);
+        %dat = dat(:,1);
         sm=evsmooth(dat,fs,100);
         disp('reading cbin');
     elseif (strcmp(ext,'.wav'))

@@ -154,7 +154,7 @@ for i = 1:length(ff)
                    if offsamp_syll > length(filtsong)
                        offsamp_syll = length(filtsong);
                    end
-                   if onsamp_syll < 0
+                   if onsamp_syll <= 0
                        onsamp_syll = 1;
                    end
                    [mxvals pc spectempent sp f tm] = measure_specs(filtsong(onsamp_syll:offsamp_syll),...

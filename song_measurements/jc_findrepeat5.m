@@ -90,7 +90,7 @@ for ifn=1:length(ff)
 
     %% measure tempo, syll/gap duration, and spectral features in each repeat
     %instance
-    nbuffer = 0.016*fs;%16 ms buffer for segmenting repeats
+    nbuffer = floor(0.016*fs);%16 ms buffer for segmenting repeats
     for i = 1:length(runlength) 
         ton = onsets(onind(i)); toff = offsets(offind(i));%ms
         onsamp = ceil((ton*1e-3)*fs);
@@ -174,7 +174,7 @@ for ifn=1:length(ff)
                 for ii = 1:length(ons)
                     onsamp_syll = floor(ons(ii)*fs)-nbuffer2;
                     offsamp_syll = ceil(offs(ii)*fs)+nbuffer2;
-                    if onsamp_syll < 0 
+                    if onsamp_syll <= 0 
                         onsamp_syll = 1;
                     end
                     if offsamp_syll > length(filtsong)

@@ -109,7 +109,7 @@ for ifn=1:length(ff)
 end
 
 %% check pitch contours with average spectrograms 
-if chckpc == 1
+if chckpc == 1 & ~isempty(fvalsstr)
     [maxlength ind1] = max(arrayfun(@(x) length(x.tm),spec));
     freqlength = max(arrayfun(@(x) length(x.f),spec));
     avgspec = zeros(freqlength,maxlength);
