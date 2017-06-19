@@ -2,12 +2,14 @@
 ff = load_batchf('batch');
 pre_vs_post = struct('pitch',[],'spent',[],'entropyvar',[],'motif',[]);
 feature = fieldnames(pre_vs_post);
-for i = 1:length(fn)
-    pre_vs_post.([fn{i}]) = struct('hour',[],'morn_to_night',[],'night_to_morn',[],'day_to_day',[]);
+for i = 1:length(feature)
+    pre_vs_post.([feature{i}]) = struct('hour',[],'morn_to_night',[],'night_to_morn',[],'day_to_day',[]);
 end
 for i = 1:length(ff)
     birdnm = ff(i).name;
-    load([birdnm,'/analysis/data_structures/summary_',birdnm])
+    if ~exist(['summary_',birdnm])
+        load([birdnm,'/analysis/data_structures/summary_',birdnm])
+    end
     summary = eval(['summary_',birdnm]);
     for m = 1:length(feature)
         sylls = fieldnames(summary.([feature{m}]));
@@ -29,17 +31,65 @@ for i = 1:length(ff)
     end
 end
 
-offset = 
+%plot epoch changes in spectral features (line plots)
+offset = 0.1429;
 figure;hold on;
 for m = 1:length(feature)
     h = subtightplot(length(feature),1,m,[0.07 0.05],0.08,0.12);
     cnd = fieldnames(pre_vs_post.([feature{m}]));
+    plot(h,[1-0.5 length(cnd)+0.5],[0 0],'--','color','k');hold on;
     xtck = [];
+    sgn = NaN(length(cnd),1);
     for n = 1:length(cnd)
         plot(h,[n-offset n+offset],pre_vs_post.([feature{m}]).([cnd{n}]),'marker','o','linewidth',1,'color',[0.5 0.5 0.5]);hold on;
         xtck = [xtck;n-offset;n+offset];
+        p = signrank(pre_vs_post.([feature{m}]).([cnd{n}])(:,1),pre_vs_post.([feature{m}]).([cnd{n}])(:,2));
+        sgn(n) = p;
     end
-    set(h,'xlim',[0.5 length(cnd)+.75]);y=get(gca,'ylim');
+    for n = 1:length(cnd)
+        if sgn(n) <= 0.05
+            text((n-0.5)/4,0.95,'*','fontsize',12,'units','normalized');
+        end
+        text((n-0.5)/4,-0.15,strrep(cnd{n},'_',' '),'HorizontalAlignment','center','fontweight','bold','units','normalized');
+    end
     ylabel('percent change');title([feature{m}]);
-    set(gca,'xtick',xtck,'xticklabel',{'pre','post'},'fontweight','bold');
+    set(h,'xtick',xtck,'xticklabel',{'pre','post'},'fontweight','bold');
+end
+
+pre_vs_post.covar = struct('pitch',[],'spent',[],'entvar',[]);
+feature = fieldnames(pre_vs_post.covar);
+for i = 1:length(ff)
+    birdnm = ff(i).name;
+    summary = eval(['summary_',birdnm,'.covar']);
+    for m = 1:length(feature)
+        syllpairs = fieldnames(summary.([feature{m}]));
+        for n = 1:length(syllpairs)
+            pre_cov = summary.([feature{m}]).([syllpairs{n}]).pre;
+            post_cov = summary.([feature{m}]).([syllpairs{n}]).post;
+            pre_vs_post.covar.([feature{m}]) = [pre_vs_post.covar.([feature{m}]);[pre_cov post_cov]];
+        end
+    end
+end
+
+%plot change in spectral covariance
+offset = 0.1429;
+figure;hold on;
+xtck = [];sgn = NaN(length(feature),1);
+plot(gca,[1-0.5 length(feature)+0.5],[0 0],'--','color','k');hold on;
+for m = 1:length(feature)
+    plot(gca,[m-offset m+offset],pre_vs_post.covar.([feature{m}])(:,[1 3]),'marker','o','linewidth',1,'color',[0.5 0.5 0.5]);hold on;
+        xtck = [xtck;m-offset;m+offset];
+        p = signrank(pre_vs_post.covar.([feature{m}])(:,1),pre_vs_post.covar.([feature{m}])(:,3));
+        sgn(m) = p;
+end
+for n = 1:length(feature)
+    if sgn(n) <= 0.05
+        text((n-0.5)/3,0.95,'*','fontsize',12,'units','normalized');
+    end
+    text((n-0.5)/3,-0.1,feature{n},'HorizontalAlignment','center','fontweight','bold','units','normalized');
+end
+ylabel('correlation');
+set(gca,'xtick',xtck,'xticklabel',{'pre','post'},'fontweight','bold');
+
+
     

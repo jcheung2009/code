@@ -81,7 +81,7 @@ while isempty(dtwtemplate.filtsong)
         end
         
         smtemp = dat(onsamp:offsamp);%amplitude envelope of motif
-        filtsong = bandpass(smtemp,fs,1000,10000,'hanningffir');
+        filtsong = bandpass(smtemp,fs,500,10000,'hanningffir');
         %plot spectrogram
         clf(h);hold on;
         NFFT = 512;
@@ -90,7 +90,7 @@ while isempty(dtwtemplate.filtsong)
         sigma=(1/1000)*fs;
         w=exp(-(t/sigma).^2);
         [sp f tm] = spectrogram(filtsong,w,overlap,NFFT,fs);
-        indf = find(f>1000 & f <10000);
+        indf = find(f>500 & f <10000);
         imagesc(tm,f(indf),log(abs(sp(indf,:))));set(gca,'YDir','normal');hold on;
         
         sm = evsmooth(smtemp,fs,'','','',2);%smoothed amplitude envelop
@@ -98,8 +98,8 @@ while isempty(dtwtemplate.filtsong)
         sm2=sm2-min(sm2);
         sm2=sm2./max(sm2);
         [ons offs] = SegmentNotes(sm2,fs,minint,mindur,thresh);
-        plot([ons ons],[1000 10000],'r');hold on;
-        plot([offs offs],[1000 10000],'r');hold on;
+        plot([ons ons]',[500 10000],'r');hold on;
+        plot([offs offs]',[500 10000],'r');hold on;
         keep_or_nokeep = input('use as template?: ','s');
         if keep_or_nokeep == 'n'
             continue

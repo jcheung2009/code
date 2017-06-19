@@ -45,7 +45,7 @@ for n = 1:length(params.findnote)
     end
     figure(fvfig(n));hold on;
     %pitch
-    subtightplot(3,1,1,[0.07 0.05],0.08,0.12);
+    subtightplot(1,3,1,[0.07 0.05],0.08,0.12);
     sem_pre = nanstderr(pre(:,[1:3:end]),2)';
     sem_post = nanstderr(post(:,[1:3:end]),2)';
     mn_pre = nanmean(pre(:,[1:3:end]),2)';
@@ -56,8 +56,9 @@ for n = 1:length(params.findnote)
     plot([hrs;hrs],[mn_post+sem_post; mn_post-sem_post],'r','linewidth',2);hold on;
     xlabel('Time of day');ylabel('percent change');
     title([syllable,' pitch']);
+    set(gca,'fontweight','bold');
     %entropy
-    subtightplot(3,1,2,[0.07 0.05],0.08,0.12);
+    subtightplot(1,3,2,[0.07 0.05],0.08,0.12);
     sem_pre = nanstderr(pre(:,[2:3:end]),2)';
     sem_post = nanstderr(post(:,[2:3:end]),2)';
     mn_pre = nanmean(pre(:,[2:3:end]),2)';
@@ -68,8 +69,9 @@ for n = 1:length(params.findnote)
     plot([hrs;hrs],[mn_post+sem_post; mn_post-sem_post],'r','linewidth',2);hold on;
     xlabel('Time of day');ylabel('percent change');
     title([syllable,' entropy']);
+    set(gca,'fontweight','bold');
     %entropy variance
-    subtightplot(3,1,3,[0.07 0.05],0.08,0.12);
+    subtightplot(1,3,3,[0.07 0.05],0.08,0.12);
     sem_pre = nanstderr(pre(:,[3:3:end]),2)';
     sem_post = nanstderr(post(:,[3:3:end]),2)';
     mn_pre = nanmean(pre(:,[3:3:end]),2)';
@@ -80,6 +82,7 @@ for n = 1:length(params.findnote)
     plot([hrs;hrs],[mn_post+sem_post; mn_post-sem_post],'r','linewidth',2);hold on;
     xlabel('Time of day');ylabel('percent change');
     title([syllable,' entropy variance']);
+    set(gca,'fontweight','bold');
 end
 
 %% motif duration

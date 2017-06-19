@@ -46,7 +46,7 @@ else
     end
 
     %Spectral temporal entropy
-    indf = find(f>=1000 & f <= 10000);
+    indf = find(f>=500 & f <= 10000);
     pxx = pxx(indf,:);
     entvar = var(log(geomean(pxx)./mean(pxx)));
     pxx = bsxfun(@rdivide,pxx,sum(sum(pxx)));

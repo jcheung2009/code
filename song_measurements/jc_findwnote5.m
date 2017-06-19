@@ -68,7 +68,7 @@ for ifn=1:length(ff)
                 ton = (onsamp/fs)*1e3;%best estimate of time onset in song in ms
                 toff = (offsamp/fs)*1e3;%best estimate of time offset in song in ms
                 smtemp=dat(onsamp-nbuffer:offsamp+nbuffer);
-                filtsong=bandpass(smtemp,fs,1000,10000,'hanningffir'); 
+                filtsong=bandpass(smtemp,fs,500,10000,'hanningffir'); 
                 sm=evsmooth(smtemp,fs,'','','',5);
             else
                 error([fn,' time cutoff at end of syllable exceeds file length']);

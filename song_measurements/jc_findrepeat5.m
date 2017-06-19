@@ -107,7 +107,7 @@ for ifn=1:length(ff)
         end
         
         smtemp = dat(onsamp:offsamp);
-        filtsong = bandpass(smtemp,fs,1000,10000,'hanningffir');
+        filtsong = bandpass(smtemp,fs,500,10000,'hanningffir');
         sm = evsmooth(smtemp,fs,'','','',5);
         sm = log(sm);sm = sm-min(sm);sm = sm./max(sm);
         
@@ -143,12 +143,12 @@ for ifn=1:length(ff)
         if check_segmentation == 'y' 
             clf(h);hold on;
             [sp2 f2 tm2] = spectrogram(filtsong,w,overlap,NFFT,fs);
-            indf = find(f2>1000 & f2 <10000);
+            indf = find(f2>500 & f2 <10000);
             f2 = f2(indf);
             sp2 = abs(sp2(indf,:));
             imagesc(tm2,f2,log(abs(sp2)));axis('xy');
-            plot([ons ons]',[1000 10000],'r');hold on;
-            plot([offs offs]',[1000 10000],'r');hold on;
+            plot([ons ons]',[500 10000],'r');hold on;
+            plot([offs offs]',[500 10000],'r');hold on;
             pause;
         end
         

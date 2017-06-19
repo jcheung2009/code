@@ -17,6 +17,9 @@ for i = ind(1):ind(2)
         catch
             continue
         end
+        if isempty(fieldnames(eval(['motif_',params.findbout(ii).motif,'_',ff(i).name])))
+            continue
+        end
         cd(ff(i).name)
         disp(ff(i).name);
         cmd = [params.findbout(ii).boutstruct,ff(i).name,'=','jc_findbouts(params.batchfile,motif_',params.findbout(ii).motif,'_',ff(i).name,',params.findbout(',num2str(ii),'),params.filetype)'];
