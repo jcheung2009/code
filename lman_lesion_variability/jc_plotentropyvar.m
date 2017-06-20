@@ -8,7 +8,7 @@ if isempty(removeoutliers)
     removeoutliers = input('remove outliers?:','s');
 end
 
-entropyvar = [[fv(:).datenm]',[fv(:).entropyvar]'];
+entropyvar = [[fv(:).datenm]',[fv(:).entvar]'];
 
 if ~isempty(tbshift)
     entropyvar(:,1) = jc_tb(entropyvar(:,1),7,0)+(tbshift*24*3600);

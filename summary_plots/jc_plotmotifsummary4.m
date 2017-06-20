@@ -7,7 +7,7 @@ trialname=trialparams.name;
 treattime=trialparams.treattime;
 linecolor = trialparams.linecolor;
 marker=trialparams.marker;
-xpt = strfind(conditions,trialparams.condition);xpt=xpt{1};
+xpt = find(strcmp(conditions,trialparams.condition));
 
 %exclude wash-in and match time of day
 tb_sal = jc_tb([motif_sal(:).datenm]',7,0);
