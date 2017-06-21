@@ -23,8 +23,15 @@ for i = 1:length(params.trial)
             postnote = params.findnote(n).postnotes;
             load(['analysis/data_structures/',params.findnote(n).fvstruct,params.trial(i).name]);
             load(['analysis/data_structures/',params.findnote(n).fvstruct,params.trial(i).baseline]);
+            if isfield(params.trial(i),'name2') && ~isempty(params.trial(i).name2)
+                load(['analysis/data_structures/',params.findnote(n).fvstruct,params.trial(i).name2]);
+                fv_cond1 = eval([params.findnote(n).fvstruct,params.trial(i).name]);
+                fv_cond2 = eval([params.findnote(n).fvstruct,params.trial(i).name2]);
+                fv_cond = [fv_cond1 fv_cond2];
+            else
+                fv_cond = eval([params.findnote(n).fvstruct,params.trial(i).name]);
+            end
             fv_base = eval([params.findnote(n).fvstruct,params.trial(i).baseline]);
-            fv_cond = eval([params.findnote(n).fvstruct,params.trial(i).name]);
             summary.spec(i).([prenote upper(syllable) postnote]) = jc_plotfvsummary3...
                 (fv_base,fv_cond,syllable,params,params.trial(i),h1);
         end
@@ -35,8 +42,15 @@ for i = 1:length(params.trial)
             motif = params.findmotif(n).motif;
             load(['analysis/data_structures/',params.findmotif(n).motifstruct,params.trial(i).name]);
             load(['analysis/data_structures/',params.findmotif(n).motifstruct,params.trial(i).baseline]);
+            if isfield(params.trial(i),'name2') && ~isempty(params.trial(i).name2)
+                    load(['analysis/data_structures/',params.findmotif(n).motifstruct,params.trial(i).name2]);
+                    motif_cond1 = eval([params.findmotif(n).motifstruct,params.trial(i).name]);
+                    motif_cond2 = eval([params.findmotif(n).motifstruct,params.trial(i).name2]);
+                    motif_cond = [motif_cond1 motif_cond2];
+            else
+                motif_cond = eval([params.findmotif(n).motifstruct,params.trial(i).name]);
+            end
             motif_base = eval([params.findmotif(n).motifstruct,params.trial(i).baseline]);
-            motif_cond = eval([params.findmotif(n).motifstruct,params.trial(i).name]);
             summary.temp(i).([motif]) = jc_plotmotifsummary4(motif_base,motif_cond,...
                 motif,params,params.trial(i),h2);
         end
@@ -47,8 +61,15 @@ for i = 1:length(params.trial)
             repeat = params.findrepeat(n).repnote;
             load(['analysis/data_structures/',params.findrepeat(n).repstruct,params.trial(i).name]);
             load(['analysis/data_structures/',params.findrepeat(n).repstruct,params.trial(i).baseline]);
+            if isfield(params.trial(i),'name2') && ~isempty(params.trial(i).name2)
+                load(['analysis/data_structures/',params.findrepeat(n).repstruct,params.trial(i).name2]);
+                rep_cond1 = eval([params.findrepeat(n).repstruct,params.trial(i).name]);
+                rep_cond2 = eval([params.findrepeat(n).repstruct,params.trial(i).name2]);
+                rep_cond = [rep_cond1 rep_cond2];
+            else
+               rep_cond = eval([params.findrepeat(n).repstruct,params.trial(i).name]); 
+            end
             rep_base = eval([params.findrepeat(n).repstruct,params.trial(i).baseline]);
-            rep_cond = eval([params.findrepeat(n).repstruct,params.trial(i).name]);
             summary.rep(i).([repeat]) = jc_plotrepeatsummary3(rep_base,rep_cond,...
                 repeat,params,params.trial(i),h3);
         end
@@ -59,8 +80,15 @@ for i = 1:length(params.trial)
             bout = params.findbout(n).motif;
             load(['analysis/data_structures/',params.findbout(n).boutstruct,params.trial(i).name]);
             load(['analysis/data_structures/',params.findbout(n).boutstruct,params.trial(i).baseline]);
-            bout_base = eval([params.findbout(n).boutstruct,params.trial(i).baseline]);
-            bout_cond = eval([params.findbout(n).boutstruct,params.trial(i).name]);
+            if isfield(params.trial(i),'name2') && ~isempty(params.trial(i).name2)
+                load(['analysis/data_structures/',params.findbout(n).boutstruct,params.trial(i).name2]);
+                bout_cond1 = eval([params.findbout(n).boutstruct,params.trial(i).name]);
+                bout_cond2 = eval([params.findbout(n).boutstruct,params.trial(i).name2]);
+                bout_cond = [bout_cond1 bout_cond2];
+            else
+                bout_cond = eval([params.findbout(n).boutstruct,params.trial(i).name]);
+            end
+            bout_base = eval([params.findbout(n).boutstruct,params.trial(i).baseline]); 
             summary.bout(i).([bout]) = jc_plotboutsummary3(bout_base,bout_cond,...
                 params,params.trial(i),h4);
         end

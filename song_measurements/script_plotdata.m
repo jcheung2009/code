@@ -65,7 +65,7 @@ for i = ind(1):ind(2)
                 load(['analysis/data_structures/',params.findmotif(n).motifstruct,ff(i).name]);
             end
             mt = eval([params.findmotif(n).motifstruct,ff(i).name]);
-            if ~isempty(mt)
+            if ~isempty(fieldnames(mt))
                 jc_plotmotifvals2(mt,params.findmotif(n).motif,mrk,tb,motiffig(n).a,motiffig(n).b,params.removeoutliers);
             end 
         end
@@ -85,8 +85,10 @@ for i = ind(1):ind(2)
     
     if isfield(params,'findbout')
         for n = 1:length(params.findbout)
-            if ~exist([params.findbout(n).boutstruct,ff(i).name])
+            if ~exist([params.findbout(n).boutstruct,ff(i).name]) & exist(['analysis/data_structures/',params.findbout(n).boutstruct,ff(i).name])
                 load(['analysis/data_structures/',params.findbout(n).boutstruct,ff(i).name]);
+            else
+                continue
             end
             bt = eval([params.findbout(n).boutstruct,ff(i).name]);
             if ~isempty(bt)

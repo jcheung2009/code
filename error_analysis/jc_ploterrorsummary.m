@@ -14,10 +14,10 @@ tb_pre = jc_tb([fv_pre(:).datenm]',7,0)/3600;
 tb_post = jc_tb([fv_post(:).datenm]',7,0)/3600;
 ind = find(tb_pre <= 5);%before noon
 tb_pre=tb_pre(ind);
-pitch_pre = [fv_pre(ind).mxvals];
+pitch_pre = [fv_pre(ind).mxvals]';
 ind = find(tb_post <= 5);
 tb_post = tb_post(ind);
-pitch_post = [fv_post(ind).mxvals];
+pitch_post = [fv_post(ind).mxvals]';
 if isempty(tb_pre) | isempty(tb_post)
     err.trialname = trialname;
     err.condition = trialparams.condition;
@@ -42,7 +42,8 @@ pitch_pre =jc_removenan(pitch_pre);
 pitch_post =jc_removenan(pitch_post);
 
 %distribution
-figure;hold on;ax = gca;
+% figure;hold on;ax = gca;
+ax = '';
 pitch_pval = plot_distribution(ax,pitch_pre,pitch_post,linecolor);
 
 %z-score and summary plot

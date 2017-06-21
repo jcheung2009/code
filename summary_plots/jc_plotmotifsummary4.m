@@ -2,6 +2,7 @@ function temp = jc_plotmotifsummary4(motif_sal, motif_cond, ...
    motif,params,trialparams,fignum)
 %summary plot of motif temporal features and distribution plots
 conditions=params.conditions;
+base = params.baseepoch;
 removeoutliers=params.removeoutliers;
 trialname=trialparams.name;
 treattime=trialparams.treattime;
@@ -12,7 +13,11 @@ xpt = find(strcmp(conditions,trialparams.condition));
 %exclude wash-in and match time of day
 tb_sal = jc_tb([motif_sal(:).datenm]',7,0);
 tb_cond = jc_tb([motif_cond(:).datenm]',7,0);
-start_time = time2datenum(treattime) + 3600;%1 hr buffer
+if isempty(treattime)
+    start_time = tb_cond(1)+3600;
+else
+    start_time = time2datenum(treattime) + 3600;%1 hr buffer
+end
 ind = find(tb_cond > start_time);
 tb_cond=tb_cond(ind);
 motifdur2 = [motif_cond(ind).motifdur]';
@@ -21,7 +26,11 @@ meangapdur2 = mean([motif_cond(ind).gaps],1)';
 motifacorr2 = [motif_cond(ind).firstpeakdistance]';
 sylldur2 = [motif_cond(ind).durations]';
 gapdur2 = [motif_cond(ind).gaps]';
-ind = find(tb_sal >= tb_cond(1) & tb_sal <= tb_cond(end));
+if ~strcmp(base,'morn')
+    ind = find(tb_sal >= tb_cond(1));
+else
+    ind = 1:length(tb_sal);
+end
 tb_sal=tb_sal(ind);
 motifdur = [motif_sal(ind).motifdur]';
 meansylldur = mean([motif_sal(ind).durations],1)';
@@ -29,6 +38,7 @@ meangapdur = mean([motif_sal(ind).gaps],1)';
 motifacorr = [motif_sal(ind).firstpeakdistance]';
 sylldur = [motif_sal(ind).durations]';
 gapdur = [motif_sal(ind).gaps]';
+
 
 %remove outliers
 if strcmp(removeoutliers,'y')
@@ -62,44 +72,47 @@ sylldur2 = jc_removenan(sylldur2);
 gapdur2 = jc_removenan(gapdur2);
 
 %distributions
-figure;hold on;
-h1 = subtightplot(4,1,1,[0.07 0.05],0.08,0.12);
-h2 = subtightplot(4,1,2,[0.07 0.05],0.08,0.12);
-h3 = subtightplot(4,1,3,[0.07 0.05],0.08,0.12);
-h4 = subtightplot(4,1,4,[0.07 0.05],0.08,0.12);
+% figure;hold on;
+% h1 = subtightplot(4,1,1,[0.07 0.05],0.08,0.12);
+% h2 = subtightplot(4,1,2,[0.07 0.05],0.08,0.12);
+% h3 = subtightplot(4,1,3,[0.07 0.05],0.08,0.12);
+% h4 = subtightplot(4,1,4,[0.07 0.05],0.08,0.12);
+h1='';h2='';h3='';h4='';
 motifdur_pval = plot_distribution(h1,motifdur,motifdur2,linecolor);
 meansylldur_pval = plot_distribution(h2,meansylldur,meansylldur2,linecolor);
 meangapdur_pval = plot_distribution(h3,meangapdur,meangapdur2,linecolor);
 motifacorr_pval = plot_distribution(h4,motifacorr,motifacorr2,linecolor);
-xlabel(h1,'motif duration (s)');
-xlabel(h2,'mean syllable duration (s)');
-xlabel(h3,'mean gap duration (s)');
-xlabel(h4,'interval duration (s)');
-title(h1,trialname,'interpreter','none');
+% xlabel(h1,'motif duration (s)');
+% xlabel(h2,'mean syllable duration (s)');
+% xlabel(h3,'mean gap duration (s)');
+% xlabel(h4,'interval duration (s)');
+% title(h1,trialname,'interpreter','none');
 
-figure;hold on;
+% figure;hold on;
 numsylls = size(sylldur,2);
 sylldur_pval=[];
 for i = 1:numsylls
-    h = subtightplot(numsylls,1,i,[0.07 0.05],0.08,0.12);
+%     h = subtightplot(numsylls,1,i,[0.07 0.05],0.08,0.12);
+    h='';
     pval = plot_distribution(h,sylldur(:,i),sylldur2(:,i),linecolor);
     sylldur_pval=[sylldur_pval;pval];
-    xlabel(h,['syllable ',motif(i),' duration (s)']);
-    if i == 1
-        title(h,trialname,'interpreter','none');
-    end
+%     xlabel(h,['syllable ',motif(i),' duration (s)']);
+%     if i == 1
+%         title(h,trialname,'interpreter','none');
+%     end
 end
-figure;hold on;
+% figure;hold on;
 numgaps = size(sylldur,2)-1;
 gapdur_pval=[];
 for i = 1:numgaps
-    h = subtightplot(numgaps,1,i,[0.07 0.05],0.08,0.12);
+%     h = subtightplot(numgaps,1,i,[0.07 0.05],0.08,0.12);
+    h='';
     pval = plot_distribution(h,gapdur(:,i),gapdur2(:,i),linecolor);
     gapdur_pval=[gapdur_pval;pval];
-    xlabel(h,['gap ',num2str(i),' duration (s)']);
-    if i == 1
-        title(h,trialname,'interpreter','none');
-    end
+%     xlabel(h,['gap ',num2str(i),' duration (s)']);
+%     if i == 1
+%         title(h,trialname,'interpreter','none');
+%     end
 end
 
 %z-score 

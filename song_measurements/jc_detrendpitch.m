@@ -13,7 +13,7 @@ for p = 1:numtimewindows
     timept2 = timept1+timewindow;
     indcv = find(tb >= timept1 & tb < timept2);
     diff = nanmean(pitch1(indcv))-nanmean(pitch1);
-    pitch2 = [pitch2 pitch1(indcv)-diff];
+    pitch2 = [pitch2; pitch1(indcv)-diff];
     timept1 = timept2;
 end
 

@@ -20,11 +20,16 @@ for i = 1:length(params.trial)
             if ~exist([params.findnote(n).fvstruct,params.trial(i).baseline])
                 load(['analysis/data_structures/',params.findnote(n).fvstruct,params.trial(i).baseline]);
             end
-            if ~exist([params.findnote(n).fvstruct,params.trial(i).post])
+            if ~isempty(params.trial(i).post) 
                 load(['analysis/data_structures/',params.findnote(n).fvstruct,params.trial(i).post]);
+                post = eval([params.findnote(n).fvstruct,params.trial(i).post]);
+            elseif strcmp(params.trial(i).condition,'saline')
+                load(['analysis/data_structures/',params.findnote(n).fvstruct,params.trial(i).name]);
+                post = eval([params.findnote(n).fvstruct,params.trial(i).name]);
+            else
+                continue
             end
             pre = eval([params.findnote(n).fvstruct,params.trial(i).baseline]);
-            post = eval([params.findnote(n).fvstruct,params.trial(i).post]);
             summary.error(i).([prenote upper(syllable) postnote]) = jc_ploterrorsummary(...
                 pre,post,syllable,params,params.trial(i),h1);
         end

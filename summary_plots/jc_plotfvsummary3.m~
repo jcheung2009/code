@@ -14,7 +14,10 @@ if isfield(params,'detrend')
 else
     detrend = 'n';
 end
-       
+if isfield(trialparams,'splitday') 
+    if strcmp(trialparams.splitday,'y')
+        splitday = 'y';
+        
 
 %exclude wash-in and match time of day
 tb_sal = jc_tb([fv_syll_sal(:).datenm]',7,0);

@@ -57,7 +57,7 @@ numseconds = tb_secs(end)-tb_secs(1);
 timewindow = 3600; %half hr in seconds
 jogsize = 900;%15 minutes
 numtimewindows = ceil(numseconds/jogsize)-(timewindow/jogsize)/2;
-if numtimewindows < 0
+if numtimewindows <= 0
     numtimewindows = 1;
 end
 

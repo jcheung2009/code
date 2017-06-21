@@ -42,9 +42,7 @@ for n = 1:length(conditions)
     group_bout = setfield(group_bout,conditions{n},[]);
 end
 for i = 1:length(ff)
-    if ~exist(ff(i).name)
-        load([params.subfolder{1},'/',ff(i).name,'/analysis/data_structures/summary_',ff(i).name]);
-    end
+    load([ff(i).name,'/analysis/data_structures/summary_',ff(i).name]);
     birdsummary = eval(['summary_',ff(i).name]);
     if isfield(birdsummary,'spec')
         numsylls = length(fieldnames(birdsummary.spec));
@@ -107,9 +105,6 @@ for i = 1:length(ff)
         for indcond = 1:length(conditions)
             for n = 1:numreps
                 ind = strcmp(arrayfun(@(x) x.([reps{n}]).condition,birdsummary.rep,'unif',0),conditions{indcond});
-                if isempty(find(ind))
-                    continue
-                end
                 runlength = mean(cell2mat(arrayfun(@(x) x.([reps{n}]).runlength.mean,birdsummary.rep(ind),'unif',0)'),1);
                 axes(h8);hold on;plot(h8,xvect(groupvar==indcond),runlength,'marker','o','color',[0.5 0.5 0.5]);
                 group_rep.(conditions{indcond}) = [group_rep.(conditions{indcond});runlength];
@@ -121,11 +116,8 @@ for i = 1:length(ff)
         numbouts = length(fieldnames(birdsummary.bout));
         bouts = fieldnames(birdsummary.bout);
         for indcond = 1:length(conditions)
-            for n = 1:numbouts
+            for n = 1:numreps
                 ind = strcmp(arrayfun(@(x) x.([bouts{n}]).condition,birdsummary.bout,'unif',0),conditions{indcond});
-                if isempty(find(ind))
-                    continue
-                end
                 meansingingrate = mean(cell2mat(arrayfun(@(x) x.([bouts{n}]).meansingingrate.mean,birdsummary.bout(ind),'unif',0)'),1);
                 axes(h9);hold on;plot(h9,xvect(groupvar==indcond),meansingingrate,'marker','o','color',[0.5 0.5 0.5]);
                 group_bout.(conditions{indcond}) = [group_bout.(conditions{indcond});meansingingrate];
