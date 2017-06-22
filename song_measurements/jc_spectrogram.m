@@ -8,5 +8,6 @@ sigma=(1/1000)*fs;
 w=exp(-(t/sigma).^2);
 
 [sp f tm pxx] = spectrogram(filtsong,w,overlap,NFFT,fs);
-indf = find(f>=1000 & f<=10000);
+indf = find(f>=500 & f<=10000);
+tm=tm-0.016;
 figure;imagesc(tm,f(indf),log(abs(sp(indf,:))));axis('xy');hold on;

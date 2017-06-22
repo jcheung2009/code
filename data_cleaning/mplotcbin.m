@@ -15,7 +15,7 @@ function [sp t f]=mplotcbin(cbin,bnds,normfreqs)
 if(strcmpi(fileext,'.cbin'))
     [plainsong,fs] = ReadCbinFile(cbin);
 elseif(strcmpi(fileext,'.wav'))
-    [plainsong,fs] = wavread(cbin);
+    [plainsong,fs] = evsoundin('',cbin,'w');
     plainsong = plainsong *10e3; % boost amplitude to cbin levels
 end
 

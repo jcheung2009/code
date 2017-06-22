@@ -1,4 +1,4 @@
-batch = 'batch';
+batch = 'batchex';
 %plot raw data and running average over days
 config;
 ff = load_batchf(batch);

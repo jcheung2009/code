@@ -11,8 +11,13 @@ if ~exist(['summary_',birdnm])
     load(['analysis/data_structures/summary_',birdnm]);
 end
 summary = eval(['summary_',birdnm]);
+summary.error = [];
+cnt=0;
 for i = 1:length(params.trial)
-    if isfield(params.trial(i),'post') 
+    if isfield(params.trial(i),'post')
+        if ~isempty(params.trial(i).post) & ~strcmp(params.trial(i).condition,'saline')
+            cnt=cnt+1;
+        end
         for n = 1:length(params.findnote)
             syllable = params.findnote(n).syllable;
             prenote = params.findnote(n).prenotes;
@@ -30,7 +35,7 @@ for i = 1:length(params.trial)
                 continue
             end
             pre = eval([params.findnote(n).fvstruct,params.trial(i).baseline]);
-            summary.error(i).([prenote upper(syllable) postnote]) = jc_ploterrorsummary(...
+            summary.error(cnt).([prenote upper(syllable) postnote]) = jc_ploterrorsummary(...
                 pre,post,syllable,params,params.trial(i),h1);
         end
     end

@@ -109,7 +109,7 @@ title(h4,'pitch cv');
 
 %percent change
 pitch_percent = 100*(mean(pitch2)-mean(pitch))/mean(pitch);
-vol_percent = 100*(mean(vol2)-mean(vol))/mean(vol);
+vol_percent = 100*(mean(vol2)-mean(vol))/mean(abs(vol));
 ent_percent = 100*(mean(ent2)-mean(ent))/mean(ent);
 
 %absolute change
