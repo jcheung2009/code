@@ -117,6 +117,7 @@ rep.runlength.std = [std(runlength) std(runlength2)];
 rep.runlength.abs = runlength_abs;
 rep.runlength.percent = runlength_percent;
 rep.runlength.zsc = runlength_zsc;
+rep.runlength.pval = runlength_pval;
 rep.acorr.mean = [mean(acorr) mean(acorr2)];
 rep.acorr.std = [std(acorr) std(acorr2)];
 rep.acorr.abs = acorr_abs;

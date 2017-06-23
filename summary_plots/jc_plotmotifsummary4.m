@@ -177,31 +177,37 @@ temp.motifdur.std = [std(motifdur) std(motifdur2)];
 temp.motifdur.abs = motifdur_abs;
 temp.motifdur.percent = motifdur_percent;
 temp.motifdur.zsc = motifdur_zsc;
+temp.motifdur.pval = motifdur_pval;
 temp.meansylldur.mean = [mean(meansylldur) mean(meansylldur2)];
 temp.meansylldur.std = [std(meansylldur) std(meansylldur2)];
 temp.meansylldur.abs = meansylldur_abs;
 temp.meansylldur.percent = meansylldur_percent;
 temp.meansylldur.zsc = meansylldur_zsc;
+temp.meansylldur.pval = meansylldur_pval;
 temp.meangapdur.mean = [mean(meangapdur) mean(meangapdur2)];
 temp.meangapdur.std = [std(meangapdur) std(meangapdur2)];
 temp.meangapdur.abs = meangapdur_abs;
 temp.meangapdur.percent = meangapdur_percent;
 temp.meangapdur.zsc = meangapdur_zsc;
+temp.meangapdur.pval = meangapdur_pval;
 temp.motifacorr.mean = [mean(motifacorr) mean(motifacorr2)];
 temp.motifacorr.std = [std(motifacorr) std(motifacorr2)];
 temp.motifacorr.abs = motifacorr_abs;
 temp.motifacorr.percent = motifacorr_percent;
 temp.motifacorr.zsc = motifacorr_zsc;
+temp.motifacorr.pval = motifacorr_pval;
 temp.sylldur.mean = [mean(sylldur,1); mean(sylldur2,1)];
 temp.sylldur.std = [std(sylldur,1); std(sylldur2,1)];
 temp.sylldur.abs = sylldur_abs;
 temp.sylldur.percent = sylldur_percent;
 temp.sylldur.zsc = sylldur_zsc;
+temp.sylldur.pval = sylldur_pval;
 temp.gapdur.mean = [mean(gapdur,1); mean(gapdur2,1)];
 temp.gapdur.std = [std(gapdur,1); std(gapdur2,1)];
 temp.gapdur.abs = gapdur_abs;
 temp.gapdur.percent = gapdur_percent;
 temp.gapdur.zsc = gapdur_zsc;
+temp.gapdur.pval = gapdur_pval;
 
     
     

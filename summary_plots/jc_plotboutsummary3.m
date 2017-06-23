@@ -106,12 +106,14 @@ bout.condition = trialparams.condition;
 bout.meansingingrate.mean = [mean(numsongs(:,2)) mean(numsongs2(:,2))];
 bout.meansingingrate.percent = meansingingrate_perc;
 bout.meansingingrate.abs = meansingingrate_abs;
+bout.meansingingrate.pval = singingrate_pval;
 bout.maxsingingrate.max = [max(numsongs(:,2)) max(numsongs2(:,2))];
 bout.maxsingingrate.percent = maxsingingrate_perc;
 bout.maxsingingrate.abs = maxsingingrate_abs; 
 bout.motifsperbout.mean = [mean(nummotifsperbout) mean(nummotifsperbout2)];
 bout.motifsperbout.percent = motifsperbout_perc;
 bout.motifsperbout.abs = motifsperbout_abs;
+bout.motifsperbout.pval = nummotifs_pval;
 
 
 
