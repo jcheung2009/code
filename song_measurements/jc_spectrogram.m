@@ -1,4 +1,9 @@
-function jc_spectrogram(filtsong,fs);
+function jc_spectrogram(filtsong,fs,varargin);
+if ~isempty(varargin)
+    ax = varargin{1};
+else
+    ax = '';
+end
 
 %spectrogram params
 NFFT = 512;
@@ -9,5 +14,13 @@ w=exp(-(t/sigma).^2);
 
 [sp f tm pxx] = spectrogram(filtsong,w,overlap,NFFT,fs);
 indf = find(f>=500 & f<=10000);
-tm=tm-0.016;
-figure;imagesc(tm,f(indf),log(abs(sp(indf,:))));axis('xy');hold on;
+%tm=tm-0.016;
+if ~isempty(ax)
+    axes(ax);hold on;imagesc(tm,f(indf),log(abs(sp(indf,:))));axis('xy');hold on;
+    xlim([tm(1) tm(end)]);ylim([f(1) f(end)]);
+else
+    figure;imagesc(tm,f(indf),log(abs(sp(indf,:))));axis('xy');hold on;
+    xlim([tm(1) tm(end)]);ylim([f(1) f(end)]);
+end
+xlabel('Time (seconds)');ylabel('Frequency (Hz)');
+set(gca,'fontweight','bold');

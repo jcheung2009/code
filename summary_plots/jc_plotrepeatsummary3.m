@@ -18,22 +18,39 @@ if isempty(treattime)
 else
     start_time = time2datenum(treattime) + 3600;%1 hr buffer
 end
-ind = find(tb_cond > start_time);
-tb_cond=tb_cond(ind);
-runlength2 = [fv_rep_cond(ind).runlength]';
-acorr2 = [fv_rep_cond(ind).firstpeakdistance]';
-meangapdur2 = arrayfun(@(x) mean(x.syllgaps),fv_rep_cond(ind))';
-meansylldur2 = arrayfun(@(x) mean(x.sylldurations),fv_rep_cond(ind))';
-if ~strcmp(base,'morn')
-    ind = find(tb_sal >= tb_cond(1));
-else
-    ind = 1:length(tb_sal);
+
+if ~strcmp(base,'morn') & isempty(strfind(trialparams.condition,'saline'))
+    ind2 = find(tb_cond > start_time);
+    tb_cond = tb_cond(ind2);
+    ind1 = find(tb_sal >= tb_cond(1));
+    tb_sal = tb_sal(ind1);
+elseif ~strcmp(base,'morn') & ~isempty(strfind(trialparams.condition,'saline'))
+    ind2 = find(tb_cond > start_time);
+    tb_cond = tb_cond(ind2);
+    ind1 = find(tb_sal >= tb_cond(1));
+    tb_sal = tb_sal(ind1);
+elseif strcmp(base,'morn') & isempty(strfind(trialparams.condition,'saline'))
+    ind2 = find(tb_cond > start_time);
+    tb_cond = tb_cond(ind2);
+    ind1 = 1:length(tb_sal);
+    tb_sal = tb_sal(ind1);
+elseif strcmp(base,'morn') & ~isempty(strfind(trialparams.condition,'saline'))
+    ind2 = find(tb_cond >= 5*3600);
+    tb_cond = tb_cond(ind2);
+    ind1 = find(tb_sal < 5*3600) ;
+    tb_sal = tb_sal(ind1);
 end
-tb_sal = tb_sal(ind);
-runlength = [fv_rep_sal(ind).runlength]';
-acorr = [fv_rep_sal(ind).firstpeakdistance]';
-meangapdur = arrayfun(@(x) mean(x.syllgaps),fv_rep_sal(ind))';
-meansylldur = arrayfun(@(x) mean(x.sylldurations),fv_rep_sal(ind))';
+
+
+runlength2 = [fv_rep_cond(ind2).runlength]';
+acorr2 = [fv_rep_cond(ind2).firstpeakdistance]';
+meangapdur2 = arrayfun(@(x) mean(x.syllgaps),fv_rep_cond(ind2))';
+meansylldur2 = arrayfun(@(x) mean(x.sylldurations),fv_rep_cond(ind2))';
+
+runlength = [fv_rep_sal(ind1).runlength]';
+acorr = [fv_rep_sal(ind1).firstpeakdistance]';
+meangapdur = arrayfun(@(x) mean(x.syllgaps),fv_rep_sal(ind1))';
+meansylldur = arrayfun(@(x) mean(x.sylldurations),fv_rep_sal(ind1))';
 
 %remove outliers
 if strcmp(removeoutliers,'y')

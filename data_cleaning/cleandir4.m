@@ -29,22 +29,25 @@ while (1)
 	disp(fn);
 	
     [pth,nm,ext]=fileparts(fn);
-    if (strcmp(ext,'.ebin'))
-        [dat,fs]=readevtaf(fn,'0r');
-        sm=evsmooth(dat,fs,0.01);
-    elseif(strcmp(ext,'.cbin'))
-        [dat,fs]=evsoundin('',fn,CHANSPEC);
-        %[dat,fs]  = ReadCbinFile(fn);
-        %dat = dat(:,1);
-        sm=evsmooth(dat,fs,100);
-        disp('reading cbin');
-    elseif (strcmp(ext,'.wav'))
-        [dat,fs] = audioread(fn);
-        sm=evsmooth(dat,fs,100);
-    else
-        [dat,fs]=evsoundin('',fn,CHANSPEC);
-        sm = evsmooth(dat,fs,100);
-    end
+    
+    [dat fs] = evsoundin('',fn,CHANSPEC);
+    sm = evsmooth(dat,fs);
+%     if (strcmp(ext,'.ebin'))
+%         [dat,fs]=readevtaf(fn,'0r');
+%         sm=evsmooth(dat,fs,0.01);
+%     elseif(strcmp(ext,'.cbin'))
+%         [dat,fs]=evsoundin('',fn,CHANSPEC);
+%         %[dat,fs]  = ReadCbinFile(fn);
+%         %dat = dat(:,1);
+%         sm=evsmooth(dat,fs,100);
+%         disp('reading cbin');
+%     elseif (strcmp(ext,'.wav'))
+%         [dat,fs] = audioread(fn);
+%         sm=evsmooth(dat,fs,100);
+%     else
+%         [dat,fs]=evsoundin('',fn,CHANSPEC);
+%         sm = evsmooth(dat,fs,100);
+%     end
     sm = log10(sm);
     [ons offs] = SegmentNotes(sm,fs,5.0,30.0,TH);
     %[ons,offs]=evsegment(sm,fs,5.0,30.0,TH);

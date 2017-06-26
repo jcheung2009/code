@@ -18,26 +18,42 @@ if isempty(treattime)
 else
     start_time = time2datenum(treattime) + 3600;%1 hr buffer
 end
-ind = find(tb_cond > start_time);
-tb_cond=tb_cond(ind);
-motifdur2 = [motif_cond(ind).motifdur]';
-meansylldur2 = mean([motif_cond(ind).durations],1)';
-meangapdur2 = mean([motif_cond(ind).gaps],1)';
-motifacorr2 = [motif_cond(ind).firstpeakdistance]';
-sylldur2 = [motif_cond(ind).durations]';
-gapdur2 = [motif_cond(ind).gaps]';
-if ~strcmp(base,'morn')
-    ind = find(tb_sal >= tb_cond(1));
-else
-    ind = 1:length(tb_sal);
+
+if ~strcmp(base,'morn') & isempty(strfind(trialparams.condition,'saline'))
+    ind2 = find(tb_cond > start_time);
+    tb_cond = tb_cond(ind2);
+    ind1 = find(tb_sal >= tb_cond(1));
+    tb_sal = tb_sal(ind1);
+elseif ~strcmp(base,'morn') & ~isempty(strfind(trialparams.condition,'saline'))
+    ind2 = find(tb_cond > start_time);
+    tb_cond = tb_cond(ind2);
+    ind1 = find(tb_sal >= tb_cond(1));
+    tb_sal = tb_sal(ind1);
+elseif strcmp(base,'morn') & isempty(strfind(trialparams.condition,'saline'))
+    ind2 = find(tb_cond > start_time);
+    tb_cond = tb_cond(ind2);
+    ind1 = 1:length(tb_sal);
+    tb_sal = tb_sal(ind1);
+elseif strcmp(base,'morn') & ~isempty(strfind(trialparams.condition,'saline'))
+    ind2 = find(tb_cond >= 5*3600);
+    tb_cond = tb_cond(ind2);
+    ind1 = find(tb_sal < 5*3600) ;
+    tb_sal = tb_sal(ind1);
 end
-tb_sal=tb_sal(ind);
-motifdur = [motif_sal(ind).motifdur]';
-meansylldur = mean([motif_sal(ind).durations],1)';
-meangapdur = mean([motif_sal(ind).gaps],1)';
-motifacorr = [motif_sal(ind).firstpeakdistance]';
-sylldur = [motif_sal(ind).durations]';
-gapdur = [motif_sal(ind).gaps]';
+
+motifdur2 = [motif_cond(ind2).motifdur]';
+meansylldur2 = mean([motif_cond(ind2).durations],1)';
+meangapdur2 = mean([motif_cond(ind2).gaps],1)';
+motifacorr2 = [motif_cond(ind2).firstpeakdistance]';
+sylldur2 = [motif_cond(ind2).durations]';
+gapdur2 = [motif_cond(ind2).gaps]';
+
+motifdur = [motif_sal(ind1).motifdur]';
+meansylldur = mean([motif_sal(ind1).durations],1)';
+meangapdur = mean([motif_sal(ind1).gaps],1)';
+motifacorr = [motif_sal(ind1).firstpeakdistance]';
+sylldur = [motif_sal(ind1).durations]';
+gapdur = [motif_sal(ind1).gaps]';
 
 
 %remove outliers

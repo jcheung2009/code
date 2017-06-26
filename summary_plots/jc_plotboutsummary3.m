@@ -18,16 +18,33 @@ if isempty(treattime)
 else
     start_time = time2datenum(treattime) + 3600;%1 hr buffer
 end
-ind = find(tb_cond > start_time);
-tb_cond=tb_cond(ind);
-nummotifsperbout2 = [bout_cond(ind).nummotifs]';
-if ~strcmp(base,'morn')
-    ind = find(tb_sal >= tb_cond(1));
-else
-    ind = 1:length(tb_sal);
+
+if ~strcmp(base,'morn') & isempty(strfind(trialparams.condition,'saline'))
+    ind2 = find(tb_cond > start_time);
+    tb_cond = tb_cond(ind2);
+    ind1 = find(tb_sal >= tb_cond(1));
+    tb_sal = tb_sal(ind1);
+elseif ~strcmp(base,'morn') & ~isempty(strfind(trialparams.condition,'saline'))
+    ind2 = find(tb_cond > start_time);
+    tb_cond = tb_cond(ind2);
+    ind1 = find(tb_sal >= tb_cond(1));
+    tb_sal = tb_sal(ind1);
+elseif strcmp(base,'morn') & isempty(strfind(trialparams.condition,'saline'))
+    ind2 = find(tb_cond > start_time);
+    tb_cond = tb_cond(ind2);
+    ind1 = 1:length(tb_sal);
+    tb_sal = tb_sal(ind1);
+elseif strcmp(base,'morn') & ~isempty(strfind(trialparams.condition,'saline'))
+    ind2 = find(tb_cond >= 5*3600);
+    tb_cond = tb_cond(ind2);
+    ind1 = find(tb_sal < 5*3600) ;
+    tb_sal = tb_sal(ind1);
 end
-tb_sal = tb_sal(ind);
-nummotifsperbout = [bout_sal(ind).nummotifs]';
+
+if isfield(bout_cond,'nummotifs')
+    nummotifsperbout2 = [bout_cond(ind2).nummotifs]';
+    nummotifsperbout = [bout_sal(ind1).nummotifs]';
+end
 
 %singing rate for sal
 numseconds = tb_sal(end)-tb_sal(1);
@@ -75,7 +92,9 @@ end
 % h2 = subtightplot(2,1,2,[0.07 0.05],0.08,0.12);
 h1 = '';h2 = '';
 singingrate_pval = plot_distribution(h1,numsongs(:,2),numsongs2(:,2),linecolor,10);
-nummotifs_pval = plot_distribution(h2,nummotifsperbout,nummotifsperbout2,linecolor,10);
+if isfield(bout_cond,'nummotifs')
+    nummotifs_pval = plot_distribution(h2,nummotifsperbout,nummotifsperbout2,linecolor,10);
+end
 % xlabel(h1,'number bouts per hour');
 % xlabel(h2,'number of motifs per bout');
 % title(h1,trialname,'interpreter','none');
@@ -83,12 +102,15 @@ nummotifs_pval = plot_distribution(h2,nummotifsperbout,nummotifsperbout2,linecol
 %percent change
 meansingingrate_perc = 100*(mean(numsongs2(:,2))-mean(numsongs(:,2)))/mean(numsongs(:,2));
 maxsingingrate_perc = 100*(max(numsongs2(:,2))-max(numsongs(:,2)))/max(numsongs(:,2));
-motifsperbout_perc = 100*(mean(nummotifsperbout2)-mean(nummotifsperbout))/mean(nummotifsperbout);
-
+if isfield(bout_cond,'nummotifs')
+    motifsperbout_perc = 100*(mean(nummotifsperbout2)-mean(nummotifsperbout))/mean(nummotifsperbout);
+end
 %absolute change
 meansingingrate_abs = mean(numsongs2(:,2))-mean(numsongs(:,2));
 maxsingingrate_abs = max(numsongs2(:,2))-max(numsongs(:,2));
-motifsperbout_abs = mean(nummotifsperbout2)-mean(nummotifsperbout);
+if isfield(bout_cond,'nummotifs')
+    motifsperbout_abs = mean(nummotifsperbout2)-mean(nummotifsperbout);
+end
 
 %summary plot
 figure(fignum);hold on;
@@ -110,10 +132,12 @@ bout.meansingingrate.pval = singingrate_pval;
 bout.maxsingingrate.max = [max(numsongs(:,2)) max(numsongs2(:,2))];
 bout.maxsingingrate.percent = maxsingingrate_perc;
 bout.maxsingingrate.abs = maxsingingrate_abs; 
-bout.motifsperbout.mean = [mean(nummotifsperbout) mean(nummotifsperbout2)];
-bout.motifsperbout.percent = motifsperbout_perc;
-bout.motifsperbout.abs = motifsperbout_abs;
-bout.motifsperbout.pval = nummotifs_pval;
+if isfield(bout_cond,'nummotifs')
+    bout.motifsperbout.mean = [mean(nummotifsperbout) mean(nummotifsperbout2)];
+    bout.motifsperbout.percent = motifsperbout_perc;
+    bout.motifsperbout.abs = motifsperbout_abs;
+    bout.motifsperbout.pval = nummotifs_pval;
+end
 
 
 

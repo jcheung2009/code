@@ -50,7 +50,11 @@ for i = ind(1):ind(2)
     if isfield(params,'findnote')  
         for n = 1:length(params.findnote)
             if ~exist([params.findnote(n).fvstruct,ff(i).name])
-                load(['analysis/data_structures/',params.findnote(n).fvstruct,ff(i).name]);
+                try
+                    load(['analysis/data_structures/',params.findnote(n).fvstruct,ff(i).name]);
+                catch
+                    continue
+                end        
             end
             fv = eval([params.findnote(n).fvstruct,ff(i).name]);
             if ~isempty(fv)

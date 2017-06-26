@@ -24,20 +24,36 @@ if isempty(treattime)
 else
     start_time = time2datenum(treattime) + 3600;%1 hr buffer
 end
-ind = find(tb_cond > start_time);
-tb_cond=tb_cond(ind);
-pitch2 = [fv_syll_cond(ind).mxvals]';
-vol2 = log([fv_syll_cond(ind).maxvol]');
-ent2 = [fv_syll_cond(ind).spent]';
-if ~strcmp(base,'morn')
-    ind = find(tb_sal >= tb_cond(1));
-else
-    ind = 1:length(tb_sal);
+
+if ~strcmp(base,'morn') & isempty(strfind(trialparams.condition,'saline'))
+    ind2 = find(tb_cond > start_time);
+    tb_cond = tb_cond(ind2);
+    ind1 = find(tb_sal >= tb_cond(1));
+    tb_sal = tb_sal(ind1);
+elseif ~strcmp(base,'morn') & ~isempty(strfind(trialparams.condition,'saline'))
+    ind2 = find(tb_cond > start_time);
+    tb_cond = tb_cond(ind2);
+    ind1 = find(tb_sal >= tb_cond(1));
+    tb_sal = tb_sal(ind1);
+elseif strcmp(base,'morn') & isempty(strfind(trialparams.condition,'saline'))
+    ind2 = find(tb_cond > start_time);
+    tb_cond = tb_cond(ind2);
+    ind1 = 1:length(tb_sal);
+    tb_sal = tb_sal(ind1);
+elseif strcmp(base,'morn') & ~isempty(strfind(trialparams.condition,'saline'))
+    ind2 = find(tb_cond >= 5*3600);
+    tb_cond = tb_cond(ind2);
+    ind1 = find(tb_sal < 5*3600) ;
+    tb_sal = tb_sal(ind1);
 end
-tb_sal = tb_sal(ind);
-pitch = [fv_syll_sal(ind).mxvals]';
-vol = log([fv_syll_sal(ind).maxvol]');
-ent = [fv_syll_sal(ind).spent]';
+
+pitch2 = [fv_syll_cond(ind2).mxvals]';
+vol2 = log([fv_syll_cond(ind2).maxvol]');
+ent2 = [fv_syll_cond(ind2).spent]';
+
+pitch = [fv_syll_sal(ind1).mxvals]';
+vol = log([fv_syll_sal(ind1).maxvol]');
+ent = [fv_syll_sal(ind1).spent]';
 
 
 %remove outliers

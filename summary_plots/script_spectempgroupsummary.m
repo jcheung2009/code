@@ -13,24 +13,30 @@ group_pitch = struct();group_vol = struct();group_ent = struct();group_pcv = str
 group_motifdur = struct();group_sylldur = struct(); group_gapdur = struct();
 group_rep = struct();group_bout = struct();
 for n = 1:length(conditions)
-    group_pitch = setfield(group_pitch,conditions{n},cell(2,1));
-    group_vol = setfield(group_vol,conditions{n},cell(2,1));
-    group_ent = setfield(group_ent,conditions{n},cell(2,1));
-    group_pcv = setfield(group_pcv,conditions{n},cell(2,1));
-    group_motifdur = setfield(group_motifdur,conditions{n},cell(2,1));
-    group_sylldur = setfield(group_sylldur,conditions{n},cell(2,1));
-    group_gapdur = setfield(group_gapdur,conditions{n},cell(2,1));
-    group_rep = setfield(group_rep,conditions{n},cell(2,1));
-    group_bout = setfield(group_bout,conditions{n},cell(2,1));
+    group_pitch = setfield(group_pitch,strrep(conditions{n},' ','_'),cell(2,1));
+    group_vol = setfield(group_vol,strrep(conditions{n},' ','_'),cell(2,1));
+    group_ent = setfield(group_ent,strrep(conditions{n},' ','_'),cell(2,1));
+    group_pcv = setfield(group_pcv,strrep(conditions{n},' ','_'),cell(2,1));
+    group_motifdur = setfield(group_motifdur,strrep(conditions{n},' ','_'),cell(2,1));
+    group_sylldur = setfield(group_sylldur,strrep(conditions{n},' ','_'),cell(2,1));
+    group_gapdur = setfield(group_gapdur,strrep(conditions{n},' ','_'),cell(2,1));
+    group_rep = setfield(group_rep,strrep(conditions{n},' ','_'),cell(2,1));
+    group_bout = setfield(group_bout,strrep(conditions{n},' ','_'),cell(2,1));
 end
 for i = 1:length(ff)
     if ~exist(ff(i).name)
         load([params.subfolders{1},'/',ff(i).name,'/analysis/data_structures/summary_',ff(i).name]);
     else
-        load([ff(i).name,'/analysis/data_structures/summary_',ff(i).name]);
+        try 
+            load([ff(i).name,'/analysis/data_structures/summary_',ff(i).name,'_df']);
+            birdsummary = eval(['summary_',ff(i).name,'_df']);
+        catch
+            load([ff(i).name,'/analysis/data_structures/summary_',ff(i).name]);
+            birdsummary = eval(['summary_',ff(i).name]);
+        end
     end
     
-    birdsummary = eval(['summary_',ff(i).name]);
+   
     if isfield(birdsummary,'spec')
         numsylls = length(fieldnames(birdsummary.spec));
         sylls = fieldnames(birdsummary.spec);
@@ -89,20 +95,20 @@ for i = 1:length(ff)
                     pitchcv = mean(cell2mat(arrayfun(@(x) x.([sylls{n}]).pitchcv.percent,birdsummary.spec(ind),'unif',0)'),1);
                 end
 
-                ind = strcmp(arrayfun(@(x) x.([sylls{n}]).condition,birdsummary.spec,'unif',0),'saline');
+                ind = strcmp(arrayfun(@(x) x.([sylls{n}]).condition,birdsummary.spec,'unif',0),'deaf saline');
                 pitch_sal = mean(cell2mat(arrayfun(@(x) x.([sylls{n}]).pitch.percent,birdsummary.spec(ind),'unif',0)'),1);
                 vol_sal = mean(cell2mat(arrayfun(@(x) x.([sylls{n}]).vol.percent,birdsummary.spec(ind),'unif',0)'),1);
                 ent_sal = mean(cell2mat(arrayfun(@(x) x.([sylls{n}]).ent.percent,birdsummary.spec(ind),'unif',0)'),1);
                 pitchcv_sal = mean(cell2mat(arrayfun(@(x) x.([sylls{n}]).pitchcv.percent,birdsummary.spec(ind),'unif',0)'),1);
                 
-                group_pitch.(conditions{indcond}){1} = [group_pitch.(conditions{indcond}){1};pitch_sal pitch];
-                group_vol.(conditions{indcond}){1} = [group_vol.(conditions{indcond}){1};vol_sal vol];
-                group_ent.(conditions{indcond}){1} = [group_ent.(conditions{indcond}){1};ent_sal ent];
-                group_pcv.(conditions{indcond}){1} = [group_pcv.(conditions{indcond}){1};pitchcv_sal pitchcv];
-                group_pitch.(conditions{indcond}){2} = [group_pitch.(conditions{indcond}){2}; {ff(i).name}];
-                group_vol.(conditions{indcond}){2} = [group_vol.(conditions{indcond}){2};{ff(i).name}];
-                group_ent.(conditions{indcond}){2} = [group_ent.(conditions{indcond}){2};{ff(i).name}];
-                group_pcv.(conditions{indcond}){2} = [group_pcv.(conditions{indcond}){2};{ff(i).name}];  
+                group_pitch.(strrep(conditions{indcond},' ','_')){1} = [group_pitch.(strrep(conditions{indcond},' ','_')){1};pitch_sal pitch];
+                group_vol.(strrep(conditions{indcond},' ','_')){1} = [group_vol.(strrep(conditions{indcond},' ','_')){1};vol_sal vol];
+                group_ent.(strrep(conditions{indcond},' ','_')){1} = [group_ent.(strrep(conditions{indcond},' ','_')){1};ent_sal ent];
+                group_pcv.(strrep(conditions{indcond},' ','_')){1} = [group_pcv.(strrep(conditions{indcond},' ','_')){1};pitchcv_sal pitchcv];
+                group_pitch.(strrep(conditions{indcond},' ','_')){2} = [group_pitch.(strrep(conditions{indcond},' ','_')){2}; {ff(i).name}];
+                group_vol.(strrep(conditions{indcond},' ','_')){2} = [group_vol.(strrep(conditions{indcond},' ','_')){2};{ff(i).name}];
+                group_ent.(strrep(conditions{indcond},' ','_')){2} = [group_ent.(strrep(conditions{indcond},' ','_')){2};{ff(i).name}];
+                group_pcv.(strrep(conditions{indcond},' ','_')){2} = [group_pcv.(strrep(conditions{indcond},' ','_')){2};{ff(i).name}];  
             end
 %             group_pitch.(conditions{indcond}){2} = unique(group_pitch.(conditions{indcond}){2});
 %             group_vol.(conditions{indcond}){2} = unique(group_vol.(conditions{indcond}){2});
@@ -117,7 +123,7 @@ for i = 1:length(ff)
         for indcond = 1:length(conditions)
             for n = 1:nummotifs
                 ind = find(strcmp(arrayfun(@(x) x.([motifs{n}]).condition,birdsummary.temp,'unif',0),conditions{indcond}));
-                ind_sal = strcmp(arrayfun(@(x) x.([motifs{n}]).condition,birdsummary.temp,'unif',0),'saline');
+                ind_sal = strcmp(arrayfun(@(x) x.([motifs{n}]).condition,birdsummary.temp,'unif',0),'deaf saline');
                 if isempty(ind)
                     continue
                 end
@@ -135,7 +141,7 @@ for i = 1:length(ff)
                 end
 
                 motifdur_sal = mean(cell2mat(arrayfun(@(x) x.([motifs{n}]).motifdur.percent,birdsummary.temp(ind_sal),'unif',0)'),1);
-                group_motifdur.(conditions{indcond}){1} = [group_motifdur.(conditions{indcond}){1};motifdur_sal motifdur];
+                group_motifdur.(strrep(conditions{indcond},' ','_')){1} = [group_motifdur.(strrep(conditions{indcond},' ','_')){1};motifdur_sal motifdur];
                 
                 numsylls = length(motifs{n});
                 for syllind = 1:numsylls
@@ -151,7 +157,7 @@ for i = 1:length(ff)
                         sylldur = mean(cell2mat(arrayfun(@(x) x.([motifs{n}]).sylldur.percent(syllind),birdsummary.temp(ind),'unif',0)'),1);
                     end
                     sylldur_sal = mean(cell2mat(arrayfun(@(x) x.([motifs{n}]).sylldur.percent(syllind)',birdsummary.temp(ind_sal),'unif',0)'),1);
-                    group_sylldur.(conditions{indcond}){1} = [group_sylldur.(conditions{indcond}){1};sylldur_sal sylldur];
+                    group_sylldur.(strrep(conditions{indcond},' ','_')){1} = [group_sylldur.(strrep(conditions{indcond},' ','_')){1};sylldur_sal sylldur];
                 end
                 
                 numgaps = numsylls-1;
@@ -168,12 +174,12 @@ for i = 1:length(ff)
                         gapdur = mean(cell2mat(arrayfun(@(x) x.([motifs{n}]).gapdur.percent(gapind),birdsummary.temp(ind),'unif',0)'),1);
                     end
                     gapdur_sal = mean(cell2mat(arrayfun(@(x) x.([motifs{n}]).gapdur.percent(gapind)',birdsummary.temp(ind_sal),'unif',0)'),1);
-                    group_gapdur.(conditions{indcond}){1} = [group_gapdur.(conditions{indcond}){1};gapdur_sal gapdur];
+                    group_gapdur.(strrep(conditions{indcond},' ','_')){1} = [group_gapdur.(strrep(conditions{indcond},' ','_')){1};gapdur_sal gapdur];
                 end   
                 
-                group_motifdur.(conditions{indcond}){2} = [group_motifdur.(conditions{indcond}){2};{ff(i).name}];
-                group_sylldur.(conditions{indcond}){2} = [group_sylldur.(conditions{indcond}){2};{ff(i).name}];
-                group_gapdur.(conditions{indcond}){2} = [group_gapdur.(conditions{indcond}){2};{ff(i).name}];  
+                group_motifdur.(strrep(conditions{indcond},' ','_')){2} = [group_motifdur.(strrep(conditions{indcond},' ','_')){2};{ff(i).name}];
+                group_sylldur.(strrep(conditions{indcond},' ','_')){2} = [group_sylldur.(strrep(conditions{indcond},' ','_')){2};{ff(i).name}];
+                group_gapdur.(strrep(conditions{indcond},' ','_')){2} = [group_gapdur.(strrep(conditions{indcond},' ','_')){2};{ff(i).name}];  
             end
         end
 %         group_motifdur.(conditions{indcond}){2} = unique( group_motifdur.(conditions{indcond}){2});
@@ -188,7 +194,7 @@ for i = 1:length(ff)
         for indcond = 1:length(conditions)
             for n = 1:numreps
                 ind = find(strcmp(arrayfun(@(x) x.([reps{n}]).condition,birdsummary.rep,'unif',0),conditions{indcond}));
-                ind_sal = strcmp(arrayfun(@(x) x.([reps{n}]).condition,birdsummary.rep,'unif',0),'saline');
+                ind_sal = strcmp(arrayfun(@(x) x.([reps{n}]).condition,birdsummary.rep,'unif',0),'deaf saline');
                 if isempty(ind)
                     continue
                 end
@@ -204,8 +210,8 @@ for i = 1:length(ff)
                     runlength = mean(cell2mat(arrayfun(@(x) [x.([reps{n}]).runlength.percent],birdsummary.rep(ind),'unif',0)'),1);
                 end
                 runlength_sal = mean(cell2mat(arrayfun(@(x) x.([reps{n}]).runlength.percent,birdsummary.rep(ind_sal),'unif',0)'),1);
-                group_rep.(conditions{indcond}){1} = [group_rep.(conditions{indcond}){1};runlength_sal runlength];
-                group_rep.(conditions{indcond}){2} = [group_rep.(conditions{indcond}){2};{ff(i).name}];
+                group_rep.(strrep(conditions{indcond},' ','_')){1} = [group_rep.(strrep(conditions{indcond},' ','_')){1};runlength_sal runlength];
+                group_rep.(strrep(conditions{indcond},' ','_')){2} = [group_rep.(strrep(conditions{indcond},' ','_')){2};{ff(i).name}];
             end
         end
 %         group_rep.(conditions{indcond}){2} =unique(group_rep.(conditions{indcond}){2});
@@ -217,7 +223,7 @@ for i = 1:length(ff)
         for indcond = 1:length(conditions)
             for n = 1:numbouts
                 ind = find(strcmp(arrayfun(@(x) x.([bouts{n}]).condition,birdsummary.bout,'unif',0),conditions{indcond}));
-                ind_sal = strcmp(arrayfun(@(x) x.([bouts{n}]).condition,birdsummary.bout,'unif',0),'saline');
+                ind_sal = strcmp(arrayfun(@(x) x.([bouts{n}]).condition,birdsummary.bout,'unif',0),'deaf saline');
                 if isempty(ind)
                     continue
                 end
@@ -233,8 +239,8 @@ for i = 1:length(ff)
                     meansingingrate = mean(cell2mat(arrayfun(@(x) [x.([bouts{n}]).meansingingrate.percent],birdsummary.bout(ind),'unif',0)'),1);
                 end
                 meansingingrate_sal = mean(cell2mat(arrayfun(@(x) x.([bouts{n}]).meansingingrate.percent,birdsummary.bout(ind_sal),'unif',0)'),1);
-                group_bout.(conditions{indcond}){1} = [group_bout.(conditions{indcond}){1};meansingingrate_sal meansingingrate];
-                group_bout.(conditions{indcond}){2} = [group_bout.(conditions{indcond}){2};{ff(i).name}];
+                group_bout.(strrep(conditions{indcond},' ','_')){1} = [group_bout.(strrep(conditions{indcond},' ','_')){1};meansingingrate_sal meansingingrate];
+                group_bout.(strrep(conditions{indcond},' ','_')){2} = [group_bout.(strrep(conditions{indcond},' ','_')){2};{ff(i).name}];
             end       
         end
 %         group_bout.(conditions{indcond}){2} = unique(group_bout.(conditions{indcond}){2});
@@ -245,7 +251,10 @@ end
 figure;h1 = gca;
 dat = [];
 for n = 1:length(conditions)
-    dat = [dat;mean(group_pitch.(conditions{n}){1}(:,1)) mean(group_pitch.(conditions{n}){1}(:,2))];
+    dat = [dat;mean(group_pitch.(strrep(conditions{n},' ','_')){1}(:,1)) mean(group_pitch.(strrep(conditions{n},' ','_')){1}(:,2))];
+end
+if length(conditions) == 1
+    dat = [dat; NaN NaN];
 end
 b = bar(h1,dat);
 b(1).FaceColor = 'none';b(1).LineWidth = 2;
@@ -254,8 +263,8 @@ offset = b(2).XOffset;
 set(h1,'xlim',[0.5 length(conditions)+0.5]);
 axes(h1);hold on;
 for n = 1:length(conditions)
-    plot(h1,[n-offset n+offset],group_pitch.(conditions{n}){1}','color',[0.5 0.5 0.5],'marker','o');hold on;
-    p = signrank(group_pitch.(conditions{n}){1}(:,1),group_pitch.(conditions{n}){1}(:,2));
+    plot(h1,[n-offset n+offset],group_pitch.(strrep(conditions{n},' ','_')){1}','color',[0.5 0.5 0.5],'marker','o');hold on;
+    p = signrank(group_pitch.(strrep(conditions{n},' ','_')){1}(:,1),group_pitch.(strrep(conditions{n},' ','_')){1}(:,2));
     if p <= 0.05
         text((n-0.5)/(length(conditions)),0.95,'*','fontsize',14,'units','normalized');
     end
@@ -267,7 +276,10 @@ title(h1,'pitch');
 figure;h1 = gca;
 dat = [];
 for n = 1:length(conditions)
-    dat = [dat;mean(group_vol.(conditions{n}){1}(:,1)) mean(group_vol.(conditions{n}){1}(:,2))];
+    dat = [dat;mean(group_vol.(strrep(conditions{n},' ','_')){1}(:,1)) mean(group_vol.(strrep(conditions{n},' ','_')){1}(:,2))];
+end
+if length(conditions) == 1
+    dat = [dat; NaN NaN];
 end
 b = bar(h1,dat);
 b(1).FaceColor = 'none';b(1).LineWidth = 2;
@@ -276,8 +288,8 @@ offset = b(2).XOffset;
 set(h1,'xlim',[0.5 length(conditions)+0.5]);
 axes(h1);hold on;
 for n = 1:length(conditions)
-    plot(h1,[n-offset n+offset],group_vol.(conditions{n}){1}','color',[0.5 0.5 0.5],'marker','o');hold on;
-    p = signrank(group_vol.(conditions{n}){1}(:,1),group_vol.(conditions{n}){1}(:,2));
+    plot(h1,[n-offset n+offset],group_vol.(strrep(conditions{n},' ','_')){1}','color',[0.5 0.5 0.5],'marker','o');hold on;
+    p = signrank(group_vol.(strrep(conditions{n},' ','_')){1}(:,1),group_vol.(strrep(conditions{n},' ','_')){1}(:,2));
     if p <= 0.05
         text((n-0.5)/(length(conditions)),0.95,'*','fontsize',14,'units','normalized');
     end
@@ -289,7 +301,10 @@ title(h1,'volume');
 figure;h1 = gca;
 dat = [];
 for n = 1:length(conditions)
-    dat = [dat;mean(group_ent.(conditions{n}){1}(:,1)) mean(group_ent.(conditions{n}){1}(:,2))];
+    dat = [dat;mean(group_ent.(strrep(conditions{n},' ','_')){1}(:,1)) mean(group_ent.(strrep(conditions{n},' ','_')){1}(:,2))];
+end
+if length(conditions) == 1
+    dat = [dat; NaN NaN];
 end
 b = bar(h1,dat);
 b(1).FaceColor = 'none';b(1).LineWidth = 2;
@@ -298,8 +313,8 @@ offset = b(2).XOffset;
 set(h1,'xlim',[0.5 length(conditions)+0.5]);
 axes(h1);hold on;
 for n = 1:length(conditions)
-    plot(h1,[n-offset n+offset],group_ent.(conditions{n}){1}','color',[0.5 0.5 0.5],'marker','o');hold on;
-    p = signrank(group_ent.(conditions{n}){1}(:,1),group_ent.(conditions{n}){1}(:,2));
+    plot(h1,[n-offset n+offset],group_ent.(strrep(conditions{n},' ','_')){1}','color',[0.5 0.5 0.5],'marker','o');hold on;
+    p = signrank(group_ent.(strrep(conditions{n},' ','_')){1}(:,1),group_ent.(strrep(conditions{n},' ','_')){1}(:,2));
     if p <= 0.05
         text((n-0.5)/(length(conditions)),0.95,'*','fontsize',14,'units','normalized');
     end
@@ -311,7 +326,10 @@ title(h1,'entropy');
 figure;h1 = gca;
 dat = [];
 for n = 1:length(conditions)
-    dat = [dat;mean(group_pcv.(conditions{n}){1}(:,1)) mean(group_pcv.(conditions{n}){1}(:,2))];
+    dat = [dat;mean(group_pcv.(strrep(conditions{n},' ','_')){1}(:,1)) mean(group_pcv.(strrep(conditions{n},' ','_')){1}(:,2))];
+end
+if length(conditions) == 1
+    dat = [dat; NaN NaN];
 end
 b = bar(h1,dat);
 b(1).FaceColor = 'none';b(1).LineWidth = 2;
@@ -320,8 +338,8 @@ offset = b(2).XOffset;
 set(h1,'xlim',[0.5 length(conditions)+0.5]);
 axes(h1);hold on;
 for n = 1:length(conditions)
-    plot(h1,[n-offset n+offset],group_pcv.(conditions{n}){1}','color',[0.5 0.5 0.5],'marker','o');hold on;
-    p = signrank(group_pcv.(conditions{n}){1}(:,1),group_pcv.(conditions{n}){1}(:,2));
+    plot(h1,[n-offset n+offset],group_pcv.(strrep(conditions{n},' ','_')){1}','color',[0.5 0.5 0.5],'marker','o');hold on;
+    p = signrank(group_pcv.(strrep(conditions{n},' ','_')){1}(:,1),group_pcv.(strrep(conditions{n},' ','_')){1}(:,2));
     if p <= 0.05
         text((n-0.5)/(length(conditions)),0.95,'*','fontsize',14,'units','normalized');
     end
@@ -334,7 +352,10 @@ title(h1,'pitch variability');
 figure;h1 = gca;
 dat = [];
 for n = 1:length(conditions)
-    dat = [dat;mean(group_motifdur.(conditions{n}){1}(:,1)) mean(group_motifdur.(conditions{n}){1}(:,2))];
+    dat = [dat;mean(group_motifdur.(strrep(conditions{n},' ','_')){1}(:,1)) mean(group_motifdur.(strrep(conditions{n},' ','_')){1}(:,2))];
+end
+if length(conditions) == 1
+    dat = [dat; NaN NaN];
 end
 b = bar(h1,dat);
 b(1).FaceColor = 'none';b(1).LineWidth = 2;
@@ -343,8 +364,8 @@ offset = b(2).XOffset;
 set(h1,'xlim',[0.5 length(conditions)+0.5]);
 axes(h1);hold on;
 for n = 1:length(conditions)
-    plot(h1,[n-offset n+offset],group_motifdur.(conditions{n}){1}','color',[0.5 0.5 0.5],'marker','o');hold on;
-    p = signrank(group_motifdur.(conditions{n}){1}(:,1),group_motifdur.(conditions{n}){1}(:,2));
+    plot(h1,[n-offset n+offset],group_motifdur.(strrep(conditions{n},' ','_')){1}','color',[0.5 0.5 0.5],'marker','o');hold on;
+    p = signrank(group_motifdur.(strrep(conditions{n},' ','_')){1}(:,1),group_motifdur.(strrep(conditions{n},' ','_')){1}(:,2));
     if p <= 0.05
         text((n-0.5)/(length(conditions)),0.95,'*','fontsize',14,'units','normalized');
     end
@@ -356,7 +377,10 @@ title(h1,'motif duration');
 figure;h1 = gca;
 dat = [];
 for n = 1:length(conditions)
-    dat = [dat;mean(group_sylldur.(conditions{n}){1}(:,1)) mean(group_sylldur.(conditions{n}){1}(:,2))];
+    dat = [dat;mean(group_sylldur.(strrep(conditions{n},' ','_')){1}(:,1)) mean(group_sylldur.(strrep(conditions{n},' ','_')){1}(:,2))];
+end
+if length(conditions) == 1
+    dat = [dat; NaN NaN];
 end
 b = bar(h1,dat);
 b(1).FaceColor = 'none';b(1).LineWidth = 2;
@@ -365,8 +389,8 @@ offset = b(2).XOffset;
 set(h1,'xlim',[0.5 length(conditions)+0.5]);
 axes(h1);hold on;
 for n = 1:length(conditions)
-    plot(h1,[n-offset n+offset],group_sylldur.(conditions{n}){1}','color',[0.5 0.5 0.5],'marker','o');hold on;
-    p = signrank(group_sylldur.(conditions{n}){1}(:,1),group_sylldur.(conditions{n}){1}(:,2));
+    plot(h1,[n-offset n+offset],group_sylldur.(strrep(conditions{n},' ','_')){1}','color',[0.5 0.5 0.5],'marker','o');hold on;
+    p = signrank(group_sylldur.(strrep(conditions{n},' ','_')){1}(:,1),group_sylldur.(strrep(conditions{n},' ','_')){1}(:,2));
     if p <= 0.05
         text((n-0.5)/(length(conditions)),0.95,'*','fontsize',14,'units','normalized');
     end
@@ -378,7 +402,10 @@ title(h1,'syllable duration');
 figure;h1 = gca;
 dat = [];
 for n = 1:length(conditions)
-    dat = [dat;mean(group_gapdur.(conditions{n}){1}(:,1)) mean(group_gapdur.(conditions{n}){1}(:,2))];
+    dat = [dat;mean(group_gapdur.(strrep(conditions{n},' ','_')){1}(:,1)) mean(group_gapdur.(strrep(conditions{n},' ','_')){1}(:,2))];
+end
+if length(conditions) == 1
+    dat = [dat; NaN NaN];
 end
 b = bar(h1,dat);
 b(1).FaceColor = 'none';b(1).LineWidth = 2;
@@ -387,8 +414,8 @@ offset = b(2).XOffset;
 set(h1,'xlim',[0.5 length(conditions)+0.5]);
 axes(h1);hold on;
 for n = 1:length(conditions)
-    plot(h1,[n-offset n+offset],group_gapdur.(conditions{n}){1}','color',[0.5 0.5 0.5],'marker','o');hold on;
-    p = signrank(group_gapdur.(conditions{n}){1}(:,1),group_gapdur.(conditions{n}){1}(:,2));
+    plot(h1,[n-offset n+offset],group_gapdur.(strrep(conditions{n},' ','_')){1}','color',[0.5 0.5 0.5],'marker','o');hold on;
+    p = signrank(group_gapdur.(strrep(conditions{n},' ','_')){1}(:,1),group_gapdur.(strrep(conditions{n},' ','_')){1}(:,2));
     if p <= 0.05
         text((n-0.5)/(length(conditions)),0.95,'*','fontsize',14,'units','normalized');
     end
@@ -400,11 +427,10 @@ title(h1,'gap duration');
 figure;h1 = gca;
 dat = [];
 for n = 1:length(conditions)
-    if ~isempty(group_rep.(conditions{n}){1})
-        dat = [dat;mean(group_rep.(conditions{n}){1}(:,1)) mean(group_rep.(conditions{n}){1}(:,2))];
-    else
-        dat = [dat;NaN NaN];
-    end
+    dat = [dat;mean(group_rep.(strrep(conditions{n},' ','_')){1}(:,1)) mean(group_rep.(strrep(conditions{n},' ','_')){1}(:,2))];
+end
+if length(conditions) == 1
+    dat = [dat; NaN NaN];
 end
 b = bar(h1,dat);
 b(1).FaceColor = 'none';b(1).LineWidth = 2;
@@ -413,9 +439,9 @@ offset = b(2).XOffset;
 set(h1,'xlim',[0.5 length(conditions)+0.5]);
 axes(h1);hold on;
 for n = 1:length(conditions)
-    if ~isempty(group_rep.(conditions{n}){1})
-        plot(h1,[n-offset n+offset],group_rep.(conditions{n}){1}','color',[0.5 0.5 0.5],'marker','o');hold on;
-        p = signrank(group_rep.(conditions{n}){1}(:,1),group_rep.(conditions{n}){1}(:,2));
+    if ~isempty(group_rep.(strrep(conditions{n},' ','_')){1})
+        plot(h1,[n-offset n+offset],group_rep.(strrep(conditions{n},' ','_')){1}','color',[0.5 0.5 0.5],'marker','o');hold on;
+        p = signrank(group_rep.(strrep(conditions{n},' ','_')){1}(:,1),group_rep.(strrep(conditions{n},' ','_')){1}(:,2));
         if p <= 0.05
             text((n-0.5)/(length(conditions)),0.95,'*','fontsize',14,'units','normalized');
         end
@@ -428,7 +454,10 @@ title(h1,'repeat length');
 figure;h1 = gca;
 dat = [];
 for n = 1:length(conditions)
-    dat = [dat;mean(group_bout.(conditions{n}){1}(:,1)) mean(group_bout.(conditions{n}){1}(:,2))];
+    dat = [dat;mean(group_bout.(strrep(conditions{n},' ','_')){1}(:,1)) mean(group_bout.(strrep(conditions{n},' ','_')){1}(:,2))];
+end
+if length(conditions) == 1
+    dat = [dat; NaN NaN];
 end
 b = bar(h1,dat);
 b(1).FaceColor = 'none';b(1).LineWidth = 2;
@@ -437,8 +466,8 @@ offset = b(2).XOffset;
 set(h1,'xlim',[0.5 length(conditions)+0.5]);
 axes(h1);hold on;
 for n = 1:length(conditions)
-    plot(h1,[n-offset n+offset],group_bout.(conditions{n}){1}','color',[0.5 0.5 0.5],'marker','o');hold on;
-    p = signrank(group_bout.(conditions{n}){1}(:,1),group_bout.(conditions{n}){1}(:,2));
+    plot(h1,[n-offset n+offset],group_bout.(strrep(conditions{n},' ','_')){1}','color',[0.5 0.5 0.5],'marker','o');hold on;
+    p = signrank(group_bout.(strrep(conditions{n},' ','_')){1}(:,1),group_bout.(strrep(conditions{n},' ','_')){1}(:,2));
     if p <= 0.05
         text((n-0.5)/(length(conditions)),0.95,'*','fontsize',14,'units','normalized');
     end

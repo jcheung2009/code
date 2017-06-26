@@ -27,7 +27,7 @@ end
 
 %% pitch
 figure(fignum);hold on;
-subtightplot(3,1,1,0.07,0.08,0.15);hold on;
+subtightplot(2,1,1,0.07,0.08,0.15);hold on;
 if isstr(marker)
     h = plot(pitchdat(:,1),pitchdat(:,2),marker);hold on
 else
@@ -43,7 +43,7 @@ end
 ylabel('Frequency (Hz)','fontweight','bold')
 title(syllable);
 %% volume
-subtightplot(3,1,2,0.07,0.08,0.15);hold on;
+subtightplot(2,1,2,0.07,0.08,0.15);hold on;
 if isstr(marker)
     h = plot(voldat(:,1),voldat(:,2),marker);hold on
 else
@@ -59,18 +59,18 @@ end
 ylabel('Log Amplitude','fontweight','bold')
 
 %% entropy
-subtightplot(3,1,3,0.07,0.08,0.15);hold on;
-if isstr(marker)
-    h = plot(entdat(:,1),entdat(:,2),marker);hold on
-else
-    marker = marker/max(marker);
-    h = plot(entdat(:,1),entdat(:,2),'.','color',marker);hold on
-end
-
-if ~isempty(tbshift)
-    xscale_hours_to_days(gca);
-    xlabel('Days','fontweight','bold');
-else
-    xlabel('Time','fontweight','bold');
-end
-ylabel('Entropy','fontweight','bold');
+% subtightplot(3,1,3,0.07,0.08,0.15);hold on;
+% if isstr(marker)
+%     h = plot(entdat(:,1),entdat(:,2),marker);hold on
+% else
+%     marker = marker/max(marker);
+%     h = plot(entdat(:,1),entdat(:,2),'.','color',marker);hold on
+% end
+% 
+% if ~isempty(tbshift)
+%     xscale_hours_to_days(gca);
+%     xlabel('Days','fontweight','bold');
+% else
+%     xlabel('Time','fontweight','bold');
+% end
+% ylabel('Entropy','fontweight','bold');

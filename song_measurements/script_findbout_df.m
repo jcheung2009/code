@@ -14,17 +14,21 @@ for i = ind(1):ind(2)
     end
     
     cd(ff(i).name);
-    ff2 = load_batchf('batch.keep');
+    ff2 = load_batchf('batch.keep.rand');
     ff_songs = [];
     cnt = 0;
     for m = 1:length(ff2)
-        load([ff2(m).name,'.not.mat']);
+        if exist([ff2(m).name,'.not.mat'])
+            load([ff2(m).name,'.not.mat']);
+        else
+            continue
+        end
         if ~isempty(regexp(labels,'[a-z]'))
             cnt = cnt+1;
             ff_songs(cnt).name = ff2(m).name;
         end
     end
-    cmd2 = ['bout_',ff(i).name,'=struct(''filename'',arrayfun(@(x) x.name,ff_songs,''unif'',0),''datenm'',arrayfun(@(x) wavefn2datenum(x.name),ff2,''unif'',0));'];
+    cmd2 = ['bout_',ff(i).name,'=struct(''filename'',arrayfun(@(x) x.name,ff_songs,''unif'',0),''datenm'',arrayfun(@(x) wavefn2datenum(x.name),ff_songs,''unif'',0));'];
     eval(cmd2);
 
     cd ../analysis/data_structures

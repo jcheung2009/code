@@ -169,6 +169,7 @@ for i = 1:length(ff)
            pitchestimates = [];
            volumeestimates = [];
            entropyestimates = [];
+           entropyvarestimates = [];
        end
           
       %extract datenum from rec file, add syllable ton in seconds
