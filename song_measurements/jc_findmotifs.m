@@ -147,7 +147,8 @@ for i = 1:length(ff)
            volumeestimates = NaN(numsylls,1);
            entropyestimates = NaN(numsylls,1);
            entropyvarestimates = NaN(numsylls,1);
-           parfor syllind = 1:length(syllablepositions)
+           idx = 0;
+           for syllind = 1:length(syllablepositions)
                for syllposind = 1:length(syllablepositions{syllind})
                    onsamp_syll = floor(ons(syllablepositions{syllind}(syllposind))*fs)-nbuffer;
                    offsamp_syll = floor(offs(syllablepositions{syllind}(syllposind))*fs)+nbuffer;
@@ -159,10 +160,11 @@ for i = 1:length(ff)
                    end
                    [mxvals pc spectempent sp f tm] = measure_specs(filtsong(onsamp_syll:offsamp_syll),...
                        fvalbnd{syllind},timeshifts{syllind},fs);
-                   entropyvarestimates(syllind) = entropy_variance(filtsong(onsamp_syll:offsamp_syll),fs);
-                   pitchestimates(syllind) = mxvals;
-                   entropyestimates(syllind) = spectempent;
-                   volumeestimates(syllind) = mean(filtsong(onsamp_syll:offsamp_syll).^2);
+                   idx=idx+1;
+                   entropyvarestimates(idx) = entropy_variance(filtsong(onsamp_syll:offsamp_syll),fs);
+                   pitchestimates(idx) = mxvals;
+                   entropyestimates(idx) = spectempent;
+                   volumeestimates(idx) = mean(filtsong(onsamp_syll:offsamp_syll).^2);
                end
            end
         else

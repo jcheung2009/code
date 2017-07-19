@@ -120,8 +120,8 @@ if ~isempty(trialparams)
     trialname=trialparams.name;
     lightdur = trialparams.fbdur;
     fs = params.fs;
-    trigsm = jc_getsm(motifinfo(trigind));
-    catchsm = jc_getsm(motifinfo(catchind));
+    trigsm = jc_getsm(motifinfo(trigind),fs);
+    catchsm = jc_getsm(motifinfo(catchind),fs);
     trigtime = cell2mat(arrayfun(@(x) x.trigtime-x.ons,motifinfo(trigind),'unif',0)');
     trig_on_off = [mean(trigtime) mean(trigtime)+lightdur]./1e3;
     trigsm.tm = (trigsm.tm/fs)-0.016;%to account for buffer in findmotifs
