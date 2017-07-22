@@ -17,7 +17,7 @@ end
 summary=struct();
 for i = 1:length(params.trial)
     if isfield(params,'findnote')  
-        for n = [1,4,5]%1:length(params.findnote)
+        for n = 1:length(params.findnote)
             syllable = params.findnote(n).syllable;
             prenote = params.findnote(n).prenotes;
             postnote = params.findnote(n).postnotes;
