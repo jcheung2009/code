@@ -71,7 +71,7 @@ end
 data = [data NaN(size(data,1),2)];
 gapid = unique(data(:,9));
 for i = 1:length(gapid)
-    ind = data(:,9)==gapid(i) & data(:,8)==0;
+    ind = data(:,9)==gapid(i) & data(:,8)==0;%baseline gap and gap cv
     meangap = nanmean(data(ind,1));
     gapcv = cv(data(ind,1));
     data(ind,10:11) = [repmat([meangap gapcv],[size(find(ind)),1])];

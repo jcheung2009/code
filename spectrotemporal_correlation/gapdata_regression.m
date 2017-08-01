@@ -280,3 +280,63 @@ xlabel('r squared');
 set(gca,'ytick',[1:length(varnames)],'yticklabel',varnames,'fontweight','bold');
 
 %% no pooling multiple regression with group indicators for gap ID
+formula = 'GapDur ~ GapID*Treatment*(PitchN1+PitchN2+VolN1+VolN2+DurN1+DurN2)-1';
+mdl_nopooling = fitlme(gapdata,formula);
+
+%% multilevel regression with no group predictors 
+formula = 'GapDur ~ Treatment*(PitchN1+PitchN2+VolN1+VolN2+DurN1+DurN2)+(Treatment*(PitchN1+PitchN2+VolN1+VolN2+DurN1+DurN2)|GapID)';
+mdl_1 = fitlme(gapdata,formula);
+
+%% multilevel regression with group predictors 
+
+%center and transform group predictor for mean gap (baseline)
+avgmeangap = mean(unique(gapdata.MeanGap));
+stdmeangap = std(unique(gapdata.MeanGap));
+gapid = unique(gapdata.GapID);
+for i = 1:length(gapid)
+    id = gapdata.GapID == gapid(i);
+    meangap = unique(gapdata.MeanGap(id));
+    meangap = (meangap-avgmeangap)/stdmeangap;
+    gapdata.MeanGap(id) = meangap;
+end
+
+%group predictor for mean gap (baseline)
+formula = 'GapDur ~ MeanGap*Treatment*(PitchN1+PitchN2+VolN1+VolN2+DurN1+DurN2)+(Treatment*(PitchN1+PitchN2+VolN1+VolN2+DurN1+DurN2)|GapID)';
+mdl_2 = fitlme(gapdata,formula);
+
+%center and transform group predictor for gap cv (baseline)
+avggapcv = mean(unique(gapdata.GapCV));
+stdgapcv = std(unique(gapdata.GapCV));
+gapid = unique(gapdata.GapID);
+for i = 1:length(gapid)
+    id = gapdata.GapID == gapid(i);
+    gapcv = unique(gapdata.GapCV(id));
+    gapcv = (gapcv-avggapcv)/stdgapcv;
+    gapdata.GapCV(id) = gapcv;
+end
+
+%group predictor for gap cv (baseline)
+formula = 'GapDur ~ GapCV*Treatment*(PitchN1+PitchN2+VolN1+VolN2+DurN1+DurN2)+(Treatment*(PitchN1+PitchN2+VolN1+VolN2+DurN1+DurN2)|GapID)';
+mdl_3 = fitlme(gapdata,formula);
+
+%Rsq not different between mdl_1, mdl_2, mdl_3 but likelihood ratio test
+%says mdl 2 and 3 are better fits than mdl 1 
+%Rsq is better for mdl 1 to 3 than mdl no pooling
+
+%% proportion explained by pitch from multilevel model 
+formula = 'GapDur ~ Treatment*(PitchN2+VolN1+VolN2+DurN1+DurN2)+(Treatment*(PitchN2+VolN1+VolN2+DurN1+DurN2)|GapID)';
+mdl_1_pitchN1 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ Treatment*(PitchN1+VolN1+VolN2+DurN1+DurN2)+(Treatment*(PitchN1+VolN1+VolN2+DurN1+DurN2)|GapID)';
+mdl_1_pitchN2 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ Treatment*(VolN1+VolN2+DurN1+DurN2)+(Treatment*(VolN1+VolN2+DurN1+DurN2)|GapID)';
+mdl_1_pitch = fitlme(gapdata,formula);
+
+mdl_1.Rsquared.Adjusted-mdl_1_pitchN1.Rsquared.Adjusted %1.1%
+mdl_1.Rsquared.Adjusted-mdl_1_pitchN2.Rsquared.Adjusted %1.5%
+mdl_1.Rsquared.Adjusted-mdl_1_pitch.Rsquared.Adjusted %3.4%
+
+
+%% use effective change in treatment as group predictor? 
+
