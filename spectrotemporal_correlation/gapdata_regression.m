@@ -21,7 +21,7 @@ for i = 1:length(ff)
     end
 end
 
-%center and transform each predictor 
+%% center and transform each predictor 
 birdnm = unique(gapdata.BirdID);
 gapidx = 0;
 for i = 1:length(birdnm)
@@ -87,8 +87,151 @@ for i = 1:length(birdnm)
     end
     gapidx = gapidx+length(gapid);
 end
-        
+%% check normality and correlation of predictors
+
+%plot qqplot for each predictor for each gapID/treatment: 
+%all predictors in all gapIDs in treatment group are not normal by kstest (washin period, no plateau in drug effect)
+%have tried different transformations for pitch/vol/dur before
+%centering/z-score transformation but only marginally improves normality
+%normality in predictors and response variables is not a criterion for
+%regression 
+
+birdnm = unique(gapdata.BirdID);
+varnames = gapdata.Properties.VariableNames;
+varnames = varnames(2:7);
+kstestresults = [];
+for i = 1:length(birdnm)
+    ind = strcmp(gapdata.BirdID,birdnm{i});
+    gapid = unique(gapdata.GapID(ind));
+    figure;hold on;
+    test2 = [];
+    for m = 1:length(varnames)
+        test = [];
+        for n = 1:length(gapid);
+            id = strcmp(gapdata.BirdID,birdnm{i}) & gapdata.GapID==gapid(n) & gapdata.Treatment==0;
+            id2 = strcmp(gapdata.BirdID,birdnm{i}) & gapdata.GapID==gapid(n) & gapdata.Treatment==1;
+
+            ax = subtightplot(length(gapid),6,m+6*(n-1),[0.07 0.04],0.05,0.05);hold on;
+            h = qqplot(gapdata.([varnames{m}])(id));hold on;
+            h(1).LineStyle = '-';h(1).Marker = 'none';h(1).Color = 'k';
+            h = qqplot(gapdata.([varnames{m}])(id2));hold on;
+            h(1).LineStyle = '-';h(1).Marker = 'none';h(1).Color = 'r';
+            ax.Title.String = varnames{m};
+            test = [test; kstest(gapdata.([varnames{m}])(id)) kstest(gapdata.([varnames{m}])(id2))];
+        end
+        test2 = [test2 test];
+    end
+    kstestresults = [kstestresults; test2];
+end
+sum(kstestresults) %number of gaps with not-normal predictor distributions (PitchN1base PitchN1treat,PitchN2base,..., VolN1base,...,VolN2base,...,DurN1base, ...)
+    
+% qqplot for response variable gapdur
+gapid = unique(gapdata.GapID);
+figure;hold on;kstestresults = [];
+for i = 1:length(gapid)
+    ax = subtightplot(4,7,i,[0.07 0.04],0.05,0.05);hold on;
+    ind = gapdata.GapID == gapid(i) & gapdata.Treatment == 0;
+    ind2 = gapdata.GapID == gapid(i) & gapdata.Treatment == 1;
+    h = qqplot(gapdata.GapDur(ind));hold on;
+    h(1).LineStyle = '-';h(1).Marker = 'none';h(1).Color = 'k';
+    h = qqplot(gapdata.GapDur(ind2));hold on;
+    h(1).LineStyle = '-';h(1).Marker = 'none';h(1).Color = 'r';
+    ax.Title.String = 'Gap Dur';
+    kstestresults = [kstestresults; kstest(gapdata.GapDur(ind)) kstest(gapdata.GapDur(ind2))];
+end
+sum(kstestresults) % number of gaps with not-normal response distribution (gapdurbase, gapdurtreat) 
+
+%plot correlation between predictors separately for baseline and treatment
+%(pooled across all gaps)
+%pitchN1 vs pitchN2 = 0.24 and 0.41
+%volN1 vs volN2 = 0.5 and 0.5
+varnames = gapdata.Properties.VariableNames;
+varnames = varnames(2:7);
+cbs = nchoosek(varnames,2);
+figure;hold on;
+for i = 1:length(cbs)
+    ind = gapdata.Treatment == 0;
+    ind2 = gapdata.Treatment==1;
+    subtightplot(3,5,i,[0.07 0.04],0.05,0.05);hold on;
+    plot(gapdata.([cbs{i,1}])(ind),gapdata.([cbs{i,2}])(ind),'k.');hold on;  
+    plot(gapdata.([cbs{i,1}])(ind2),gapdata.([cbs{i,2}])(ind2),'r.');hold on;  
+    [r1 p1] = corrcoef(gapdata.([cbs{i,1}])(ind),gapdata.([cbs{i,2}])(ind),'rows','complete');p = pval(p1(2));
+    text(0,1,{['r=',num2str(r1(2))];['p',p]},'units','normalized','verticalalignment','top');
+    [r2 p2] = corrcoef(gapdata.([cbs{i,1}])(ind2),gapdata.([cbs{i,2}])(ind2),'rows','complete');p = pval(p2(2));
+    text(1,1,{['\color{red}r=',num2str(r2(2))];['\color{red}p',p]},'units','normalized',...
+            'horizontalalignment','right','verticalalignment','top');
+    ylabel(cbs{i,2});xlabel(cbs{i,1});
+end
+
+%plot correlation between predictors separately for baseline and treatment
+%for each gapID: 
+%average correlation pitchN1 vs pitchN2: r = 0.3 and 0.4 
+%average correlation pitchN1 vs DurN2: r = -0.066 and -0.0826 
+%average correlation pitchN2 vs volN1: r = 0.0812 and 0.1531 
+%average correlation pitchN2 and DurN1: r = -0.05 and -0.058 
+%average correlation volN1 vs volN2: r = 0.4 and 0.4
+%average correlation durN1 vs durN2: r = 0.2 and 0.2 
+%note that some pitch vs vol and pitch vs pitch regressions do not look
+%linear and a few where the slope/intercept changes in treatment
+%in general, treatment relationships seem to be linear extension of
+%baseline relationship
+gapid = unique(gapdata.GapID);
+corrvals = [];
+for n = 1:length(gapid)
+    figure;hold on;
+    for i = 1:length(cbs)
+        ind = gapdata.GapID == gapid(n) & gapdata.Treatment == 0;
+        ind2 = gapdata.GapID == gapid(n) & gapdata.Treatment==1;
+        subtightplot(3,5,i,[0.07 0.04],0.05,0.05);hold on;
+        plot(gapdata.([cbs{i,1}])(ind),gapdata.([cbs{i,2}])(ind),'k.');hold on;  
+        plot(gapdata.([cbs{i,1}])(ind2),gapdata.([cbs{i,2}])(ind2),'r.');hold on;  
+        [r1 p1] = corrcoef(gapdata.([cbs{i,1}])(ind),gapdata.([cbs{i,2}])(ind),'rows','complete');p = pval(p1(2));
+        text(0,1,{['r=',num2str(r1(2))];['p',p]},'units','normalized','verticalalignment','top');
+        [r2 p2] = corrcoef(gapdata.([cbs{i,1}])(ind2),gapdata.([cbs{i,2}])(ind2),'rows','complete');p = pval(p2(2));
+        text(1,1,{['\color{red}r=',num2str(r2(2))];['\color{red}p',p]},'units','normalized',...
+                'horizontalalignment','right','verticalalignment','top');
+        ylabel(cbs{i,2});xlabel(cbs{i,1});
+        corrvals = [corrvals; r1(2) p1(2) r2(2) p2(2)];
+    end
+end
+
+figure;hold on;
+yticklbls = {};signranktest = NaN(length(cbs)*2,1);
+for i = 1:length(cbs)
+    cbscorrs = corrvals(i:15:end,:);
+    ind1 = cbscorrs(:,2)<=0.05;
+    ind2 = cbscorrs(:,4)<=0.05;
+    barh(i*2,mean(cbscorrs(:,1)),'facecolor',[0.5 0.5 0.5],'EdgeColor','none');
+    barh(i*2-1,mean(cbscorrs(:,3)),'facecolor',[0.7 0.3 0.3],'EdgeColor','none');
+    try
+        plot(cbscorrs(ind1,1),i*2,'ok','markersize',8);hold on;
+        plot(cbscorrs(~ind1,1),i*2,'k.','markersize',8);hold on;
+        plot(cbscorrs(ind2,1),i*2-1,'or','markersize',8);hold on;
+        plot(cbscorrs(~ind2,1),i*2-1,'r.','markersize',8);hold on;
+    end
+    yticklbls{i} = [cbs{i,1},'vs',cbs{i,2}];
+    signranktest(i*2) = signrank(cbscorrs(:,1));
+    signranktest(i*2-1) = signrank(cbscorrs(:,1));
+end
+set(gca,'ytick',[2:2:2*length(cbs)],'yticklabel',yticklbls,'fontweight','bold');
+xlabel('correlation');
+title('correlation between predictors');
+x = get(gca,'xlim');
+for i = 1:length(signranktest)
+    if signranktest(i) <=0.05
+        text(x(2),i,['p<=0.05']);
+    end
+end
+
+%predictors are not highly correlated. But may want to look at excluding
+%VolN1 or VolN2, PitchN1 or PitchN2, DurN1 or DurN2
+    
 %% plot scatterplots for each response vs predictor for each gap and regression for each bivariate pair
+%significant average correlations (sign rank across all gaps): PitchN1(treatment), PitchN2 (baseline/treatment), DurN1 (baseline/treatment), DurN2 (baseline)
+%average correlation with PitchN1 and PitchN2 (across all gaps): r = -0.056 and r = -0.0702 (baseline) and r = -0.0992 and r = -0.0985 (treatment) 
+%number of significant correlations out of 28 gaps for PitchN1 and PitchN2: 21 and 22 (baseline) and 21 and 21 (treatment)
+%greatest average correlation is with DurN1: r ~ -0.4 (baseline/treatment) 
+
 birdnm = unique(gapdata.BirdID);
 pitchN1corrs = [];pitchN2corrs = [];
 volN1corrs = [];volN2corrs = [];
@@ -184,14 +327,14 @@ figure;hold on;signranktest = NaN(length(varnames)*2,1);
 for i = 1:length(varnames)
     ind1 = pvals{:,varnames{i}}<=0.05;
     ind2 = pvals_treat{:,varnames{i}}<=0.05;
-    barh(i*2,mean(coeffs{ind1,varnames{i}}),'facecolor',[0.5 0.5 0.5],'EdgeColor','none');
-    barh(i*2-1,mean(coeffs_treat{ind2,varnames{i}}),'facecolor',[0.7 0.3 0.3],'EdgeColor','none');
+    barh(i*2,mean(coeffs{:,varnames{i}}),'facecolor',[0.5 0.5 0.5],'EdgeColor','none');
+    barh(i*2-1,mean(coeffs_treat{:,varnames{i}}),'facecolor',[0.7 0.3 0.3],'EdgeColor','none');
     plot(coeffs{ind1,varnames{i}},i*2,'ok','markersize',8);hold on;
     plot(coeffs{~ind1,varnames{i}},i*2,'k.','markersize',8);hold on;
     plot(coeffs{ind1,varnames{i}},i*2-1,'or','markersize',8);hold on;
     plot(coeffs{~ind1,varnames{i}},i*2-1,'r.','markersize',8);hold on;
-    signranktest(i*2) = signrank(coeffs{ind1,varnames{i}});
-    signranktest(i*2-1) = signrank(coeffs_treat{ind2,varnames{i}});
+    signranktest(i*2) = signrank(coeffs{:,varnames{i}});
+    signranktest(i*2-1) = signrank(coeffs_treat{:,varnames{i}});
 end
 x = get(gca,'xlim');
 for i = 1:length(signranktest)
@@ -201,12 +344,20 @@ for i = 1:length(signranktest)
 end
 set(gca,'ytick',[2:2:2*length(varnames)],'yticklabel',varnames,'fontweight','bold');
 xlabel('correlation');
+title('separate bivariate correlation');
+
+disp(['average r for PitchN1 (baseline): ',num2str(mean(coeffs.PitchN1))]);%-0.056
+disp(['average r for PitchN2 (baseline): ',num2str(mean(coeffs.PitchN2))]);%-0.0702
+disp(['average r for PitchN1 (treatment): ',num2str(mean(coeffs_treat.PitchN1))]);%-0.0992
+disp(['average r for PitchN2 (treatment): ',num2str(mean(coeffs_treat.PitchN2))]);%-0.0985
+disp(['average Rsq for PitchN1 (baseline): ',num2str(mean(coeffs.PitchN1)^2)]);%0.0031
+disp(['average Rsq for PitchN2 (baseline): ',num2str(mean(coeffs.PitchN2)^2)]);%0.005
 
 %% separate multiple regression for each gap ID
 gapid = unique(gapdata.GapID);
 coefs = [];
 coefs_pvals = [];
-rsq = [];
+rsq = [];res = {};
 for i = 1:length(gapid)
     id = gapdata.GapID==gapid(i);
     dat = gapdata(id,:);
@@ -235,9 +386,10 @@ for i = 1:length(gapid)
     [beta,betanames,stats] = mdl.fixedEffects;
     coefs = [coefs; beta'];
     coefs_pvals = [coefs_pvals; stats.pValue'];
+    res = [res; {residuals(mdl)}];
     
     fullmdl = mdl.Rsquared.Adjusted;
-    rsq = [rsq; fullmdl-mdl_pitchN1.Rsquared.Adjusted fullmdl-mdl_pitchN2.Rsquared.Adjusted ...
+    rsq = [rsq; fullmdl fullmdl-mdl_pitchN1.Rsquared.Adjusted fullmdl-mdl_pitchN2.Rsquared.Adjusted ...
         fullmdl-mdl_volN1.Rsquared.Adjusted fullmdl-mdl_volN2.Rsquared.Adjusted ...
         fullmdl-mdl_durN1.Rsquared.Adjusted fullmdl-mdl_durN2.Rsquared.Adjusted ...
         fullmdl-mdl_pitch.Rsquared.Adjusted fullmdl-mdl_vol.Rsquared.Adjusted ...
@@ -249,26 +401,36 @@ betanames = cellfun(@(x) strrep(x,'(',''),betanames,'unif',0);
 betanames = cellfun(@(x) strrep(x,')',''),betanames,'unif',0);
 coeff = array2table(coefs,'VariableNames',betanames);
 coeffpvals = array2table(coefs_pvals,'VariableNames',betanames);
-rsq = array2table(rsq,'VariableNames',{'PitchN1','PitchN2','VolN1','VolN2','DurN1','DurN2',...
+rsq = array2table(rsq,'VariableNames',{'Full','PitchN1','PitchN2','VolN1','VolN2','DurN1','DurN2',...
     'Pitch','Vol','Dur'});
-    
-figure;hold on;signranktest = NaN(13,1);
-for i = 1:length(betanames)-1
-    ind = coeffpvals{:,betanames{i+1}}<=0.05;
-    barh(i,mean(coeff{ind,betanames{i+1}}),'facecolor',[0.5 0.5 0.5],'EdgeColor','none');
-    plot(coeff{ind,betanames{i+1}},i,'ok','markersize',8);hold on;
-    plot(coeff{~ind,betanames{i+1}},i,'k.','markersize',8);hold on;
-    signranktest(i) = signrank(coeff{ind,betanames{i+1}});
-end
-x = get(gca,'xlim');
-for i = 1:length(signranktest)
-    if signranktest(i) <=0.05
-        text(x(2),i,['p<=0.05']);
+
+%plot histogram of residuals (not normal by ks test but look ~normal, std = 0.80
+figure;subplot(1,2,1);hold on;
+qqplot(res);subplot(1,2,2);hold on;histfit(res);xlabel('residuals');ylabel('counts');
+
+%plot beta for each variable and each gapID   
+figure;hold on;
+for i = 1:length(betanames)
+    ind = coeffpvals{:,betanames{i}}<=0.05;
+    try
+        p = signrank(coeff{:,betanames{i}});
+    catch 
+        p = 1;
     end
+    if p<=0.05
+        color = [0.8 0.3 0.3];
+    else
+        color = [0.5 0.5 0.5];
+    end
+    barh(i,mean(coeff{:,betanames{i}}),'facecolor',color,'EdgeColor','none');
+    try
+        plot(coeff{ind,betanames{i}},i,'ok','markersize',8);hold on;
+    end
+    plot(coeff{~ind,betanames{i}},i,'k.','markersize',8);hold on;
 end
 xlabel('beta');
-set(gca,'ytick',[1:13],'yticklabel',betanames(2:end),'fontweight','bold');
-
+set(gca,'ytick',[1:length(betanames)],'yticklabel',betanames,'fontweight','bold');
+title('separate regression for each GapID');
 
 varnames = rsq.Properties.VariableNames;
 figure;hold on;
@@ -278,14 +440,63 @@ for i = 1:length(varnames)
 end
 xlabel('r squared');
 set(gca,'ytick',[1:length(varnames)],'yticklabel',varnames,'fontweight','bold');
+title('separate regression for each GapID');
 
+disp(['average beta for PitchN1 (baseline): ',num2str(mean(coeff.PitchN1))]);%-0.057908
+disp(['average beta for PitchN2 (baseline): ',num2str(mean(coeff.PitchN2))]);%-0.072899
+
+disp(['average proportion of variance explained: ',num2str(mean(rsq.Full))]);%0.3563
+disp(['average proportion of variance explained by pitchN1: ',num2str(mean(rsq.PitchN1))]);%0.010338
+disp(['average proportion of variance explained by pitchN2: ',num2str(mean(rsq.PitchN2))]);%0.0117
+disp(['average proportion of variance explained pitch: ',num2str(mean(rsq.Pitch))]);%0.0273
 %% no pooling multiple regression with group indicators for gap ID
 formula = 'GapDur ~ GapID*Treatment*(PitchN1+PitchN2+VolN1+VolN2+DurN1+DurN2)-1';
 mdl_nopooling = fitlme(gapdata,formula);
 
+disp(['proportion of variation explained by no pooling model: ',num2str(mdl_nopooling.Rsquared.Adjusted)]);%=0.22357
 %% multilevel regression with no group predictors 
 formula = 'GapDur ~ Treatment*(PitchN1+PitchN2+VolN1+VolN2+DurN1+DurN2)+(Treatment*(PitchN1+PitchN2+VolN1+VolN2+DurN1+DurN2)|GapID)';
 mdl_1 = fitlme(gapdata,formula);
+
+%plot betas for each level 
+[~,betanames,fixedstats] = fixedEffects(mdl_1);
+[~,~,randomstats] = randomEffects(mdl_1);
+betanames = betanames.Name;
+figure;hold on;
+for i = 1:length(betanames)
+    id = strcmp(randomstats.Name,betanames{i});
+    randomeff = randomstats.Estimate(id);
+    id = strcmp(fixedstats.Name,betanames{i});
+    beta = randomeff + fixedstats.Estimate(id);
+    if fixedstats.pValue(id) <= 0.05
+        color = [0.8 0.3 0.3];
+    else
+        color = [0.5 0.5 0.5];
+    end
+    barh(i,fixedstats.Estimate(id),'facecolor',color,'EdgeColor','none');
+    plot(beta,i,'ok','markersize',8);hold on;
+end
+set(gca,'ytick',[1:length(betanames)],'yticklabel',betanames,'fontweight','bold');
+title('multilevel regression with no group predictors');
+xlabel('beta');
+
+figure;hold on;subplot(2,1,1);hold on;
+plotResiduals(mdl_1);
+subplot(2,1,2);hold on;
+plotResiduals(mdl_1,'fitted');
+
+disp(['proportion of variation explained by multilevel model with no group predictors: ',num2str(mdl_1.Rsquared.Adjusted)]);%=0.3939
+[~,~,fixedstats] = fixedEffects(mdl_1)
+
+% formula = ['GapDur ~ Treatment*(PitchN1+PitchN2+VolN1+VolN2+DurN1+DurN2)+',...
+%     '(Treatment*(PitchN1+PitchN2)-Treatment-1|GapID)+(Treatment*(VolN1+VolN2)-',...
+%     'Treatment-1|GapID)+(Treatment*(DurN1+DurN2)-Treatment-1|GapID)+(1|GapID)+(Treatment|GapID)'];
+% mdl_1a = fitlme(gapdata,formula);
+
+ind = gapdata.Treatment==0;
+gapdata_baseline = gapdata(ind,:);
+formula = 'GapDur ~ PitchN1+PitchN2+VolN1+VolN2+DurN1+DurN2+(PitchN1+PitchN2+VolN1+VolN2+DurN1+DurN2|GapID)';
+mdl_1a = fitlme(gapdata_baseline,formula);
 
 %% multilevel regression with group predictors 
 
@@ -319,9 +530,86 @@ end
 formula = 'GapDur ~ GapCV*Treatment*(PitchN1+PitchN2+VolN1+VolN2+DurN1+DurN2)+(Treatment*(PitchN1+PitchN2+VolN1+VolN2+DurN1+DurN2)|GapID)';
 mdl_3 = fitlme(gapdata,formula);
 
-%Rsq not different between mdl_1, mdl_2, mdl_3 but likelihood ratio test
-%says mdl 2 and 3 are better fits than mdl 1 
-%Rsq is better for mdl 1 to 3 than mdl no pooling
+disp(['proportion of variation explained by multilevel model with meangap group predictor: ',num2str(mdl_2.Rsquared.Adjusted)]);%=0.3939, not different from mdl_1
+disp(['proportion of variation explained by multilevel model with gapcv group predictor: ',num2str(mdl_3.Rsquared.Adjusted)]);%=0.3939, not different from mdl_1
+
+compare(mdl_1,mdl_2)%including meangap improves fit?
+compare(mdl_1,mdl_3)%including gapcv improves fit? 
+
+[~,~,fixedstats] = fixedEffects(mdl_2)%no significant coeff for meangap or any of its interactions except for DurN2:Treatment:MeanGap 
+[~,~,fixedstats] = fixedEffects(mdl_3)%no significant coeff for gapcv or any of its interactions
+
+%Group Predictor only on pitch predictor 
+formula = 'GapDur ~ MeanGap*Treatment*(PitchN1+PitchN2)+Treatment*(VolN1+VolN2+DurN1+DurN2)+(Treatment*(PitchN1+PitchN2+VolN1+VolN2+DurN1+DurN2)|GapID)';
+mdl_2a = fitlme(gapdata,formula);%rsq not different from mdl_1, but significant coeff for PitchN1:MeanGap 
+
+formula = 'GapDur ~ GapCV*Treatment*(PitchN1+PitchN2)+Treatment*(VolN1+VolN2+DurN1+DurN2)+(Treatment*(PitchN1+PitchN2+VolN1+VolN2+DurN1+DurN2)|GapID)';
+mdl_3a = fitlme(gapdata,formula);%rsq not different from mdl_1
+
+[~,~,fixedstats] = fixedEffects(mdl_2a)%significant negative coeff for meangap:pitchN1 and treatment:meangap 
+[~,~,fixedstats] = fixedEffects(mdl_3a)%significant positive coeff for gapcv:pitchN1
+
+%plot meangap vs coeffs for pitch
+[~,betanames,fixedstats] = fixedEffects(mdl_2a);
+[~,~,randomstats] = randomEffects(mdl_2a);
+meangap = [];
+for i = 1:length(gapid)
+    id = find(gapdata.GapID==gapid(i));
+    meangap = [meangap;gapdata.MeanGap(id(1))];
+end
+id1 = strcmp(fixedstats.Name,'PitchN1');
+id2 = find(strcmp(fixedstats.Name,'PitchN1:MeanGap'));
+fixedeff = fixedstats.Estimate(id1)+fixedstats.Estimate(id2)*meangap;
+id = strcmp(randomstats.Name,'PitchN1');
+randomeff = randomstats.Estimate(id);
+beta = randomeff + fixedeff;
+figure;hold on;
+subplot(2,1,1);hold on;plot(meangap,beta,'ok');
+xlabel('Mean Gap Duration');ylabel('PitchN1 Beta');
+[r p] = corrcoef(meangap,beta);
+text(0,1,{['r=',num2str(r(2))];['p=',num2str(p(2))]},'units','normalized');
+
+id1 = strcmp(fixedstats.Name,'PitchN2');
+id2 = find(strcmp(fixedstats.Name,'PitchN2:MeanGap'));
+fixedeff = fixedstats.Estimate(id1)+fixedstats.Estimate(id2)*meangap;
+id = strcmp(randomstats.Name,'PitchN2');
+randomeff = randomstats.Estimate(id);
+beta = randomeff + fixedeff;
+subplot(2,1,2);hold on;plot(meangap,beta,'ok');
+xlabel('Mean Gap Duration');ylabel('PitchN2 Beta');
+[r p] = corrcoef(meangap,beta);
+text(0,1,{['r=',num2str(r(2))];['p=',num2str(p(2))]},'units','normalized');
+
+%plot gapcv vs coeffs for pitch
+[~,betanames,fixedstats] = fixedEffects(mdl_3a);
+[~,~,randomstats] = randomEffects(mdl_3a);
+gapcv = [];
+for i = 1:length(gapid)
+    id = find(gapdata.GapID==gapid(i));
+    gapcv = [gapcv;gapdata.GapCV(id(1))];
+end
+id1 = strcmp(fixedstats.Name,'PitchN1');
+id2 = find(strcmp(fixedstats.Name,'PitchN1:GapCV'));
+fixedeff = fixedstats.Estimate(id1)+fixedstats.Estimate(id2)*gapcv;
+id = strcmp(randomstats.Name,'PitchN1');
+randomeff = randomstats.Estimate(id);
+beta = randomeff + fixedeff;
+figure;hold on;
+subplot(2,1,1);hold on;plot(gapcv,beta,'ok');
+xlabel('Gap CV');ylabel('PitchN1 Beta');
+[r p] = corrcoef(gapcv,beta);
+text(0,1,{['r=',num2str(r(2))];['p=',num2str(p(2))]},'units','normalized');
+
+id1 = strcmp(fixedstats.Name,'PitchN2');
+id2 = find(strcmp(fixedstats.Name,'PitchN2:GapCV'));
+fixedeff = fixedstats.Estimate(id1)+fixedstats.Estimate(id2)*gapcv;
+id = strcmp(randomstats.Name,'PitchN2');
+randomeff = randomstats.Estimate(id);
+beta = randomeff + fixedeff;
+subplot(2,1,2);hold on;plot(gapcv,beta,'ok');
+xlabel('Gap CV');ylabel('PitchN2 Beta');
+[r p] = corrcoef(gapcv,beta);
+text(0,1,{['r=',num2str(r(2))];['p=',num2str(p(2))]},'units','normalized');
 
 %% proportion explained by pitch from multilevel model 
 formula = 'GapDur ~ Treatment*(PitchN2+VolN1+VolN2+DurN1+DurN2)+(Treatment*(PitchN2+VolN1+VolN2+DurN1+DurN2)|GapID)';
@@ -333,10 +621,29 @@ mdl_1_pitchN2 = fitlme(gapdata,formula);
 formula = 'GapDur ~ Treatment*(VolN1+VolN2+DurN1+DurN2)+(Treatment*(VolN1+VolN2+DurN1+DurN2)|GapID)';
 mdl_1_pitch = fitlme(gapdata,formula);
 
-mdl_1.Rsquared.Adjusted-mdl_1_pitchN1.Rsquared.Adjusted %1.1%
-mdl_1.Rsquared.Adjusted-mdl_1_pitchN2.Rsquared.Adjusted %1.5%
-mdl_1.Rsquared.Adjusted-mdl_1_pitch.Rsquared.Adjusted %3.4%
+disp(['proportion of variance explained by pitchN1: ',num2str(mdl_1.Rsquared.Adjusted-mdl_1_pitchN1.Rsquared.Adjusted)]); %1.1%
+disp(['proportion of variance explained by pitchN2: ',num2str(mdl_1.Rsquared.Adjusted-mdl_1_pitchN2.Rsquared.Adjusted)]); %1.5%
+disp(['proportion of variance explained by pitch: ',num2str(mdl_1.Rsquared.Adjusted-mdl_1_pitch.Rsquared.Adjusted)]); %3.4%
 
 
 %% use effective change in treatment as group predictor? 
 
+%add treatment effect as change in pitchN1 (z-score)
+treatmenteffect = NaN(size(gapdata,1),1);
+gapid = unique(gapdata.GapID);
+for i = 1:length(gapid)
+    id1 = gapdata.GapID == gapid(i) & gapdata.Treatment == 0;
+    id2 = gapdata.GapID == gapid(i) & gapdata.Treatment == 1;
+    id = gapdata.GapID == gapid(i);
+    treatmenteffect(id) = nanmean(gapdata.PitchN1(id2))-nanmean(gapdata.PitchN1(id1));
+end
+gapdata.TreatmentEffect = treatmenteffect;
+  
+formula = 'GapDur ~ TreatmentEffect*Treatment*(PitchN1+PitchN2)+Treatment*(VolN1+VolN2+DurN1+DurN2)+(Treatment*(PitchN1+PitchN2+VolN1+VolN2+DurN1+DurN2)|GapID)';
+mdl_treatmenteffect = fitlme(gapdata,formula);
+
+disp(['proportion of variation explained by multilevel model with treatmentsize as group predictor: ',num2str(mdl_treatmenteffect.Rsquared.Adjusted)]);%=0.3939
+
+compare(mdl_1,mdl_treatmenteffect); %adding treatment effect as group predictor does not increase fit 
+
+[~,~,fixedstats] = fixedEffects(mdl_treatmenteffect);%coeffs for treatmenteffect:(treatment):pitch is not significant
