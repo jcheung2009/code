@@ -9,6 +9,7 @@ if isfield(params,'gapdata')
     trialnms = [trialnms params.gapdata.excludetrials];
 end
 nstd = 3;
+filenms = {};
 for indcond = 1:length(condition)
     for i = 1:length(params.trial)
         if ~strcmp(params.trial(i).condition,condition{indcond})
@@ -43,8 +44,10 @@ for indcond = 1:length(condition)
                     pitch_base = jc_removeoutliers(cell2mat(arrayfun(@(x) x.syllpitch(ind)',motif_base,'unif',0)'),nstd);
                     vol_base = jc_removeoutliers(cell2mat(arrayfun(@(x) log10(x.syllvol(ind)'),motif_base,'unif',0)'),nstd);
                     dur_base = jc_removeoutliers(cell2mat(arrayfun(@(x) x.durations(ind)',motif_base,'unif',0)'),nstd);
+                    rendind = [motif_base(:).boutind]';
+                    filenms = [filenms; {motif_base(:).filename}'];
                     data = [data; gap_base pitch_base vol_base dur_base zeros(length(gap_base),1)...
-                    repmat(gapid,length(gap_base),1)];
+                    rendind repmat(gapid,length(gap_base),1)];
                 end
                 
                 if ~isempty(motif_cond)
@@ -52,12 +55,14 @@ for indcond = 1:length(condition)
                     pitch_cond = jc_removeoutliers(cell2mat(arrayfun(@(x) x.syllpitch(ind)',motif_cond,'unif',0)'),nstd);
                     vol_cond = jc_removeoutliers(cell2mat(arrayfun(@(x) log10(x.syllvol(ind)'),motif_cond,'unif',0)'),nstd);
                     dur_cond = jc_removeoutliers(cell2mat(arrayfun(@(x) x.durations(ind)',motif_cond,'unif',0)'),nstd);
+                    rendind = [motif_cond(:).boutind]';
+                    filenms = [filenms; {motif_cond(:).filename}'];
                     if ~strcmp(condition{indcond},'saline')
                         data = [data; gap_cond pitch_cond vol_cond dur_cond ones(length(gap_cond),1)...
-                            repmat(gapid,length(gap_cond),1)];
+                             rendind repmat(gapid,length(gap_cond),1)];
                     else
                         data = [data; gap_cond pitch_cond vol_cond dur_cond zeros(length(gap_cond),1)...
-                            repmat(gapid,length(gap_cond),1)];
+                            rendind repmat(gapid,length(gap_cond),1)];
                     end
                 end
                 gapid=gapid+1;
@@ -68,18 +73,19 @@ for indcond = 1:length(condition)
     end
 end
 
+%add average baseline gap and gap cv
 data = [data NaN(size(data,1),2)];
-gapid = unique(data(:,9));
+gapid = unique(data(:,10));
 for i = 1:length(gapid)
-    ind = data(:,9)==gapid(i) & data(:,8)==0;%baseline gap and gap cv
+    ind = data(:,10)==gapid(i) & data(:,8)==0;
     meangap = nanmean(data(ind,1));
     gapcv = cv(data(ind,1));
-    data(ind,10:11) = [repmat([meangap gapcv],[size(find(ind)),1])];
-    ind2 = data(:,9)==gapid(i) & data(:,8)==1;
-    data(ind2,10:11) = [repmat([meangap gapcv],[size(find(ind2)),1])];
+    data(ind,11:12) = [repmat([meangap gapcv],[size(find(ind)),1])];
+    ind2 = data(:,10)==gapid(i) & data(:,8)==1;
+    data(ind2,11:12) = [repmat([meangap gapcv],[size(find(ind2)),1])];
 end
 
 gapdata = table(data(:,1),data(:,2),data(:,3),data(:,4),data(:,5),data(:,6),data(:,7),data(:,8),...
-    data(:,9),data(:,10),data(:,11),repmat({params.birdname},size(data,1),1),...
+    data(:,9),data(:,10),data(:,11),data(:,12),filenms,repmat({params.birdname},size(data,1),1),...
     'VariableNames',{'GapDur','PitchN1','PitchN2','VolN1','VolN2',...
-    'DurN1','DurN2','Treatment','GapID','MeanGap','GapCV','BirdID'});
+    'DurN1','DurN2','Treatment','RenditionID','GapID','MeanGap','GapCV','BoutID','BirdID'});

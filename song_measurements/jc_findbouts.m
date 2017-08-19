@@ -86,9 +86,9 @@ for i = 1:length(ff)
         bouttempo = [];
         boutacorr = [];
         for m = 1:length(ind)
-            boutvolume = [boutvolume; motifinfo(ind(m)).syllvol];
-            boutpitch = [boutpitch; motifinfo(ind(m)).syllpitch];
-            boutentropy = [boutentropy; motifinfo(ind(m)).syllent];
+            boutvolume = [boutvolume; motifinfo(ind(m)).syllvol'];
+            boutpitch = [boutpitch; motifinfo(ind(m)).syllpitch'];
+            boutentropy = [boutentropy; motifinfo(ind(m)).syllent'];
             bouttempo = [bouttempo; motifinfo(ind(m)).motifdur];
             boutacorr = [boutacorr; motifinfo(ind(m)).firstpeakdistance];
         end
