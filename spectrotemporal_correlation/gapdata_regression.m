@@ -647,3 +647,73 @@ disp(['proportion of variation explained by multilevel model with treatmentsize 
 compare(mdl_1,mdl_treatmenteffect); %adding treatment effect as group predictor does not increase fit 
 
 [~,~,fixedstats] = fixedEffects(mdl_treatmenteffect);%coeffs for treatmenteffect:(treatment):pitch is not significant
+%%
+formula = 'GapDur ~ Treatment*(PitchN1+PitchN2)+VolN1+VolN2+DurN1+DurN2+RenditionID+BirdID+(Treatment*(PitchN1+PitchN2)+VolN1+VolN2+DurN1+DurN2+RenditionID|GapID)';
+mdl = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ Treatment*(PitchN1+PitchN2)+VolN1+VolN2+DurN1+DurN2+BoutID+BirdID+(Treatment*(PitchN1+PitchN2)+VolN1+VolN2+DurN1+DurN2|GapID)';
+mdl_1 = fitlme(gapdata,formula);
+formula = 'GapDur ~ Treatment*(PitchN1+PitchN2)+VolN1+VolN2+DurN1+DurN2+BoutID+RenditionID+BirdID+(Treatment*(PitchN1+PitchN2)+VolN1+VolN2+DurN1+DurN2+RenditionID|GapID)';
+mdl_2 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ Treatment*(PitchN1+PitchN2)+VolN1+VolN2+DurN1+DurN2+BirdID+(Treatment*(PitchN1+PitchN2)+VolN1+VolN2+DurN1+DurN2|GapID)';
+mdl_3 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ Treatment*(PitchN1+PitchN2)+VolN1+VolN2+DurN1+DurN2+BirdID+(Treatment*(PitchN1+PitchN2)+VolN1+VolN2+DurN1+DurN2|GapID:RenditionID)';
+mdl_4 = fitlme(gapdata,formula);
+
+
+boutid = NaN(size(gapdata,1),1);
+gapid = unique(gapdata.GapID);
+for i = 1:length(gapid)
+    ind = gapdata.GapID == gapid(i);
+    [~,~,ic] = unique(gapdata.BoutID(ind));
+    boutid(ind) = ic;
+end
+
+gapdata.BoutID = boutid;
+formula = 'GapDur ~ PitchN1 + (PitchN1|GapID)';
+mdl = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1 + (PitchN1|GapID:RenditionID)';
+mdl1 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1 + (PitchN1|GapID:BoutID)';
+mdl2 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1 + RenditionID + (PitchN1|GapID:BoutID)';
+mdl3 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1 + RenditionID + (PitchN1|GapID)';
+mdl4 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1 + RenditionID + (PitchN1+RenditionID|GapID)';
+mdl5 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1 +(PitchN1|GapID:RenditionID)+(PitchN1|GapID:BoutID)';
+mdl6 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1 + BoutID + (PitchN1|GapID)';
+mdl7 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1 + BoutID + (PitchN1+BoutID|GapID)';
+mdl8 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1 + BoutID + (PitchN1|GapID)+(BoutID|GapID)';
+mdl9 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1 + RenditionID + (PitchN1|GapID)+(RenditionID|GapID)';
+mdl10 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1 + RenditionID + (PitchN1+RenditionID|GapID:BoutID)';
+mdl11 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1*RenditionID + (PitchN1*RenditionID|GapID:BoutID)';
+mdl12 = fitlme(gapdata,formula);
+
+
+ind = gapdata.GapID == 1  & gapdata.Treatment == 0;
+res = residuals(mdl12);
+scaled = (res(ind)-nanmean(res(ind)))/nanstd(res(ind));
+scaled(isnan(res(ind))) = 0;
+pr = pacf(scaled,50,1)
