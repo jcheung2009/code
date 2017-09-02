@@ -663,9 +663,6 @@ formula = 'GapDur ~ Treatment*(PitchN1+PitchN2)+VolN1+VolN2+DurN1+DurN2+BirdID+(
 mdl_4 = fitlme(gapdata,formula);
 
 
-
-
-
 boutid = NaN(size(gapdata,1),1);
 gapid = unique(gapdata.GapID);
 for i = 1:length(gapid)
@@ -712,43 +709,10 @@ formula = 'GapDur ~ PitchN1*RenditionID + (PitchN1*RenditionID|GapID:BoutID)';
 mdl12 = fitlme(gapdata,formula);
 formula = 'GapDur ~ PitchN1*RenditionID + (PitchN1|GapID:BoutID)';
 mdl13 = fitlme(gapdata,formula);
-formula = 'GapDur ~ PitchN1*RenditionID + (PitchN1|GapID:BoutID)+(RenditionID|GapID:BoutID)';
-mdl14 = fitlme(gapdata,formula);
-
-formula = 'GapDur ~ RenditionID + (RenditionID|GapID:BoutID)';
-mdl15 = fitlme(gapdata,formula);
-
-formula = 'GapDur ~ PitchN1+RenditionID + (PitchN1|BirdID:GapID:BoutID)+(RenditionID|BirdID:GapID:BoutID)';
-mdl16 = fitlme(gapdata,formula);
-
-formula = 'GapDur ~ PitchN1 + RenditionID + BirdID +(PitchN1|GapID:BoutID)+(RenditionID|GapID:BoutID)';
-mdl17 = fitlme(gapdata,formula);
-
-formula = 'GapDur ~ PitchN1 + (PitchN1|BirdID:GapID:BoutID)+(PitchN1|BirdID:GapID:RenditionID)';
-mdl18 = fitlme(gapdata,formula);
-
-formula = 'GapDur ~ PitchN1 + RenditionID + (PitchN1+RenditionID|BirdID:GapID:BoutID)';
-mdl19 = fitlme(gapdata,formula);
-
-formula = 'GapDur ~ PitchN1 + RenditionID + (PitchN1|BirdID:GapID)';
-mdl20 = fitlme(gapdata,formula);
 
 
-
-for i = 1:28
-    ind = gapdata.GapID == i  & gapdata.Treatment == 0;
-    res = residuals(mdl19);
-    scaled = (res(ind)-nanmean(res(ind)))/nanstd(res(ind));
-    scaled(isnan(res(ind))) = 0;
-    pr = pacf(scaled,50,1);
-end
-
-for i = 1:28
-    ind = gapdata.GapID == i  & gapdata.Treatment == 0;
-    yi = gapdata.GapDur;
-    scaled = (yi(ind)-nanmean(yi(ind)))/nanstd(yi(ind));
-    scaled(isnan(yi(ind))) = 0;
-    pr = pacf(scaled,50,1)
-end
-
-
+ind = gapdata.GapID == 1  & gapdata.Treatment == 0;
+res = residuals(mdl12);
+scaled = (res(ind)-nanmean(res(ind)))/nanstd(res(ind));
+scaled(isnan(res(ind))) = 0;
+pr = pacf(scaled,50,1)
