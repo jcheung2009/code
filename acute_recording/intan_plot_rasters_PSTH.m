@@ -18,12 +18,14 @@ PeriStimTime = [];%specify peristim duration in secs if hand jitter, leave empty
 fn = uigetfile('*.rhd','Multiselect','on');
 
 %% RUN --------------------
-
+if ~iscell(fn)
+    fn = {fn};
+end
 % how many filenames?
 NumFiles=length(fn);
 
-if NumFiles>1; % then need to concatenate files  
-    for i=1:NumFiles;
+if NumFiles>1 % then need to concatenate files  
+    for i=1:NumFiles
         clear amplifier_data
         clear board_dig_in_data
         clear aux_input_data
@@ -76,7 +78,7 @@ N=4;
 NumAmplChans=size(amplifier_data,1);
 % ---------------------
 
-for i=1:NumAmplChans;
+for i=1:NumAmplChans
     amplifier_data_filt(i,:)=filtfilt(b,a,amplifier_data(i,:));
 end
 
@@ -93,13 +95,13 @@ end
 
 % GET STIM TIMES
 % first, find dig data that corresponds to channel you want.
-for i=1:length(board_dig_in_channels);
+for i=1:length(board_dig_in_channels)
     if board_dig_in_channels(i).chip_channel==DigChan;
         DigInd=i;
     end
 end
 
-if length(DigChan)>1;
+if length(DigChan)>1
     error('Problem, >1 dig channel, have not coded to deal with more than one chan');
 else
     
@@ -112,15 +114,15 @@ else
     
     % make sure there are same number of stim ons/off (otherwise stim probably
     % clipped);
-    if length(StimOnTimes)~=length(StimOffTimes);
+    if length(StimOnTimes)~=length(StimOffTimes)
         disp('PROBLEM: Num of StimOn times ~= Num StimOff times.  Stim epoch clipped?');
         disp('Will remove one stim');
         
-        if length(StimOnTimes)>length(StimOffTimes);
+        if length(StimOnTimes)>length(StimOffTimes)
             StimOnTimes=StimOnTimes(1:end-1);
         NumStims=NumStims-1;
         
-        elseif length(StimOffTimes)>length(StimOnTimes);
+        elseif length(StimOffTimes)>length(StimOnTimes)
             StimOffTimes=StimOffTimes(1:end-1);
         end
     end
@@ -147,12 +149,12 @@ end
 
 StimDur=mode(StimOffTimes-StimOnTimes);
 
-if isempty(PSTH_bin);
+if isempty(PSTH_bin)
     PSTH_bin=max(0.005,(PeriStimTime/10)/fs); % bin in sec
 end
 
 % Collect Spike Times for each Stim epoch
-for i=1:length(ChansOfInterest_1to32);
+for i=1:length(ChansOfInterest_1to32)
     chan=ChansOfInterest_1to32(i);
     for ii=1:NumStims; % for each stim epoch
         StimEpoch(ii,:)=[StimOnTimes(ii)-PeriStimTime StimOffTimes(ii)+PeriStimTime]; % samples of epoch
@@ -166,7 +168,7 @@ end
 % Bin and take mean to get PSTH
 BinEdges=0:PSTH_bin*fs:(StimDur+2*PeriStimTime); % edges spanning each stim epoch
 % Collect spikes and put into time bins, defined relative to stim epochs.
-for i=1:length(ChansOfInterest_1to32);
+for i=1:length(ChansOfInterest_1to32)
     chan=ChansOfInterest_1to32(i);
     for ii=1:NumStims;
         if isempty(SpikeTimesInStim_RelToStimEpoch{chan}{ii}); % i.e. no spikes at all;
@@ -177,7 +179,7 @@ for i=1:length(ChansOfInterest_1to32);
     end
     
     % Get summary stats (across stim epochs)
-    if isempty(BinnedSpikesStimEpoch{chan});
+    if isempty(BinnedSpikesStimEpoch{chan})
         MeanSpikes_PSTH{chan}=0;
         StdSpikes{chan}=0;
         SEMspikes{chan}=0;
@@ -194,12 +196,12 @@ for i=1:length(ChansOfInterest_1to32);
 end
 
 
-% PLOT PSTH FOR ALL CHANNELS IN ONE PLOT (PSTH), ORDERED BY ELECTRODE POSITION:
+%% PLOT PSTH FOR ALL CHANNELS IN ONE PLOT (PSTH), ORDERED BY ELECTRODE POSITION:
 
 figure; hold on;
 ElectrodePosToPlot_0to31=[7 1 6 14 10 11 5 12 4 3 9 8 13 2 15 0 23 28 25 20 22 27 17 21 26 30 19 24 29 18 31 16]; % Enter channels in spatial order - to plot channels in order (top to bottom of right shank, then top to bottom of left shank) : i.e. if electrode positions (from top to bottom, left to right) is like: [1 2; 3 4; ... ; 31 32] then rewrite that as: [2 4 8 ... 32 17 19 ... 31];
 
-for i=1:32; % indices, with correcponsdence to electrode defined by the subplot positions they call
+for i=1:32 % indices, with correcponsdence to electrode defined by the subplot positions they call
     subtightplot(2,16,i,[0.07 0.025],0.05,0.03); hold on;
     
     ChanNum_0to31=ElectrodePosToPlot_0to31(i); % what Channel?
@@ -227,44 +229,45 @@ ChansOfInterest_0to31 = input('channels of interest (0-31):');
 ChansOfInterest_1to32 = ChansOfInterest_0to31+1;
 %% PLOT Raster + PSTH
 close all;
-for i=1:length(ChansOfInterest_1to32);
+for i=1:length(ChansOfInterest_1to32)
     chan=ChansOfInterest_1to32(i);
     figure; hold on;
-    subplot(2,1,1); hold on;
-    for ii=1:NumStims;
+    h1 = subplot(2,1,1); hold on;
+    for ii=1:NumStims
         if ~isempty(SpikeTimesInStim_RelToStimEpoch{chan}{ii}) % if no spikes, then will not plot
-            plot(SpikeTimesInStim_RelToStimEpoch{chan}{ii}./fs,ii,'k.');
+            plot(h1,SpikeTimesInStim_RelToStimEpoch{chan}{ii}./fs,ii,'k.');
         else
-            plot(1,ii,'Color',[1 1 1]); % if no spikes, plot a white thing as placeholder (important if this is last line).
+            plot(h1,1,ii,'Color',[1 1 1]); % if no spikes, plot a white thing as placeholder (important if this is last line).
         end
     end
     
-    xlim([0 StimDur./fs+2*PeriStimTime./fs]); % makes sure xlims represent entire trial.
-    line([PeriStimTime./fs PeriStimTime./fs],ylim);  % put lines denoting stim on and off
-    line([PeriStimTime./fs+StimDur./fs PeriStimTime./fs+StimDur./fs],ylim);
+    xlim(h1,[0 StimDur./fs+2*PeriStimTime./fs]); % makes sure xlims represent entire trial.
+    ylim(h1,[1 NumStims]);
+    line(h1,[PeriStimTime./fs PeriStimTime./fs],[0 NumStims]);  % put lines denoting stim on and off
+    line(h1,[PeriStimTime./fs+StimDur./fs PeriStimTime./fs+StimDur./fs],ylim);
     title(['Raster plot: Channel (0-31): ' num2str(chan-1)]);
-    ylabel('Stim trial #');
-    xlabel('Time (s)');
+    ylabel(h1,'Stim trial #');
+    xlabel(h1,'Time (s)');
     
     % Plot PSTH
-    subplot(2,1,2); 
+    h2 = subplot(2,1,2);hold on;
     X=BinEdges+(1/2)*PSTH_bin*fs; % midpoint of bin edges.
     X=X./fs; % convert to sec
-    bar(BinEdges./fs,BinnedSpikeRate{chan},'histc'); % actual plot
+    bar(h2,BinEdges./fs,BinnedSpikeRate{chan},'histc'); % actual plot
     hold on;
 
-    ylabel('Mean Firing Rate (hz)');
-    xlabel('Time (s)');
-    xlim([0 StimDur./fs+2*PeriStimTime./fs])
+    ylabel(h2,'Mean Firing Rate (hz)');
+    xlabel(h2,'Time (s)');
+    xlim(h2,[0 StimDur./fs+2*PeriStimTime./fs])
     
     % zoom in y axis.
     y0=max(0, min(BinnedSpikeRate{chan}(1:end-1))-10); % lower y limit
     yf=max(BinnedSpikeRate{chan})+10;
-    ylim([y0 yf]);
+    ylim(h2,[y0 yf]);
     
     % plot stim on and off.
-    line([PeriStimTime./fs PeriStimTime./fs],ylim);  % put lines denoting stim on and off
-    line([PeriStimTime./fs+StimDur./fs PeriStimTime./fs+StimDur./fs],ylim);
+    line(h2,[PeriStimTime./fs PeriStimTime./fs],ylim);  % put lines denoting stim on and off
+    line(h2,[PeriStimTime./fs+StimDur./fs PeriStimTime./fs+StimDur./fs],ylim);
     
 end
 
