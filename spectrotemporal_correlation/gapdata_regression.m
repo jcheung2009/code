@@ -673,7 +673,6 @@ for i = 1:length(gapid)
     [~,~,ic] = unique(gapdata.BoutID(ind));
     boutid(ind) = ic;
 end
-
 gapdata.BoutID = boutid;
 
 formula = 'GapDur ~ PitchN1 + (PitchN1|GapID)';%positive serial correlation
@@ -733,7 +732,9 @@ mdl19 = fitlme(gapdata,formula);
 formula = 'GapDur ~ PitchN1 + RenditionID + (PitchN1|BirdID:GapID)';
 mdl20 = fitlme(gapdata,formula);
 
-
+formula = 'GapDur ~ PitchN1 + (PitchN1|BirdID:GapID:RenditionID) + (PitchN1|BirdID:GapID:BoutID) + (PitchN1|BirdID) + (PitchN1|BirdID:GapID)';
+mdl19 = fitlme(gapdata,formula);
+%add days, and transform renditionID?
 
 for i = 1:28
     ind = gapdata.GapID == i  & gapdata.Treatment == 0;
