@@ -23,16 +23,14 @@ end
 
 %% center and transform each predictor 
 birdnm = unique(gapdata.BirdID);
-gapidx = 0;
+newgapid = NaN(size(gapdata,1),1);
+gapcnt = 0;
 for i = 1:length(birdnm)
     ind = strcmp(gapdata.BirdID,birdnm{i});
     gapid = unique(gapdata.GapID(ind));
-    newgapid = gapid+gapidx;
     for n = 1:length(gapid)
-        id = strcmp(gapdata.BirdID,birdnm{i}) & gapdata.GapID==gapid(n);
-        gapdata.GapID(id) = newgapid(n);%rename each gap uniquely across birds
-        id = strcmp(gapdata.BirdID,birdnm{i}) & gapdata.GapID==newgapid(n) & gapdata.Treatment==0;
-        id2 = strcmp(gapdata.BirdID,birdnm{i}) & gapdata.GapID==newgapid(n) & gapdata.Treatment==1;
+        id = strcmp(gapdata.BirdID,birdnm{i}) & gapdata.GapID==gapid(n) & gapdata.Treatment==0;
+        id2 = strcmp(gapdata.BirdID,birdnm{i}) & gapdata.GapID==gapid(n) & gapdata.Treatment==1;
         
         %z-score from baseline vals 
         gapdur = gapdata.GapDur(id);
@@ -84,9 +82,22 @@ for i = 1:length(birdnm)
         gapdata.VolN2(id2) = volN2t;
         gapdata.DurN2(id) = durN2;
         gapdata.DurN2(id2) = durN2t;
+        
+        id = strcmp(gapdata.BirdID,birdnm{i}) & gapdata.GapID==gapid(n);
+        gapcnt = gapcnt + 1;
+        newgapid(id) = gapcnt;%rename each gap uniquely across birds
     end
-    gapidx = gapidx+length(gapid);
 end
+gapdata.GapID = newgapid; 
+
+boutid = NaN(size(gapdata,1),1);
+gapid = unique(gapdata.GapID);
+for i = 1:length(gapid)
+    ind = gapdata.GapID == gapid(i);
+    [~,~,ic] = unique(gapdata.BoutID(ind));
+    boutid(ind) = ic;
+end
+gapdata.BoutID = boutid;
 %% check normality and correlation of predictors
 
 %plot qqplot for each predictor for each gapID/treatment: 
@@ -663,18 +674,6 @@ formula = 'GapDur ~ Treatment*(PitchN1+PitchN2)+VolN1+VolN2+DurN1+DurN2+BirdID+(
 mdl_4 = fitlme(gapdata,formula);
 
 
-
-
-
-boutid = NaN(size(gapdata,1),1);
-gapid = unique(gapdata.GapID);
-for i = 1:length(gapid)
-    ind = gapdata.GapID == gapid(i);
-    [~,~,ic] = unique(gapdata.BoutID(ind));
-    boutid(ind) = ic;
-end
-gapdata.BoutID = boutid;
-
 formula = 'GapDur ~ PitchN1 + (PitchN1|GapID)';%positive serial correlation
 mdl = fitlme(gapdata,formula);
 formula = 'GapDur ~ PitchN1 +(PitchN1|GapID:RenditionID)+(PitchN1|GapID:BoutID)';%negative serial correlation
@@ -732,13 +731,120 @@ mdl19 = fitlme(gapdata,formula);
 formula = 'GapDur ~ PitchN1 + RenditionID + (PitchN1|BirdID:GapID)';
 mdl20 = fitlme(gapdata,formula);
 
-formula = 'GapDur ~ PitchN1 + (PitchN1|BirdID:GapID:RenditionID) + (PitchN1|BirdID:GapID:BoutID) + (PitchN1|BirdID) + (PitchN1|BirdID:GapID)';
+%%%%%%
+
+formula = 'GapDur ~ PitchN1 + Treatment + (PitchN1+Treatment|BirdID:GapID:RenditionID) + (PitchN1+Treatment|BirdID:GapID:BoutID) + (PitchN1+Treatment|BirdID) + (PitchN1+Treatment|BirdID:GapID)';
 mdl19 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1 + Treatment + RenditionID + (PitchN1+Treatment+RenditionID|BirdID:GapID:BoutID) + (PitchN1+Treatment+RenditionID|BirdID) + (PitchN1+Treatment+RenditionID|BirdID:GapID)';
+mdl20 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1 + Treatment + BoutID + (PitchN1+Treatment+BoutID|BirdID) + (PitchN1+Treatment+BoutID|BirdID:GapID)';
+mdl21 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1 + Treatment + RenditionID + (PitchN1+Treatment+RenditionID|BirdID) + (PitchN1+Treatment+RenditionID|BirdID:GapID)';
+mdl22 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1 + Treatment + RenditionID + BoutID + (PitchN1+Treatment+RenditionID+BoutID|BirdID) + (PitchN1+Treatment+RenditionID+BoutID|BirdID:GapID)';
+mdl23 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1 + Treatment + (PitchN1+Treatment|BirdID) + (PitchN1+Treatment|BirdID:GapID)';
+mdl24 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1 + Treatment + (PitchN1|BirdID) + (PitchN1|BirdID:GapID) + (Treatment|BirdID) + (Treatment|BirdID:GapID)';
+mdl25 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1 + Treatment + (PitchN1+Treatment|BirdID:GapID:RenditionID) + (PitchN1+Treatment|BirdID) + (PitchN1+Treatment|BirdID:GapID)';
+mdl26 = fitlme(gapdata,formula);
+
+
+
+formula = 'GapDur ~ PitchN1*Treatment + (PitchN1*Treatment|BirdID:GapID:RenditionID) + (PitchN1*Treatment|BirdID) + (PitchN1*Treatment|BirdID:GapID)';
+mdl27 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1*Treatment + BoutID + (PitchN1*Treatment+BoutID|BirdID) + (PitchN1*Treatment+BoutID|BirdID:GapID)';
+mdl28 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1*Treatment + RenditionID + (PitchN1*Treatment+RenditionID|BirdID) + (PitchN1*Treatment+RenditionID|BirdID:GapID)';
+mdl29 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1*Treatment + RenditionID + (PitchN1*Treatment+RenditionID|BirdID:GapID:BoutID) + (PitchN1*Treatment+RenditionID|BirdID) + (PitchN1*Treatment+RenditionID|BirdID:GapID)';
+mdl30 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1*Treatment + (PitchN1*Treatment|BirdID:GapID:BoutID) + (PitchN1*Treatment|BirdID) + (PitchN1*Treatment|BirdID:GapID)';
+mdl31 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1*Treatment + (PitchN1*Treatment|BirdID:GapID:RenditionID) + (PitchN1*Treatment|BirdID:GapID:BoutID) + (PitchN1*Treatment|BirdID) + (PitchN1*Treatment|BirdID:GapID)';
+mdl32 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1*Treatment + RenditionID + BoutID + (PitchN1+Treatment+RenditionID+BoutID|BirdID) + (PitchN1+Treatment+RenditionID+BoutID|BirdID:GapID)';
+mdl34 = fitlme(gapdata,formula);
+
+
+formula = 'GapDur ~ VolN1*Treatment + RenditionID + (VolN1*Treatment+RenditionID|BirdID) + (VolN1*Treatment+RenditionID|BirdID:GapID)';
+mdl33 = fitlme(gapdata,formula);
+
+formula = 'PitchN1 ~ RenditionID + (RenditionID|BirdID) + (RenditionID|BirdID:GapID) + (RenditionID|BirdID:GapID:BoutID)';
+mdl34 = fitlme(gapdata,formula);
+
+formula = 'PitchN1 ~ RenditionID + (RenditionID|BirdID) + (RenditionID|BirdID:GapID)';
+mdl35 = fitlme(gapdata,formula);
+
+formula = 'PitchN1 ~ RenditionID + BoutID + (RenditionID+BoutID|BirdID) + (RenditionID+BoutID|BirdID:GapID)';
+mdl35a = fitlme(gapdata,formula);
+
+
+gapdata_naspm = gapdata(gapdata.Treatment==1,:);
+gapdata_pre = gapdata(gapdata.Treatment==0,:);
+
+formula = 'GapDur ~ PitchN1 + RenditionID + (PitchN1+RenditionID|BirdID) + (PitchN1+RenditionID|BirdID:GapID)';
+mdl36_naspm = fitlme(gapdata_naspm,formula);
+mdl36_pre = fitlme(gapdata_pre,formula);
+
+formula = 'GapDur ~ PitchN1 + BoutID + (PitchN1+BoutID|BirdID) + (PitchN1+BoutID|BirdID:GapID)';
+mdl37_naspm = fitlme(gapdata_naspm,formula);
+mdl37_pre = fitlme(gapdata_pre,formula);
+
+formula = 'GapDur ~ PitchN1 + RenditionID + (PitchN1+RenditionID|BirdID:GapID:BoutID) + (PitchN1+RenditionID|BirdID) + (PitchN1+RenditionID|BirdID:GapID)';
+mdl38_naspm = fitlme(gapdata_naspm,formula);
+mdl38_pre = fitlme(gapdata_pre,formula);
+
+formula = 'GapDur ~ PitchN1 + (PitchN1|BirdID:GapID:RenditionID) + (PitchN1|BirdID:GapID:BoutID) + (PitchN1|BirdID) + (PitchN1|BirdID:GapID)';
+mdl39_naspm = fitlme(gapdata_naspm,formula);
+mdl39_pre = fitlme(gapdata_pre,formula);
+
+formula = 'GapDur ~ PitchN1 + RenditionID + BoutID + (PitchN1+RenditionID+BoutID|BirdID) + (PitchN1+RenditionID+BoutID|BirdID:GapID)';
+mdl40_naspm = fitlme(gapdata_naspm,formula);
+mdl40_pre = fitlme(gapdata_pre,formula);
+
+
+formula = 'GapDur ~ PitchN1*Treatment + RenditionID + (PitchN1*Treatment+RenditionID|BirdID) + (PitchN1*Treatment+RenditionID|BirdID:GapID)';
+mdl36 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1*Treatment + BoutID + (PitchN1*Treatment+BoutID|BirdID) + (PitchN1*Treatment+BoutID|BirdID:GapID)';
+mdl37 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1*Treatment + RenditionID + (PitchN1*Treatment+RenditionID|BirdID:GapID:BoutID) + (PitchN1*Treatment+RenditionID|BirdID) + (PitchN1*Treatment+RenditionID|BirdID:GapID)';
+mdl38 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1*Treatment + (PitchN1*Treatment|BirdID:GapID:RenditionID) + (PitchN1*Treatment|BirdID:GapID:BoutID) + (PitchN1*Treatment|BirdID) + (PitchN1*Treatment|BirdID:GapID)';
+mdl39 = fitlme(gapdata,formula);
+
+formula = 'GapDur ~ PitchN1*Treatment + RenditionID + BoutID + (PitchN1*Treatment+RenditionID+BoutID|BirdID) + (PitchN1*Treatment+RenditionID+BoutID|BirdID:GapID)';
+mdl40 = fitlme(gapdata,formula);
+
+
 %add days, and transform renditionID?
+%could pitch vs gapdur relationship be obscurred by pitch var, check lman
+%lesion/apv data set and also fit model to only treatment data 
+%implicit nesting and population pooling? need to include combination
+%predictor to make implicit nesting clear? 
+
+
 
 for i = 1:28
     ind = gapdata.GapID == i  & gapdata.Treatment == 0;
-    res = residuals(mdl19);
+    res = residuals(mdl32);
     scaled = (res(ind)-nanmean(res(ind)))/nanstd(res(ind));
     scaled(isnan(res(ind))) = 0;
     pr = pacf(scaled,50,1);
