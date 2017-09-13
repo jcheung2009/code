@@ -24,7 +24,8 @@ end
 %% center and transform each predictor 
 birdnm = unique(gapdata.BirdID);
 newgapid = NaN(size(gapdata,1),1);
-gapcnt = 0;
+newrendid = NaN(size(gapdata,1),1);
+gapcnt = 0;rendcnt = 0;
 for i = 1:length(birdnm)
     ind = strcmp(gapdata.BirdID,birdnm{i});
     gapid = unique(gapdata.GapID(ind));
@@ -86,9 +87,17 @@ for i = 1:length(birdnm)
         id = strcmp(gapdata.BirdID,birdnm{i}) & gapdata.GapID==gapid(n);
         gapcnt = gapcnt + 1;
         newgapid(id) = gapcnt;%rename each gap uniquely across birds
+        
+        rendid = unique(gapdata.RenditionID(id));
+        for r = 1:length(rendid)
+            idx = strcmp(gapdata.BirdID,birdnm{i}) & gapdata.GapID==gapid(n) & gapdata.RenditionID == rendid(r);
+            rendcnt = rendcnt + 1;
+            newrendid(idx) = rendcnt;
+        end
     end
 end
 gapdata.GapID = newgapid; 
+% gapdata.RenditionID = newrendid;
 
 boutid = NaN(size(gapdata,1),1);
 gapid = unique(gapdata.GapID);
@@ -98,6 +107,9 @@ for i = 1:length(gapid)
     boutid(ind) = ic;
 end
 gapdata.BoutID = boutid;
+
+
+
 %% check normality and correlation of predictors
 
 %plot qqplot for each predictor for each gapID/treatment: 
@@ -342,8 +354,8 @@ for i = 1:length(varnames)
     barh(i*2-1,mean(coeffs_treat{:,varnames{i}}),'facecolor',[0.7 0.3 0.3],'EdgeColor','none');
     plot(coeffs{ind1,varnames{i}},i*2,'ok','markersize',8);hold on;
     plot(coeffs{~ind1,varnames{i}},i*2,'k.','markersize',8);hold on;
-    plot(coeffs{ind1,varnames{i}},i*2-1,'or','markersize',8);hold on;
-    plot(coeffs{~ind1,varnames{i}},i*2-1,'r.','markersize',8);hold on;
+    plot(coeffs{ind2,varnames{i}},i*2-1,'or','markersize',8);hold on;
+    plot(coeffs{~ind2,varnames{i}},i*2-1,'r.','markersize',8);hold on;
     signranktest(i*2) = signrank(coeffs{:,varnames{i}});
     signranktest(i*2-1) = signrank(coeffs_treat{:,varnames{i}});
 end
@@ -793,6 +805,7 @@ mdl35 = fitlme(gapdata,formula);
 formula = 'PitchN1 ~ RenditionID + BoutID + (RenditionID+BoutID|BirdID) + (RenditionID+BoutID|BirdID:GapID)';
 mdl35a = fitlme(gapdata,formula);
 
+%% mixed model for pitch and gap duration controlling for within/across bout variability
 
 gapdata_naspm = gapdata(gapdata.Treatment==1,:);
 gapdata_pre = gapdata(gapdata.Treatment==0,:);
@@ -859,3 +872,96 @@ for i = 1:28
 end
 
 
+%plot betas for each level 
+[~,betanames,fixedstats] = fixedEffects(mdl);
+[~,~,randomstats] = randomEffects(mdl_1);
+betanames = betanames.Name;
+figure;hold on;
+for i = 1:length(betanames)
+    id = strcmp(randomstats.Name,betanames{i});
+    randomeff = randomstats.Estimate(id);
+    id = strcmp(fixedstats.Name,betanames{i});
+    beta = randomeff + fixedstats.Estimate(id);
+    if fixedstats.pValue(id) <= 0.05
+        color = [0.8 0.3 0.3];
+    else
+        color = [0.5 0.5 0.5];
+    end
+    barh(i,fixedstats.Estimate(id),'facecolor',color,'EdgeColor','none');
+    plot(beta,i,'ok','markersize',8);hold on;
+end
+set(gca,'ytick',[1:length(betanames)],'yticklabel',betanames,'fontweight','bold');
+title('multilevel regression with no group predictors');
+xlabel('beta');
+%% plot scatterplots for pitch vs gapdur for each gapID and regression for each bivariate pair
+
+pitchN1corrs = [];
+gapid =  unique(gapdata.GapID);
+for n = 1:length(gapid)
+    id = gapdata.GapID==gapid(n) & gapdata.Treatment==0;
+    id2 = gapdata.GapID==gapid(n) & gapdata.Treatment==1;
+    birdnm = unique(gapdata.BirdID(id));
+    
+    if mod(n,7)==1
+        figure;hold on;
+    end
+
+    if n > 7
+        pltid = mod(n,7);
+        if pltid == 0
+            pltid = pltid+7;
+        end
+    else 
+        pltid = n;
+    end
+
+    h1=subtightplot(2,7,pltid,[0.07 0.03],0.05,0.03);hold on;
+    plot(gapdata.PitchN1(id),gapdata.GapDur(id),'k.');hold on;
+    h2=subtightplot(2,7,pltid+7,[0.07 0.03],0.05,0.03);hold on;
+    plot(gapdata.PitchN1(id2),gapdata.GapDur(id2),'r.');hold on;
+    x = xlim(h1);y = ylim(h1);set(h2,'xlim',x,'ylim',y);
+    xlabel(h2,'Pitch');ylabel(h1,'Gap Dur');ylabel(h2,'Gap Dur');title(h1,[birdnm{1},' gap ',num2str(gapid(n))]);
+    [r1 p1] = corrcoef(gapdata.PitchN1(id),gapdata.GapDur(id),'rows','complete');p = pval(p1(2));
+    text(h1,0,1,{['r=',num2str(r1(2))];['p',p]},'units','normalized','verticalalignment','top');
+    [r2 p2] = corrcoef(gapdata.PitchN1(id2),gapdata.GapDur(id2),'rows','complete');p = pval(p2(2));
+    text(h2,0,1,{['\color{red}r=',num2str(r2(2))];['\color{red}p',p]},'units','normalized','verticalalignment','top');
+    pitchN1corrs = [pitchN1corrs; [r1(2) p1(2) r2(2) p2(2)]];
+end
+
+
+%compare distribution of corr values
+varnames = {'coeffs','pvals','coeffs_treat','pvals_treat'};
+pitchN1corrs = table(pitchN1corrs(:,1),pitchN1corrs(:,2),pitchN1corrs(:,3),...
+    pitchN1corrs(:,4),'VariableNames',varnames);
+figure;hold on;
+ind1 = pitchN1corrs.pvals <=0.05;
+ind2 = pitchN1corrs.pvals_treat<=0.05;
+bar(1,mean(pitchN1corrs.coeffs),'facecolor',[0.5 0.5 0.5],'EdgeColor','none');
+bar(2,mean(pitchN1corrs.coeffs_treat),'facecolor',[0.7 0.3 0.3],'EdgeColor','none');
+plot(1,pitchN1corrs.coeffs(ind1),'ok','markersize',8);hold on;
+plot(1,pitchN1corrs.coeffs(~ind1),'k.','markersize',10);hold on;
+plot(2,pitchN1corrs.coeffs_treat(ind2),'or','markersize',8);hold on;
+plot(2,pitchN1corrs.coeffs_treat(~ind2),'r.','markersize',10);hold on;
+plot([1 2],[pitchN1corrs.coeffs pitchN1corrs.coeffs_treat],'color',[0.7 0.7 0.7],'linewidth',2);
+signranktest = signrank(pitchN1corrs.coeffs);
+signranktest2 = signrank(pitchN1corrs.coeffs_treat);
+signranktest3 = signrank(pitchN1corrs.coeffs,pitchN1corrs.coeffs_treat);
+y = get(gca,'ylim');
+if signranktest <=0.05
+    text(1,y(2),['p<=0.05']);
+end
+if signranktest2 <=0.05
+    text(2,y(2),['p<=0.05']);
+end
+if signranktest3 <=0.05
+    text(1.5,y(2),['p<=0.05']);
+end
+
+set(gca,'xlim',[0 3],'xtick',[1:2],'xticklabel',{'saline','naspm'},'fontweight','bold');
+ylabel('correlation');
+title('pitch vs gapdur');
+
+disp(['average r for PitchN1 (baseline): ',num2str(mean(pitchN1corrs.coeffs))]);
+disp(['average r for PitchN1 (treatment): ',num2str(mean(pitchN1corrs.coeffs_treat))]);
+disp(['average Rsq for PitchN1 (baseline): ',num2str(mean(pitchN1corrs.coeffs)^2)]);
+disp(['average Rsq for PitchN1 (treatment): ',num2str(mean(pitchN1corrs.coeffs_treat)^2)]);

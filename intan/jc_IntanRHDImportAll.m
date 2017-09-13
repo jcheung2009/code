@@ -1,22 +1,18 @@
- function [rhd_data]=jc_IntanRHDImportAll(batch) 
+ function [rhd_data]=jc_IntanRHDImportAll
 %modified from read_Intan_RHD2000_file
 %extracts amplifier data, timestamps, sampling rate, analog/sound input,
 %and file data into one structure - rhd_data
 
-ff = load_batchf(batch);
+
+ff = uigetfile('*.rhd','Multiselect','on');
 rhd_data = struct('filename',[],'amp_data',[],'t_amp',[],'Fs',[],'filedata',[],'song',[]);
-% amp_data = struct;
-% t_amp = struct;
-% Fs = struct;
-% filedata = struct;
-% song = struct;
 
 for nind = 1:length(ff)
 
-    fid = fopen(ff(nind).name, 'r');
+    fid = fopen(ff{nind}, 'r');
     %fieldname = ff(nind).name(1:end-4);
 
-    s = dir(ff(nind).name);
+    s = dir(ff{nind});
     filesize = s.bytes;
 
     % Check 'magic number' at beginning of file to make sure this is an Intan
@@ -432,7 +428,7 @@ for nind = 1:length(ff)
     filedata.num_board_adc_channels=num_board_adc_channels;
     filedata.num_board_dig_in_channels=num_board_dig_in_channels;
     
-    rhd_data(nind).filename = ff(nind).name;
+    rhd_data(nind).filename = ff{nind};
     rhd_data(nind).amp_data = amplifier_data;
     rhd_data(nind).Fs = sample_rate;
     rhd_data(nind).t_amp = t_amplifier;
