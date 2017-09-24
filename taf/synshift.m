@@ -1,16 +1,7 @@
-%synshift script
-%used to synthetically shift templates, for purposes of maintaining hits
-%during pitchshifts.
-%takes 'invec' as input, returns 'outvec'  
+function outvec = synshift(invec,npeaks,range,shift);
+%npeaks = number of harmonics to shift
+%range = x range of template
 
-%for first harmonic what are points to cut out
-
-range=[16 26]
-%number of harmonics to shift
-npeaks=3;
-
-%positive value for upshift, negative value for downshift
-shift=-2;
 
 outvec=zeros(length(invec),1);
 for ii=1:npeaks

@@ -138,18 +138,17 @@ if ~isempty(trialparams)
     trigtime = cell2mat(arrayfun(@(x) x.trigtime-x.ons,motifinfo(trigind),'unif',0)');
     trig_on_off = [mean(trigtime) mean(trigtime)+lightdur]./1e3;
     trigsm.tm = (trigsm.tm/fs)-0.016;%to account for buffer in findmotifs
+    
+    catchsm = jc_getsm(motifinfo(catchind),fs);
+    catchsm.tm = (catchsm.tm/fs)-0.016;%to account for buffer in findmotifs
+    
     figure;hold on;
     plot(trigsm.tm,nanmean(log(trigsm.sm),2),'r');hold on;
     plot(trigsm.tm,nanmean(log(trigsm.sm),2)+nanstderr(log(trigsm.sm),2),'r');hold on;
     plot(trigsm.tm,nanmean(log(trigsm.sm),2)-nanstderr(log(trigsm.sm),2),'r');hold on;
-    
-    if ~isempty(catchind)
-        catchsm = jc_getsm(motifinfo(catchind),fs);
-        catchsm.tm = (catchsm.tm/fs)-0.016;%to account for buffer in findmotifs
-        plot(catchsm.tm,nanmean(log(catchsm.sm),2),'k');hold on;
-        plot(catchsm.tm,nanmean(log(catchsm.sm),2)+nanstderr(log(catchsm.sm),2),'k');hold on;
-        plot(catchsm.tm,nanmean(log(catchsm.sm),2)-nanstderr(log(catchsm.sm),2),'k');hold on;
-    end
+    plot(catchsm.tm,nanmean(log(catchsm.sm),2),'k');hold on;
+    plot(catchsm.tm,nanmean(log(catchsm.sm),2)+nanstderr(log(catchsm.sm),2),'k');hold on;
+    plot(catchsm.tm,nanmean(log(catchsm.sm),2)-nanstderr(log(catchsm.sm),2),'k');hold on;
     y = get(gca,'ylim');
     plot(trig_on_off,[y(2) y(2)],'b','linewidth',4);hold on;
     xlabel('time (s)');ylabel('amplitude');

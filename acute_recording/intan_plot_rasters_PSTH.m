@@ -9,12 +9,12 @@
 
 %% INPUT PARAMS
 
-clear all; close all
+clear all;
 AmplChansOfInterest_0to31=0:31; % array of nums 0 to 31.
 DigChan=0; % (usually 1 is individual stims, 2 is stim epochs), triggers
 ThrXNoise=4; % how many multiples of median noise to use as spike threshold.
 PSTH_bin=[0.01]; % bin in sec, if dont specificy ([]) then will use 1/10 of peri-stim dur.
-PeriStimTime = [];%specify peristim duration in secs if hand jitter, leave empty if use mode of stimonsset/offset intervals
+PeriStimTime = [.5];%specify peristim duration in secs if hand jitter, leave empty if use mode of stimonsset/offset intervals
 fn = uigetfile('*.rhd','Multiselect','on');
 
 %% RUN --------------------
@@ -228,7 +228,6 @@ end
 ChansOfInterest_0to31 = input('channels of interest (0-31):');
 ChansOfInterest_1to32 = ChansOfInterest_0to31+1;
 %% PLOT Raster + PSTH
-close all;
 for i=1:length(ChansOfInterest_1to32)
     chan=ChansOfInterest_1to32(i);
     figure; hold on;
@@ -274,7 +273,6 @@ end
 
 
 %% PLOT RAW DATA, SPIKES, and STIM
-close all;
 
 for i=1:length(ChansOfInterest_1to32);
     chan=ChansOfInterest_1to32(i);
@@ -297,7 +295,8 @@ for i=1:length(ChansOfInterest_1to32);
     
 end
 
-pause; % allows user to look thru plots
+%% plot spike forms
+
 
 
 

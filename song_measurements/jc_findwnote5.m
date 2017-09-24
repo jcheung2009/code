@@ -61,7 +61,11 @@ for ifn=1:length(ff)
             offsamp = ceil((toff*1e-3)*fs);
             if offsamp + nbuffer < length(dat)
                 smtemp=dat(onsamp-nbuffer:offsamp+nbuffer);%unfiltered amplitude envelop of syllable
-                [sm_ons sm_offs] = dtw_segment(smtemp,dtwtemplate,fs);
+                if ~isempty(dtwtemplate)
+                    [sm_ons sm_offs] = dtw_segment(smtemp,dtwtemplate,fs);
+                else
+                    [sm_ons sm_offs] = syl_ampsegment(smtemp,fs);
+                end
                 sm_ons=sm_ons*fs;sm_offs=sm_offs*fs;
                 onsamp = onsamp-nbuffer+sm_ons;
                 offsamp = onsamp-nbuffer+sm_offs;
@@ -102,6 +106,7 @@ for ifn=1:length(ff)
             fvalsstr(note_cnt).ind    = p(ii);%index for syllable in song file
             fvalsstr(note_cnt).sm     = sm;%smooth amplitude envelop
             fvalsstr(note_cnt).maxvol = mean(filtsong.^2); 
+            fvalsstr(note_cnt).boutind = ii;
         else
             disp(['onsets and labels mismatch:',fn]);
         end

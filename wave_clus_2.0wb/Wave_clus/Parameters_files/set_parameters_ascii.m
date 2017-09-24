@@ -17,13 +17,13 @@ par.temp_plot = 'log';               % temperature plot in log scale
 par.fname = 'data';                  % filename for interaction with SPC
 
 % DETECTION PARAMETERS
-par.sr = 25000;                        % sampling rate (in Hz).
+par.sr = 20000;                        % sampling rate (in Hz).
 par.tmax = 'all';                      % maximum time to load
 par.w_pre = 20;                        % number of pre-event data points stored (default 20)
 par.w_post = 44;                       % number of post-event data points stored (default 44))
 ref = 3;                             % detector dead time (in ms)
 par.ref = floor(ref *par.sr/1000);     % conversion to datapoints
-par.stdmin = 3.5;                      % minimum threshold for detection
+par.stdmin = 4;                      % minimum threshold for detection
 par.stdmax = 50;                       % maximum threshold for detection
 par.detect_fmin = 300;                 % high pass filter for detection
 par.detect_fmax = 10000;                 % low pass filter for detection (default 1000)

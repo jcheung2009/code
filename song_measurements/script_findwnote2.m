@@ -11,10 +11,13 @@ if isempty(ind)
 end
 
 for n = 1:length(params.findnote)
-    if ~exist(params.findnote(n).dtwtemplate)
+    if ~isempty(params.findnote(n).dtwtemplate)
         load(['analysis/',params.findnote(n).dtwtemplate]);
+        dtwtemplate = eval([params.findnote(n).dtwtemplate]);
+    else
+        dtwtemplate = '';
     end
-    dtwtemplate = eval([params.findnote(n).dtwtemplate]);
+    
     for i = ind(1):ind(2)
         if isempty(ff(i).name)
             continue
