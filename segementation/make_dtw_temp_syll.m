@@ -1,13 +1,19 @@
-function dtwtemplate=make_dtw_temp_motif(batch,params,CHANSPEC)
+function dtwtemplate=make_dtw_temp_syll(batch,params,CHANSPEC)
 %this function makes an amplitude waveform template to be used for dtw
 %segmentation in amp_vs_dtw_segmentation
 
 if isempty(params)
-    params.motif=input('target motif:','s');
+    params.syll=input('target syllable:','s');
+    params.prenote = input('prenote:','s');
+    params.postnote = input('postnote:','s');
     params.segmentation=input('segmentation params {minint,mindur,thresh}:');
 end
       
-motif = params.motif;
+motif = [params.prenote, params.syll, params.postnote];
+syll = params.syll;
+prenote = params.prenote;
+postnote = params.postnote;
+
 if ~isempty(params.segmentation) 
     minint = params.segmentation{1};
     mindur = params.segmentation{2};
@@ -64,8 +70,8 @@ while isempty(dtwtemplate.filtsong)
         if ~isempty(dtwtemplate.filtsong)
             break
         end
-        ton = onsets(p(ii));
-        toff=offsets(p(ii)+length(motif)-1);
+        ton = onsets(p(ii)+length(prenote));
+        toff=offsets(p(ii)+length(prenote));
         onsamp = ceil((ton*1e-3)*fs);
         offsamp = ceil((toff*1e-3)*fs);
         nbuffer = floor(0.016*fs);%buffer by 16 ms
@@ -105,7 +111,7 @@ while isempty(dtwtemplate.filtsong)
             continue
         end
        
-        if length(ons) ~= length(motif)
+        if length(ons) ~= length(syll)
              continue
         else
             dtwtemplate.filtsong=filtsong;

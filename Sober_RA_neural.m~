@@ -734,15 +734,15 @@ for i = 1:length(ff)
             gapdur_id = jc_removeoutliers(gapdurs_all(idx),3);
             gapdur_id = jc_removeoutliers(gapdur_id,3);
             [r p] = corrcoef(nspks,gapdur_id,'rows','complete');
-            if p(2)<=0.05 & r(2) < -0.4
+            if p(2)<=0.05
                 spktms = cell(length(sylloff),1);
                 for m = 1:length(sylloff)
                     x = spiketimes(find(spiketimes>=(sylloff(m)-250) & ...
                         spiketimes<=(sylloff(m)+250)));
                     spktms{m} = x - sylloff(m); 
                     syllon1(m) = syllon1(m)-sylloff(m);
-                    syllon2(m) = syllon2(m)-sylloff(m);
-                    sylloff2(m) = sylloff2(m)-sylloff(m);
+                    syllon2 = syllon2(m)-sylloff(m);
+                    sylloff2 = sylloff2(m)-sylloff(m);
                 end
                 [~,ix] = sort(gapdur_id,'descend');
                 gapdur_id = gapdur_id(ix);
@@ -757,11 +757,12 @@ for i = 1:length(ff)
                         continue
                     end
                     plot(repmat(spktms{m},2,1)',[cnt cnt+1],'k');hold on;
-                    plot([syllon1(m) 0],[cnt cnt],'color',[0.7 0.3 0.3]);hold on;
-                    plot([syllon2(m) sylloff2(m)],[cnt cnt],'color',[0.7 0.3 0.3]);hold on;
+                    plot([syllon1 0],[cnt cnt],[0.7 0.3 0.3]);hold on;
+                    plot([syllon2 sylloff],[cnt cnt],[0.7 0.3 0.3]);hold on;
                     cnt=cnt+1;
-                end  
-                ylim([0 cnt]);xlabel('time (s)');ylabel('trial');title(['r=',num2str(r(2))]);
+                end
+                
+                
             end
         end
     end
