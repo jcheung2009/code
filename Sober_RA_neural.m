@@ -702,7 +702,7 @@ xlabel('dur ID');ylabel('unit');ylim([1 length(ff)]);set(gca,'fontweight','bold'
 %prop pitch correlated
 %add volume
 
-%% plot rasters for individual gaps with high significant negative correlation 
+%% plot rasters for individual gaps with high significant correlation 
 alignby = 'syllon2';%syllon1,sylloff1,syllon2
 premotorwin = 'sylloff1';%sylloff1,syllon2
 win = gausswin(20);%for smoothing spike trains
@@ -833,99 +833,6 @@ end
 
             
                 
-%     ind = find(cellfun(@(x) strcmp(x,birdname),birdid));
-%     gapids = params(ind).gapid;
-%     gapdurs_all = onsets(2:end)-offsets(1:end-1);
-%     for n = 1:length(gapids)
-%         idx = strfind(labels,gapids(n));
-%         sylloff = offsets(idx);
-%         syllon1 = onsets(idx);
-%         syllon2 = onsets(idx+1);
-%         sylloff2 = offsets(idx+1);
-%         if length(sylloff) < 20
-%             continue
-%         end
-%         nspks = NaN(length(sylloff),1);
-%         for m = 1:length(sylloff)
-%             nspks(m) = length(find(spiketimes>=(sylloff(m)-40) & ...
-%                 spiketimes<=(sylloff(m)+10)));
-%         end
-%         if mean(nspks)/0.05 < 50
-%             continue
-%         else
-%             gapdur_id = jc_removeoutliers(gapdurs_all(idx),3);
-%             gapdur_id = jc_removeoutliers(gapdur_id,3);
-%             [r p] = corrcoef(nspks,gapdur_id,'rows','complete');
-%             if p(2)<=0.05 & r(2) > 0.4
-%                 id = find(isnan(gapdur_id));
-%                 sylloff(id) = [];gapdur_id(id) = [];syllon1(id) = [];syllon2(id) = [];sylloff2(id) = [];
-%                 spktms = cell(length(sylloff),1);
-%                 for m = 1:length(sylloff)
-%                     x = spiketimes(find(spiketimes>=(syllon2(m)-250) & ...
-%                         spiketimes<=(syllon2(m)+250)));
-%                     spktms{m} = x - syllon2(m); 
-%                     syllon1(m) = syllon1(m)-syllon2(m);
-%                     sylloff(m) = sylloff(m)-syllon2(m);
-%                     sylloff2(m) = sylloff2(m)-syllon2(m);
-% %                     x = spiketimes(find(spiketimes>=(sylloff(m)-250) & ...
-% %                         spiketimes<=(sylloff(m)+250)));
-% %                     spktms{m} = x - sylloff(m); 
-% %                     syllon1(m) = syllon1(m)-sylloff(m);
-% %                     syllon2(m) = syllon2(m)-sylloff(m);
-% %                     sylloff2(m) = sylloff2(m)-sylloff(m);
-%                 end
-%                 [~,ix] = sort(gapdur_id,'descend');
-%                 gapdur_id = gapdur_id(ix);
-%                 spktms = spktms(ix);
-%                 sylloff = sylloff(ix);
-%                 syllon1 = syllon1(ix);
-%                 syllon2 = syllon2(ix);
-%                 sylloff2 = sylloff2(ix);
-%                 thr1 = quantile(gapdur_id,0.25);
-%                 smallgaps_id = find(gapdur_id <= thr1);
-%                 thr2 = quantile(gapdur_id,0.75);
-%                 largegaps_id = find(gapdur_id >= thr2);
-%                
-%                 figure;subplot(2,1,1);hold on;cnt=0;
-%                 smooth_spiketrains = zeros(length(gapdur_id),501);
-%                 for m = 1:length(gapdur_id)
-%                     plot(repmat(spktms{m},2,1)',[cnt cnt+1],'k');hold on;
-%                     patch([syllon1(m) sylloff(m) sylloff(m) syllon1(m)],[cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
-%                     patch([0 sylloff2(m) sylloff2(m) 0],[cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
-%                   
-%                     
-% %                     patch([syllon1(m) 0 0 syllon1(m)],[cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
-% %                     patch([syllon2(m) sylloff2(m) sylloff2(m) syllon2(m)],[cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
-% %                     patch([syllon1(m) 0 0 syllon1(m)],[cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
-% %                     patch([syllon2(m) sylloff2(m) sylloff2(m) syllon2(m)],[cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
-%                     cnt=cnt+1;
-%                     
-%                     temp = zeros(1,501);
-%                     spktimes = round(spktms{m})+251;
-%                     temp(spktimes) = 1;
-%                     smooth_spiketrains(m,:) = conv(temp,win,'same');
-% %                     binnedspikes{m} = histc(spktms{m},binedges);
-%                 end  
-%                 xlim([-250 250]);ylim([0 cnt]);xlabel('time (ms)');ylabel('trial');title([birdname,' ',gapids{n},' r=',num2str(r(2))]);
-%                 plot(-250,min(smallgaps_id),'r>','markersize',4,'linewidth',2);hold on;
-%                 plot(-250,max(largegaps_id),'b>','markersize',4,'linewidth',2);hold on;
-%                 set(gca,'fontweight','bold');
-%                 
-%                 subplot(2,1,2);hold on;
-%                 patch([-250:250 fliplr(-250:250)],([mean(smooth_spiketrains(smallgaps_id,:),1)-...
-%                     stderr(smooth_spiketrains(smallgaps_id,:),1)...
-%                     fliplr(mean(smooth_spiketrains(smallgaps_id,:),1)+...
-%                     stderr(smooth_spiketrains(smallgaps_id,:),1))])*1000,[0.7 0.3 0.3],'edgecolor','none','facealpha',0.7);
-%                patch([-250:250 fliplr(-250:250)],([mean(smooth_spiketrains(largegaps_id,:),1)-...
-%                     stderr(smooth_spiketrains(largegaps_id,:),1)...
-%                     fliplr(mean(smooth_spiketrains(largegaps_id,:),1)+...
-%                     stderr(smooth_spiketrains(largegaps_id,:),1))])*1000,[0.3 0.3 0.7],'edgecolor','none','facealpha',0.7);
-%                 xlim([-250 250]);xlabel('time (ms)');ylabel('Hz');set(gca,'fontweight','bold');
-%             end
-%         end
-%     end
-% end
-
 
 
     
