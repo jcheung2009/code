@@ -733,18 +733,27 @@ for i = 1:length(ff)
     gapdurs_all = onsets(2:end)-offsets(1:end-1);
     for n = 1:length(gapids)
         idx = strfind(labels,gapids(n));
-        sylloff1 = offsets(idx+seqlen/2-1);
-        syllon1 = onsets(idx+seqlen/2-1);
-        syllon2 = onsets(idx+seqlen/2);
-        sylloff2 = offsets(idx+seqlen/2);
-        nspks = NaN(length(sylloff1),1);%count spikes in premotor window before sylloff1
-        for m = 1:length(sylloff1)
+        seqons = onsets(bsxfun(@plus, idx',(0:seqlen-1)));
+        seqoffs = offsets(bsxfun(@plus,idx',(0:seqlen-1)));
+        if strcmp(alignby,'sylloff1')
+            seqst = floor(mean(seqoffs(:,seqlen/2)-seqons(:,1)));
+            seqend = ceil(mean(seqoffs(:,end)-seqoffs(:,seqlen/2)));
+        elseif strcmp(alignby,'syllon1')
+            seqst = floor(mean(seqons(:,seqlen/2)-seqons(:,1)));
+            seqend = ceil(mean(seqoffs(:,end)-seqons(:,seqlen/2)));
+        elseif strcmp(alignby,'syllon2')
+            seqst = floor(mean(seqons(:,seqlen/2+1)-seqons(:,1)));
+            seqend = ceil(mean(seqoffs(:,end)-seqons(:,seqlen/2+1)));
+        end
+        
+        nspks = NaN(size(seqons,1),1);%count spikes in premotor window before sylloff1
+        for m = 1:size(seqons,1)
             if strcmp(premotorwin,'sylloff1')
-                nspks(m) = length(find(spiketimes>=(sylloff1(m)-40) & ...
-                    spiketimes<=(sylloff1(m)+10)));
+                nspks(m) = length(find(spiketimes>=(seqoffs(m,seqlen/2)-40) & ...
+                    spiketimes<=(seqoffs(m,seqlen/2)+10)));
             elseif strcmp(premotorwin,'syllon2')
-                nspks(m) = length(find(spiketimes>=(syllon2(m)-40) & ...
-                    spiketimes<=(syllon2(m)+10)));
+                nspks(m) = length(find(spiketimes>=(seqons(m,seqlen/2+1)-40) & ...
+                    spiketimes<=(seqons(m,seqlen/2+1)+10)));
             end 
         end
         if mean(nspks)/0.05 < 50
@@ -755,77 +764,81 @@ for i = 1:length(ff)
             [r p] = corrcoef(nspks,gapdur_id,'rows','complete');
             if p(2)<=0.05 & abs(r(2)) > 0.4
                  id = find(isnan(gapdur_id));
-                 sylloff1(id) = [];gapdur_id(id) = [];syllon1(id) = [];syllon2(id) = [];sylloff2(id) = [];
-                 spktms = cell(length(sylloff1),1);
-                 for m = 1:length(sylloff1)
+                 gapdur_id(id) = [];
+                 seqons(id,:) = [];seqoffs(id,:) = [];
+                 spktms = cell(size(seqons,1),1);
+                 for m = 1:size(seqons,1)
                      if strcmp(alignby,'sylloff1')
-                        x = spiketimes(find(spiketimes>=(sylloff1(m)-250) & ...
-                            spiketimes<=(sylloff1(m)+250)));
-                        spktms{m} = x - sylloff1(m); 
+                        x = spiketimes(find(spiketimes>=(seqoffs(m,seqlen/2)-seqst) & ...
+                            spiketimes<=(seqoffs(m,seqlen/2)+seqend)));
+                        spktms{m} = x - seqoffs(m,seqlen/2); 
                      elseif strcmp(alignby,'syllon1')
-                        x = spiketimes(find(spiketimes>=(syllon1(m)-250) & ...
-                            spiketimes<=(syllon1(m)+250)));
-                        spktms{m} = x - syllon1(m); 
+                        x = spiketimes(find(spiketimes>=(seqons(m,seqlen/2)-seqst) & ...
+                            spiketimes<=(seqons(m,seqlen/2)+seqend)));
+                        spktms{m} = x - seqons(m,seqlen/2); 
                      elseif strcmp(alignby,'syllon2')
-                         x = spiketimes(find(spiketimes>=(syllon2(m)-250) & ...
-                            spiketimes<=(syllon2(m)+250)));
-                        spktms{m} = x - syllon2(m); 
+                         x = spiketimes(find(spiketimes>=(seqons(m,seqlen/2+1)-seqst) & ...
+                            spiketimes<=(seqons(m,seqlen/2+1)+seqend)));
+                        spktms{m} = x - seqons(m,seqlen/2+1); 
                      end
                  end
                 [~,ix] = sort(gapdur_id,'descend');%order trials by gapdur
                 gapdur_id = gapdur_id(ix);
                 spktms = spktms(ix);
-                sylloff1 = sylloff1(ix);
-                syllon1 = syllon1(ix);
-                syllon2 = syllon2(ix);
-                sylloff2 = sylloff2(ix);
+                seqons = seqons(ix,:);
+                seqoffs = seqoffs(ix,:);
                 thr1 = quantile(gapdur_id,0.25);
                 smallgaps_id = find(gapdur_id <= thr1);
                 thr2 = quantile(gapdur_id,0.75);
                 largegaps_id = find(gapdur_id >= thr2);
                 
                 figure;subplot(2,1,1);hold on;cnt=0;
-                smooth_spiketrains = zeros(length(gapdur_id),501);
+                smooth_spiketrains = zeros(length(gapdur_id),seqst+seqend+1);
                 for m = 1:length(gapdur_id)
                     plot(repmat(spktms{m},2,1),[cnt cnt+1],'k');hold on;
                     if strcmp(alignby,'sylloff1')
-                        patch([syllon1(m) sylloff1(m) sylloff1(m) syllon1(m)]-sylloff1(m),...
-                            [cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
-                        patch([syllon2(m) sylloff2(m) sylloff2(m) syllon2(m)]-sylloff1(m),...
-                            [cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
+                        for syll=1:seqlen
+                            patch([seqons(m,syll) seqoffs(m,syll) seqoffs(m,syll) seqons(m,syll)]-seqoffs(m,seqlen/2),...
+                                 [cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
+                        end
                     elseif strcmp(alignby,'syllon1')
-                        patch([syllon1(m) sylloff1(m) sylloff1(m) syllon1(m)]-syllon1(m),...
-                            [cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
-                        patch([syllon2(m) sylloff2(m) sylloff2(m) syllon2(m)]-syllon1(m),...
-                            [cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
+                        for syll=1:seqlen
+                            patch([seqons(m,syll) seqoffs(m,syll) seqoffs(m,syll) seqons(m,syll)]-seqons(m,seqlen/2),...
+                                 [cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
+                        end
                     elseif strcmp(alignby,'syllon2')
-                        patch([syllon1(m) sylloff1(m) sylloff1(m) syllon1(m)]-syllon2(m),...
-                            [cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
-                        patch([syllon2(m) sylloff2(m) sylloff2(m) syllon2(m)]-syllon2(m),...
-                            [cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
+                        for syll=1:seqlen
+                            patch([seqons(m,syll) seqoffs(m,syll) seqoffs(m,syll) seqons(m,syll)]-seqons(m,seqlen/2+1),...
+                                 [cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
+                        end
                     end
                     cnt=cnt+1;
                     
-                    temp = zeros(1,501);
-                    spktimes = round(spktms{m})+251;
+                    temp = zeros(1,seqst+seqend+1);
+                    spktimes = round(spktms{m})+seqst+1;
                     temp(spktimes) = 1;
                     smooth_spiketrains(m,:) = conv(temp,win,'same');
                 end  
-                xlim([-250 250]);ylim([0 cnt]);xlabel('time (ms)');ylabel('trial');title([birdname,' ',gapids{n},' r=',num2str(r(2))]);
-                plot(-250,min(smallgaps_id),'r>','markersize',4,'linewidth',2);hold on;
-                plot(-250,max(largegaps_id),'b>','markersize',4,'linewidth',2);hold on;
+                
+                [~,stid] = regexp(ff(i).name,'data_');
+                enid = regexp(ff(i).name,'_TH');
+                unitid = ff(i).name(stid+1:enid-1);
+                xlim([-seqst seqend]);ylim([0 cnt]);xlabel('time (ms)');ylabel('trial');
+                title([unitid,' ',gapids{n},' r=',num2str(r(2))],'interpreter','none');
+                plot(-seqst,min(smallgaps_id),'r>','markersize',4,'linewidth',2);hold on;
+                plot(-seqst,max(largegaps_id),'b>','markersize',4,'linewidth',2);hold on;
                 set(gca,'fontweight','bold');
                 
                 subplot(2,1,2);hold on;
-                patch([-250:250 fliplr(-250:250)],([mean(smooth_spiketrains(smallgaps_id,:),1)-...
+                patch([-seqst:seqend fliplr(-seqst:seqend)],([mean(smooth_spiketrains(smallgaps_id,:),1)-...
                     stderr(smooth_spiketrains(smallgaps_id,:),1)...
                     fliplr(mean(smooth_spiketrains(smallgaps_id,:),1)+...
                     stderr(smooth_spiketrains(smallgaps_id,:),1))])*1000,[0.7 0.3 0.3],'edgecolor','none','facealpha',0.7);
-               patch([-250:250 fliplr(-250:250)],([mean(smooth_spiketrains(largegaps_id,:),1)-...
+               patch([-seqst:seqend fliplr(-seqst:seqend)],([mean(smooth_spiketrains(largegaps_id,:),1)-...
                     stderr(smooth_spiketrains(largegaps_id,:),1)...
                     fliplr(mean(smooth_spiketrains(largegaps_id,:),1)+...
                     stderr(smooth_spiketrains(largegaps_id,:),1))])*1000,[0.3 0.3 0.7],'edgecolor','none','facealpha',0.7);
-                xlim([-250 250]);xlabel('time (ms)');ylabel('Hz');set(gca,'fontweight','bold');
+                xlim([-seqst seqend]);xlabel('time (ms)');ylabel('Hz');set(gca,'fontweight','bold');
             end
         end
     end
@@ -835,14 +848,9 @@ end
                 
 
 
-    
-%% plot rasters for gaps controlled for two syllables back and front
 
 
 %4) how much is it driven by repeats? can you predict repeat length? 
-%7) pull out rasters of units before and during gap durations that are significantly
-%predictive
-
 %5) can you predict bout length? activity run-down
 %6) bout pattern in pitch?
 
