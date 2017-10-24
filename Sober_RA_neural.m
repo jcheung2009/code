@@ -703,7 +703,7 @@ xlabel('dur ID');ylabel('unit');ylim([1 length(ff)]);set(gca,'fontweight','bold'
 %add volume
 
 %% plot rasters for individual gaps with high significant correlation 
-alignby = 'syllon2';%syllon1,sylloff1,syllon2
+alignby = 'sylloff1';%syllon1,sylloff1,syllon2
 premotorwin = 'sylloff1';%sylloff1,syllon2
 win = gausswin(20);%for smoothing spike trains
 win = win./sum(win);
@@ -851,6 +851,7 @@ for i = 1:length(ff)
                 seqoffs_a = seqoffs-seqoffs(:,3);
                 landmarks = [seqons_a seqoffs_a];
                 plot(tb(locs),pks,'ok');hold on;
+                pkcorr = NaN(length(pks),3);
                 for npk = 1:length(pks)
                     [~,id] = min(abs(mean(landmarks,1)-tb(locs(npk))));
                     anchorpt = landmarks(:,id);
@@ -883,16 +884,23 @@ for i = 1:length(ff)
                     
                     tb_a = [-seqst2:seqend2];
                     PSTH_mn_a = mean(smooth_spiketrains_a,1).*1000;
-                    [pks_a locs_a wa pa] = findpeaks(PSTH_mn_a,'MinPeakHeight',50,'MinPeakDistance',20);
+                    [pks_a locs_a wa pa] = findpeaks(PSTH_mn_a,'MinPeakHeight',50,'MinPeakDistance',20,'Annotate','extents');
                     plot(tb_a(locs_a),pks_a,'ok');hold on;
                     [xy,ixx] = min(abs(tb_a(locs_a)-(tb(locs(npk))-mean(anchorpt))));
                     if abs(xy)>10
                         continue
                     end
                     plot(tb_a(locs_a(ixx)),pks_a(ixx),'or');hold on;
-                    burstend = find(PSTH_mn_a(locs_a(ixx):end)<ceil(pks_a(ixx)-pa(ixx)/1.5));burstend = locs_a(ixx)+burstend(1);
-                    burstst = find(PSTH_mn_a(1:locs_a(ixx))<ceil(pks_a(ixx)-pa(ixx)/1.5));burstst = burstst(end);
-                    plot([tb_a(burstst) tb_a(burstend)],[ceil(pks_a(ixx)-pa(ixx)/1.5) ceil(pks_a(ixx)-pa(ixx)/1.5)],'r');hold on;
+                    [tr trlocs] = findpeaks(-PSTH_mn_a,'MinPeakHeight',-0.75*mean(pks_a),'MinPeakDistance',20);
+                    trlocs = [1 trlocs length(PSTH_mn_a)];
+                    burstend = trlocs(min(find(trlocs > locs_a(ixx))));
+                    burstst = trlocs(max(find(trlocs < locs_a(ixx))));
+                    yl = get(gca,'ylim');
+                    plot(repmat([tb_a(burstst) tb_a(burstend)],2,1),yl,'b');hold on;
+
+                    npks_burst = cellfun(@(x) length(find(x>=tb_a(burstst)&x<tb_a(burstend))),spktms_aligned);
+                    [r p] = corrcoef(npks_burst,gapdur_id);
+                    pkcorr(npk,:) = [tb(locs(npk)) r(2) p(2)];
                 end
         end
     end
