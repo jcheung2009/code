@@ -13,8 +13,10 @@ end
 
 trig = [motifinfo(:).TRIG];
 catchtrig = [motifinfo(:).CATCH];
-trigind = find(trig==1 & (catchtrig==-1 | catchtrig==0));
-catchind = setdiff([1:length(motifinfo)],trigind);
+trigind = find(trig==1 & catchtrig==0);
+catchind = find(catchtrig==1);
+% trigind = find(trig==1 & (catchtrig==-1 | catchtrig==0));
+% catchind = setdiff([1:length(motifinfo)],trigind);
 
 if ~isempty(trigind)
     trigmotifdur = [[motifinfo(trigind).datenm]',[motifinfo(trigind).motifdur]'];

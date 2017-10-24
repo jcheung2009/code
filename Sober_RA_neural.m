@@ -736,8 +736,8 @@ for i = 1:length(ff)
         seqons = onsets(bsxfun(@plus, idx',(0:seqlen-1)));
         seqoffs = offsets(bsxfun(@plus,idx',(0:seqlen-1)));
         if strcmp(alignby,'sylloff1')
-            seqst = floor(mean(seqoffs(:,seqlen/2)-seqons(:,1)));
-            seqend = ceil(mean(seqoffs(:,end)-seqoffs(:,seqlen/2)));
+            seqst = ceil(max(seqoffs(:,seqlen/2)-seqons(:,1)));
+            seqend = ceil(max(seqoffs(:,end)-seqoffs(:,seqlen/2)));
         elseif strcmp(alignby,'syllon1')
             seqst = floor(mean(seqons(:,seqlen/2)-seqons(:,1)));
             seqend = ceil(mean(seqoffs(:,end)-seqons(:,seqlen/2)));
@@ -830,16 +830,70 @@ for i = 1:length(ff)
                 set(gca,'fontweight','bold');
                 
                 subplot(2,1,2);hold on;
-                patch([-seqst:seqend fliplr(-seqst:seqend)],([mean(smooth_spiketrains(smallgaps_id,:),1)-...
-                    stderr(smooth_spiketrains(smallgaps_id,:),1)...
-                    fliplr(mean(smooth_spiketrains(smallgaps_id,:),1)+...
-                    stderr(smooth_spiketrains(smallgaps_id,:),1))])*1000,[0.7 0.3 0.3],'edgecolor','none','facealpha',0.7);
-               patch([-seqst:seqend fliplr(-seqst:seqend)],([mean(smooth_spiketrains(largegaps_id,:),1)-...
-                    stderr(smooth_spiketrains(largegaps_id,:),1)...
-                    fliplr(mean(smooth_spiketrains(largegaps_id,:),1)+...
-                    stderr(smooth_spiketrains(largegaps_id,:),1))])*1000,[0.3 0.3 0.7],'edgecolor','none','facealpha',0.7);
+                 patch([-seqst:seqend fliplr(-seqst:seqend)],([mean(smooth_spiketrains,1)-...
+                    stderr(smooth_spiketrains,1)...
+                    fliplr(mean(smooth_spiketrains,1)+...
+                    stderr(smooth_spiketrains,1))])*1000,[0.5 0.5 0.5],'edgecolor','none','facealpha',0.7);
+%                 patch([-seqst:seqend fliplr(-seqst:seqend)],([mean(smooth_spiketrains(smallgaps_id,:),1)-...
+%                     stderr(smooth_spiketrains(smallgaps_id,:),1)...
+%                     fliplr(mean(smooth_spiketrains(smallgaps_id,:),1)+...
+%                     stderr(smooth_spiketrains(smallgaps_id,:),1))])*1000,[0.7 0.3 0.3],'edgecolor','none','facealpha',0.7);
+%                patch([-seqst:seqend fliplr(-seqst:seqend)],([mean(smooth_spiketrains(largegaps_id,:),1)-...
+%                     stderr(smooth_spiketrains(largegaps_id,:),1)...
+%                     fliplr(mean(smooth_spiketrains(largegaps_id,:),1)+...
+%                     stderr(smooth_spiketrains(largegaps_id,:),1))])*1000,[0.3 0.3 0.7],'edgecolor','none','facealpha',0.7);
                 xlim([-seqst seqend]);xlabel('time (ms)');ylabel('Hz');set(gca,'fontweight','bold');
-            end
+                
+                tb = [-seqst:seqend];
+                PSTH_mn = mean(smooth_spiketrains,1).*1000;
+                [pks locs w p] = findpeaks(PSTH_mn,'MinPeakHeight',50,'MinPeakDistance',20);
+                seqons_a = seqons-seqoffs(:,3);
+                seqoffs_a = seqoffs-seqoffs(:,3);
+                landmarks = [seqons_a seqoffs_a];
+                plot(tb(locs),pks,'ok');hold on;
+                for npk = 1:length(pks)
+                    [~,id] = min(abs(mean(landmarks,1)-tb(locs(npk))));
+                    anchorpt = landmarks(:,id);
+                    
+                    figure;subplot(2,1,1);hold on;cnt=0;
+                    spktms_aligned = arrayfun(@(x) spktms{x}-anchorpt(x),1:length(spktms),'un',0);
+                    seqst2 = ceil(abs(min([spktms_aligned{:}])));
+                    seqend2 = ceil(abs(max([spktms_aligned{:}])));
+                    smooth_spiketrains_a = zeros(length(gapdur_id),seqst2+seqend2+1);
+                    for m = 1:length(gapdur_id)
+                        plot(repmat(spktms_aligned{m},2,1),[cnt cnt+1],'k');hold on;
+                        for syll=1:seqlen
+                            patch([seqons_a(m,syll) seqoffs_a(m,syll) seqoffs_a(m,syll) seqons_a(m,syll)]-anchorpt(m),...
+                                 [cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
+                        end
+                        cnt=cnt+1;
+                        temp = zeros(1,seqst2+seqend2+1);
+                        spktimes = round(spktms_aligned{m})+seqst2+1;
+                        temp(spktimes) = 1;
+                        smooth_spiketrains_a(m,:) = conv(temp,win,'same');
+                    end  
+                    xlim([-seqst2 seqend2]);ylim([0 cnt]);xlabel('time (ms)');ylabel('trial');
+                    
+                    subplot(2,1,2);hold on;
+                     patch([-seqst2:seqend2 fliplr(-seqst2:seqend2)],([mean(smooth_spiketrains_a,1)-...
+                        stderr(smooth_spiketrains_a,1)...
+                        fliplr(mean(smooth_spiketrains_a,1)+...
+                        stderr(smooth_spiketrains_a,1))])*1000,[0.5 0.5 0.5],'edgecolor','none','facealpha',0.7);
+                    xlim([-seqst2 seqend2]);xlabel('time (ms)');ylabel('Hz');set(gca,'fontweight','bold');
+                    
+                    tb_a = [-seqst2:seqend2];
+                    PSTH_mn_a = mean(smooth_spiketrains_a,1).*1000;
+                    [pks_a locs_a wa pa] = findpeaks(PSTH_mn_a,'MinPeakHeight',50,'MinPeakDistance',20);
+                    plot(tb_a(locs_a),pks_a,'ok');hold on;
+                    [xy,ixx] = min(abs(tb_a(locs_a)-(tb(locs(npk))-mean(anchorpt))));
+                    if abs(xy)>10
+                        continue
+                    end
+                    plot(tb_a(locs_a(ixx)),pks_a(ixx),'or');hold on;
+                    burstend = find(PSTH_mn_a(locs_a(ixx):end)<ceil(pks_a(ixx)-pa(ixx)/1.5));burstend = locs_a(ixx)+burstend(1);
+                    burstst = find(PSTH_mn_a(1:locs_a(ixx))<ceil(pks_a(ixx)-pa(ixx)/1.5));burstst = burstst(end);
+                    plot([tb_a(burstst) tb_a(burstend)],[ceil(pks_a(ixx)-pa(ixx)/1.5) ceil(pks_a(ixx)-pa(ixx)/1.5)],'r');hold on;
+                end
         end
     end
 end
