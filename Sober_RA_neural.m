@@ -759,7 +759,7 @@ for i = 1:length(ff)
         if mean(nspks)/0.05 < 50
             continue
         else
-            gapdur_id = jc_removeoutliers(gapdurs_all(idx+seqlen/2-1),3);
+            gapdur_id = jc_removeoutliers(gapdurs_all(idx+seqlen/2-1),3);%%%%
             gapdur_id = jc_removeoutliers(gapdur_id,3);
             [r p] = corrcoef(nspks,gapdur_id,'rows','complete');
             if p(2)<=0.05 & abs(r(2)) > 0.4
