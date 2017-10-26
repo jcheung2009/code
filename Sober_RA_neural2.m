@@ -34,11 +34,19 @@ for i = 1:length(ff)
         idx = strfind(labels,gapids(n));
         seqons = onsets(bsxfun(@plus, idx',(0:seqlen-1)));%realtime 
         seqoffs = offsets(bsxfun(@plus,idx',(0:seqlen-1)));
-        seqst = ceil(max(seqoffs(:,seqlen/2)-seqons(:,1)));%boundaries for sequence activity relative to target gap (sylloff1)
-        seqend = ceil(max(seqoffs(:,end)-seqoffs(:,seqlen/2)));
         gapdur_id = jc_removeoutliers(gapdurs_all(idx+seqlen/2-1),3);
         gapdur_id = jc_removeoutliers(gapdur_id,3);
         id = find(isnan(gapdur_id));gapdur_id(id) = [];seqons(id,:) = [];seqoffs(id,:) = [];
+        if ~isempty(find(seqoffs(:,end)-seqons(:,1)>=1000))
+            id = find(seqoffs(:,end)-seqons(:,1)>=1000);
+            seqons(id,:) = [];seqoffs(id,:) = [];gapdur_id(id) = [];
+        end
+        if length(gapdur_id)<25
+            continue
+        end
+
+        seqst = ceil(max(seqoffs(:,seqlen/2)-seqons(:,1)));%boundaries for sequence activity relative to target gap (sylloff1)
+        seqend = ceil(max(seqoffs(:,end)-seqoffs(:,seqlen/2)));
         
         spktms = cell(size(seqons,1),1);%spike times for each trial relative to target gap 
         smooth_spiketrains = zeros(length(gapdur_id),seqst+seqend+1);
@@ -53,19 +61,23 @@ for i = 1:length(ff)
         end
         tb = [-seqst:seqend];
         PSTH_mn = mean(smooth_spiketrains,1).*1000;
-        [pks locs] = findpeaks(PSTH_mn,'MinPeakHeight',50,'MinPeakDistance',20);%find bursts in premotor win
-        pkid = find(tb(locs)>=-50 & tb(locs)<=0)
+        [pks, locs,~,~,wc] = findpeaks2(PSTH_mn,'MinPeakHeight',50,...
+            'MinPeakDistance',20,'MinPeakWidth',10,'WidthReference','halfheight','Annotate','extents');%find bursts in premotor win
+        pkid = find(tb(locs)>=-50 & tb(locs)<=0);
+        wc = round(wc);
         if isempty(pkid)
             continue
         end
         [~,ix] = sort(gapdur_id,'descend');%order trials by gapdur
         gapdur_id = gapdur_id(ix);spktms = spktms(ix);seqons = seqons(ix,:);seqoffs = seqoffs(ix,:);
-        [tr trlocs] = findpeaks(-PSTH_mn,'MinPeakHeight',-0.75*mean(pks),'MinPeakDistance',20);%
-        trlocs = [1 trlocs length(PSTH_mn)];
+%         [tr trlocs] = findpeaks(-PSTH_mn,'MinPeakHeight',-0.75*mean(pks),'MinPeakDistance',20,'MinPeakWidth',10);%
+%         trlocs = [1 trlocs length(PSTH_mn)];
         
         for ixx = 1:length(pkid)%for each burst found
-            burstend = trlocs(min(find(trlocs > locs(pkid(ixx)))));%find burst border
-            burstst = trlocs(max(find(trlocs < locs(pkid(ixx)))));
+            burstend = wc(pkid(ixx),2);
+            burstst = wc(pkid(ixx),1);
+%             burstend = trlocs(min(find(trlocs > locs(pkid(ixx)))));%find burst border
+%             burstst = trlocs(max(find(trlocs < locs(pkid(ixx)))));
             npks_burst = cellfun(@(x) length(find(x>=tb(burstst)&x<tb(burstend))),spktms);%extract nspks in each trial
             [r p] = corrcoef(npks_burst,gapdur_id);
             
@@ -85,12 +97,16 @@ for i = 1:length(ff)
                 end  
                 tb2 = [-seqst2:seqend2];
                 PSTH_mn_on2 = mean(smooth_spiketrains_on2,1).*1000;
-                [pks2 locs2] = findpeaks(PSTH_mn_on2,'MinPeakHeight',50,'MinPeakDistance',20,'Annotate','extents');
+                [pks2, locs2,~,~,wc2] = findpeaks2(PSTH_mn_on2,'MinPeakHeight',50,...
+                    'MinPeakDistance',20,'MinPeakWidth',10,'WidthReference','halfheight','Annotate','extents');
+                wc2 = round(wc2);
                 [xy,ix] = min(abs(tb2(locs2)-(tb(locs(pkid(ixx)))-mean(anchor))));
-                [tr2 trlocs2] = findpeaks(-PSTH_mn_on2,'MinPeakHeight',-0.75*mean(pks2),'MinPeakDistance',20);%
-                trlocs2 = [1 trlocs2 length(PSTH_mn_on2)];    
-                burstend2 = trlocs2(min(find(trlocs2 > locs2(ix))));%find burst border
-                burstst2 = trlocs2(max(find(trlocs2 < locs2(ix))));
+                burstend2 = wc2(ix,2);%find burst border
+                burstst2 = wc2(ix,1);
+%                 [tr2 trlocs2] = findpeaks(-PSTH_mn_on2,'MinPeakHeight',-0.75*mean(pks2),'MinPeakDistance',20,'MinPeakWidth',10);%
+%                 trlocs2 = [1 trlocs2 length(PSTH_mn_on2)];    
+%                 burstend2 = trlocs2(min(find(trlocs2 > locs2(ix))));%find burst border
+%                 burstst2 = trlocs2(max(find(trlocs2 < locs2(ix))));
                 varburst2 = nanstd(cellfun(@(x) mean(x(find(x>=tb2(burstst2)&x<tb2(burstend2)))),spktms_on2,'un',1));%variability of spiketimes in burst aligned by off1
                 if varburst1 > varburst2
                     alignby=2;%on2
@@ -102,7 +118,7 @@ for i = 1:length(ff)
             end
             spk_gapdur_corr = [spk_gapdur_corr; r(2) p(2) alignby];
             
-            if p(2)<=0.05 & r(2) >= 0.3 %plot significant and strongly correlated cases
+            if p(2)<=0.05 & abs(r(2)) >= 0.35 %plot significant and strongly correlated cases
                 thr1 = quantile(gapdur_id,0.25);%threshold for small gaps
                 smallgaps_id = find(gapdur_id <= thr1);
                 thr2 = quantile(gapdur_id,0.75);%threshold for large gaps

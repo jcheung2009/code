@@ -34,11 +34,11 @@ for i = 1:length(ff)
         idx = strfind(labels,gapids(n));
         seqons = onsets(bsxfun(@plus, idx',(0:seqlen-1)));%realtime 
         seqoffs = offsets(bsxfun(@plus,idx',(0:seqlen-1)));
-        seqst = ceil(max(seqoffs(:,seqlen/2)-seqons(:,1)));%boundaries for sequence activity relative to target gap (sylloff1)
-        seqend = ceil(max(seqoffs(:,end)-seqoffs(:,seqlen/2)));
         gapdur_id = jc_removeoutliers(gapdurs_all(idx+seqlen/2-1),3);
         gapdur_id = jc_removeoutliers(gapdur_id,3);
         id = find(isnan(gapdur_id));gapdur_id(id) = [];seqons(id,:) = [];seqoffs(id,:) = [];
+        seqst = ceil(max(seqoffs(:,seqlen/2)-seqons(:,1)));%boundaries for sequence activity relative to target gap (sylloff1)
+        seqend = ceil(max(seqoffs(:,end)-seqoffs(:,seqlen/2)));
         
         spktms = cell(size(seqons,1),1);%spike times for each trial relative to target gap 
         smooth_spiketrains = zeros(length(gapdur_id),seqst+seqend+1);
@@ -54,7 +54,7 @@ for i = 1:length(ff)
         tb = [-seqst:seqend];
         PSTH_mn = mean(smooth_spiketrains,1).*1000;
         [pks locs] = findpeaks(PSTH_mn,'MinPeakHeight',50,'MinPeakDistance',20);%find bursts in premotor win
-        pkid = find(tb(locs)>=-50 & tb(locs)<=0)
+        pkid = find(tb(locs)>=-50 & tb(locs)<=0);
         if isempty(pkid)
             continue
         end
@@ -86,12 +86,12 @@ for i = 1:length(ff)
                 tb2 = [-seqst2:seqend2];
                 PSTH_mn_on2 = mean(smooth_spiketrains_on2,1).*1000;
                 [pks2 locs2] = findpeaks(PSTH_mn_on2,'MinPeakHeight',50,'MinPeakDistance',20,'Annotate','extents');
-                [xy,ix] = min(abs(tb2(locs2)-(tb(locs(ixx))-mean(anchor))));
+                [xy,ix] = min(abs(tb2(locs2)-(tb(locs(pkid(ixx)))-mean(anchor))));
                 [tr2 trlocs2] = findpeaks(-PSTH_mn_on2,'MinPeakHeight',-0.75*mean(pks2),'MinPeakDistance',20);%
                 trlocs2 = [1 trlocs2 length(PSTH_mn_on2)];    
                 burstend2 = trlocs2(min(find(trlocs2 > locs2(ix))));%find burst border
-                burstst2 = trlocs2(max(find(trlocs2 < locs(ix))));
-                varburst2 = cv(cellfun(@(x) mean(x(find(x>=tb2(burstst2)&x<tb2(burstend2)))),spktms_on2,'un',1));%variability of spiketimes in burst aligned by off1
+                burstst2 = trlocs2(max(find(trlocs2 < locs2(ix))));
+                varburst2 = nanstd(cellfun(@(x) mean(x(find(x>=tb2(burstst2)&x<tb2(burstend2)))),spktms_on2,'un',1));%variability of spiketimes in burst aligned by off1
                 if varburst1 > varburst2
                     alignby=2;%on2
                 else
