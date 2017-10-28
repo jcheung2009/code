@@ -69,7 +69,7 @@ for i = 1:length(ff)
             continue
         end
         [~,ix] = sort(gapdur_id,'descend');%order trials by gapdur
-        gapdur_id = gapdur_id(ix);spktms = spktms(ix);seqons = seqons(ix,:);seqoffs = seqoffs(ix,:);
+        gapdur_id = gapdur_id(ix);spktms = spktms(ix);seqons = seqons(ix,:);seqoffs = seqoffs(ix,:);smooth_spiketrains=smooth_spiketrains(ix,:);
 %         [tr trlocs] = findpeaks(-PSTH_mn,'MinPeakHeight',-0.75*mean(pks),'MinPeakDistance',20,'MinPeakWidth',10);%
 %         trlocs = [1 trlocs length(PSTH_mn)];
         
@@ -82,7 +82,7 @@ for i = 1:length(ff)
             [r p] = corrcoef(npks_burst,gapdur_id);
             
             if p(2)<=0.05
-                varburst1 = nanstd(cellfun(@(x) mean(x(find(x>=tb(burstst)&x<tb(burstend)))),spktms,'un',1));%variability of spiketimes in burst aligned by off1
+                varburst1 = (nanstd(cell2mat(cellfun(@(x) (x(find(x>=tb(burstst)&x<tb(burstend))))',spktms,'un',0))));%variability of spiketimes in burst aligned by off1
                 seqons_alignedoff1 = seqons-seqoffs(:,seqlen/2);
                 anchor=seqons_alignedoff1(:,seqlen/2+1);
                 spktms_on2 = arrayfun(@(x) spktms{x}-anchor(x),1:length(spktms),'un',0);%realign spike times in each trial by on2
@@ -107,16 +107,19 @@ for i = 1:length(ff)
 %                 trlocs2 = [1 trlocs2 length(PSTH_mn_on2)];    
 %                 burstend2 = trlocs2(min(find(trlocs2 > locs2(ix))));%find burst border
 %                 burstst2 = trlocs2(max(find(trlocs2 < locs2(ix))));
-                varburst2 = nanstd(cellfun(@(x) mean(x(find(x>=tb2(burstst2)&x<tb2(burstend2)))),spktms_on2,'un',1));%variability of spiketimes in burst aligned by off1
+                varburst2 = (nanstd(cell2mat(cellfun(@(x) (x(find(x>=tb2(burstst2)&x<tb2(burstend2)))),spktms_on2,'un',0))));%variability of spiketimes in burst aligned by off1
                 if varburst1 > varburst2
                     alignby=2;%on2
+                    varburst = varburst2;
                 else
                     alignby=1;%off1
+                    varburst = varburst1;
                 end
             else
                 alignby=NaN;
+                varburst = NaN;
             end
-            spk_gapdur_corr = [spk_gapdur_corr; r(2) p(2) alignby];
+            spk_gapdur_corr = [spk_gapdur_corr; r(2) p(2) alignby pks(pkid(ixx)) varburst];
             
             if p(2)<=0.05 & abs(r(2)) >= 0.35 %plot significant and strongly correlated cases
                 thr1 = quantile(gapdur_id,0.25);%threshold for small gaps
