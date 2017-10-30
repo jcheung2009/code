@@ -1,4 +1,4 @@
-motif = 'abcccb';
+motif = '---------y';
 NFFT = 512;
 ff = load_batchf('batch.keep');
 motif_cnt = 0;

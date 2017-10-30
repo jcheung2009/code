@@ -1,8 +1,7 @@
 config; 
 %% predictability gap duration of activity in time windows before and after target gap
-%also measure burst alignment with sylloff1 or syllon2 
+%for all units 
 
-spk_gapdur_corr = [];spk_dur_corr= [];
 win = gausswin(20);%for smoothing spike trains
 win = win./sum(win);
 seqlen = 6;%4 = 2 syllables before and after target gap
@@ -73,62 +72,64 @@ for i = 1:length(ff)
             'MinPeakDistance',20,'MinPeakWidth',10,'Annotate','extents');%find bursts in premotor win
         seqons_a = seqons-seqoffs(:,seqlen/2);%align time of each onset by gap onset
         seqoffs_a = seqoffs-seqoffs(:,seqlen/2);%align time of each offset by gap onset
-        landmarks = seqoffs_a(:,[1;1]*(1:size(seqoffs_a,2)))
+        landmarks = seqoffs_a(:,[1;1]*(1:size(seqoffs_a,2)));
         landmarks(:,1:2:end) = seqons_a;  
-        for pt = 1:size(landmarks,2)
-                [~,id] = min(abs(mean(landmarks,1)-tb(locs(npk))));
-                anchorpt = landmarks(:,id);
-        
-                figure;subplot(2,1,1);hold on;cnt=0;
+        bounds = mean(diff(landmarks,1,2));
+        for pt = 2:size(landmarks,2)
+                anchorpt = landmarks(:,pt);
+                bound = bounds(pt-1);
+%                 figure;subplot(2,1,1);hold on;cnt=0;
                     spktms_aligned = arrayfun(@(x) spktms{x}-anchorpt(x),1:length(spktms),'un',0);
                     seqst2 = ceil(abs(min([spktms_aligned{:}])));
                     seqend2 = ceil(abs(max([spktms_aligned{:}])));
                     smooth_spiketrains_a = zeros(length(gapdur_id),seqst2+seqend2+1);
                     for m = 1:length(gapdur_id)
-                        plot(repmat(spktms_aligned{m},2,1),[cnt cnt+1],'k');hold on;
-                        for syll=1:seqlen
-                            patch([seqons_a(m,syll) seqoffs_a(m,syll) seqoffs_a(m,syll) seqons_a(m,syll)]-anchorpt(m),...
-                                 [cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
-                        end
+%                         plot(repmat(spktms_aligned{m},2,1),[cnt cnt+1],'k');hold on;
+%                         for syll=1:seqlen
+%                             patch([seqons_a(m,syll) seqoffs_a(m,syll) seqoffs_a(m,syll) seqons_a(m,syll)]-anchorpt(m),...
+%                                  [cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
+%                         end
                         cnt=cnt+1;
                         temp = zeros(1,seqst2+seqend2+1);
                         spktimes = round(spktms_aligned{m})+seqst2+1;
                         temp(spktimes) = 1;
                         smooth_spiketrains_a(m,:) = conv(temp,win,'same');
                     end  
-                    xlim([-seqst2 seqend2]);ylim([0 cnt]);xlabel('time (ms)');ylabel('trial');
-        
-                 subplot(2,1,2);hold on;
-                 patch([-seqst2:seqend2 fliplr(-seqst2:seqend2)],([mean(smooth_spiketrains_a,1)-...
-                    stderr(smooth_spiketrains_a,1)...
-                    fliplr(mean(smooth_spiketrains_a,1)+...
-                    stderr(smooth_spiketrains_a,1))])*1000,[0.5 0.5 0.5],'edgecolor','none','facealpha',0.7);
-                xlim([-seqst2 seqend2]);xlabel('time (ms)');ylabel('Hz');set(gca,'fontweight','bold');
+%                     xlim([-seqst2 seqend2]);ylim([0 cnt]);xlabel('time (ms)');ylabel('trial');
+%         
+%                  subplot(2,1,2);hold on;
+%                  patch([-seqst2:seqend2 fliplr(-seqst2:seqend2)],([mean(smooth_spiketrains_a,1)-...
+%                     stderr(smooth_spiketrains_a,1)...
+%                     fliplr(mean(smooth_spiketrains_a,1)+...
+%                     stderr(smooth_spiketrains_a,1))])*1000,[0.5 0.5 0.5],'edgecolor','none','facealpha',0.7);
+%                 xlim([-seqst2 seqend2]);xlabel('time (ms)');ylabel('Hz');set(gca,'fontweight','bold');
         
                 tb_a = [-seqst2:seqend2];
                 PSTH_mn_a = mean(smooth_spiketrains_a,1).*1000;
                 [pks_a, locs_a, wa,~,wca] = findpeaks2(PSTH_mn_a,'MinPeakHeight',50,...
                     'MinPeakDistance',20,'MinPeakWidth',10,'Annotate','extents');
                 wca = round(wca);
-                plot(tb_a(locs_a),pks_a,'ok');hold on;
-                [xy,ixx] = min(abs(tb_a(locs_a)-(tb(locs(npk))-mean(anchorpt))));
-                if abs(xy)>20
+%                 plot(tb_a(locs_a),pks_a,'ok');hold on;
+                targetpks = find(tb_a(locs_a)>=-bound & tb_a(locs_a)<0);
+                if isempty(targetpks)
                     continue
                 end
                 
-                plot(tb_a(locs_a(ixx)),pks_a(ixx),'or');hold on;
-                burstend_a = wca(ixx,2);
-                burstst_a = wca(ixx,1);
-                yl = get(gca,'ylim');
-                plot(repmat([tb_a(burstst_a) tb_a(burstend_a)],2,1),yl,'b');hold on;
+%                 plot(tb_a(locs_a(targetpks)),pks_a(targetpks),'or');hold on;
+                burstend_a = wca(targetpks,2);
+                burstst_a = wca(targetpks,1);
+%                 yl = get(gca,'ylim');
+%                 plot(repmat([tb_a(burstst_a) tb_a(burstend_a)],2,1),yl,'b');hold on;
 
-                npks_burst = cellfun(@(x) length(find(x>=tb_a(burstst_a)&x<tb_a(burstend_a))),spktms_aligned);
-                [r p] = corrcoef(npks_burst,gapdur_id);
-                trialind = max(find(tb(locs(npk))-trials>0));
-                if isempty(trialind)
-                    continue
-                else
-                    prop_significant_cases_lag_gaps{trialind} = [prop_significant_cases_lag_gaps{trialind}; r(2) p(2)];
+                for ix = 1:length(targetpks)
+                    npks_burst = cellfun(@(x) length(find(x>=tb_a(burstst_a(ix))&x<tb_a(burstend_a(ix)))),spktms_aligned);
+                    [r p] = corrcoef(npks_burst,gapdur_id);
+                    trialind = max(find(mean(anchorpt)+tb_a(locs_a(targetpks(ix)))-trials>0));
+                    if isempty(trialind)
+                        continue
+                    else
+                        prop_significant_cases_lag_gaps{trialind} = [prop_significant_cases_lag_gaps{trialind}; r(2) p(2)];
+                    end
                 end
         end
     end
