@@ -1,6 +1,6 @@
 %align smoothed amplitude waveform by syllable in motif 
 fs = 32000;
-ind = 2;
+ind = 1;
 m1 = motif_aabb_4_10_2014_sal;
 m2 = motif_aabb_4_11_2014_naspm2;
 maxbefore2 = max(arrayfun(@(x) floor(x.syllons(ind)*fs),m1));
@@ -51,8 +51,8 @@ filtsong2 = bandpass(smtmp2,fs,500,10000,'hanningffir');
 subtightplot(3,1,1,0.07,0.08,0.15);hold on;ax = gca;
 jc_spectrogram(filtsong1,fs,ax);hold on;
 x = get(gca,'xlim');ylim([500 10000]);
-plot([syllons1 syllons1],[500 10000],'r',[sylloffs1 sylloffs1],[500 10000],'r','linewidth',4);hold on;
+plot([syllons1 syllons1],[500 10000],'g',[sylloffs1 sylloffs1],[500 10000],'g','linewidth',4);hold on;
 subtightplot(3,1,2,0.07,0.08,0.15);hold on;ax=gca;
 jc_spectrogram(filtsong2,fs,ax);
 set(gca,'xlim',x);ylim([500 10000]);
-plot([syllons2 syllons2],[500 10000],'r',[sylloffs2 sylloffs2],[500 10000],'r','linewidth',4);hold on;
+plot([syllons2 syllons2],[500 10000],'g',[sylloffs2 sylloffs2],[500 10000],'g','linewidth',4);hold on;

@@ -95,7 +95,7 @@ for i = 1:length(ff)
                     pitchcv = mean(cell2mat(arrayfun(@(x) x.([sylls{n}]).pitchcv.percent,birdsummary.spec(ind),'unif',0)'),1);
                 end
 
-                ind = strcmp(arrayfun(@(x) x.([sylls{n}]).condition,birdsummary.spec,'unif',0),'deaf saline');
+                ind = strcmp(arrayfun(@(x) x.([sylls{n}]).condition,birdsummary.spec,'unif',0),'saline');
                 pitch_sal = mean(cell2mat(arrayfun(@(x) x.([sylls{n}]).pitch.percent,birdsummary.spec(ind),'unif',0)'),1);
                 vol_sal = mean(cell2mat(arrayfun(@(x) x.([sylls{n}]).vol.percent,birdsummary.spec(ind),'unif',0)'),1);
                 ent_sal = mean(cell2mat(arrayfun(@(x) x.([sylls{n}]).ent.percent,birdsummary.spec(ind),'unif',0)'),1);
@@ -123,7 +123,7 @@ for i = 1:length(ff)
         for indcond = 1:length(conditions)
             for n = 1:nummotifs
                 ind = find(strcmp(arrayfun(@(x) x.([motifs{n}]).condition,birdsummary.temp,'unif',0),conditions{indcond}));
-                ind_sal = strcmp(arrayfun(@(x) x.([motifs{n}]).condition,birdsummary.temp,'unif',0),'deaf saline');
+                ind_sal = strcmp(arrayfun(@(x) x.([motifs{n}]).condition,birdsummary.temp,'unif',0),'saline');
                 if isempty(ind)
                     continue
                 end
@@ -194,7 +194,7 @@ for i = 1:length(ff)
         for indcond = 1:length(conditions)
             for n = 1:numreps
                 ind = find(strcmp(arrayfun(@(x) x.([reps{n}]).condition,birdsummary.rep,'unif',0),conditions{indcond}));
-                ind_sal = strcmp(arrayfun(@(x) x.([reps{n}]).condition,birdsummary.rep,'unif',0),'deaf saline');
+                ind_sal = strcmp(arrayfun(@(x) x.([reps{n}]).condition,birdsummary.rep,'unif',0),'saline');
                 if isempty(ind)
                     continue
                 end
@@ -223,7 +223,7 @@ for i = 1:length(ff)
         for indcond = 1:length(conditions)
             for n = 1:numbouts
                 ind = find(strcmp(arrayfun(@(x) x.([bouts{n}]).condition,birdsummary.bout,'unif',0),conditions{indcond}));
-                ind_sal = strcmp(arrayfun(@(x) x.([bouts{n}]).condition,birdsummary.bout,'unif',0),'deaf saline');
+                ind_sal = strcmp(arrayfun(@(x) x.([bouts{n}]).condition,birdsummary.bout,'unif',0),'saline');
                 if isempty(ind)
                     continue
                 end
