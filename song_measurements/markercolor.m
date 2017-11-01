@@ -13,6 +13,8 @@ elseif ~isempty(strfind(lower(fn),'musc'))
     mrk='c.';color='c';
 elseif ~isempty(strfind(lower(fn),'post'))
     mrk = 'r.';color = 'r';
+elseif ~isempty(strfind(lower(fn),'mid')) | ~isempty(strfind(lower(fn),'gab')) | ~isempty(strfind(lower(fn),'diaz'))
+    mrk='b.';color='b';
 else
     mrk='k.';color='k';
 end

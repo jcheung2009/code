@@ -1,8 +1,8 @@
 %align smoothed amplitude waveform by syllable in motif 
 fs = 32000;
 ind = 1;
-m1 = motif_aabb_4_10_2014_sal;
-m2 = motif_aabb_4_11_2014_naspm2;
+m1 = motif_aabb_10_14_2014_sal;
+m2 = motif_aabb_10_14_2014_mid;
 maxbefore2 = max(arrayfun(@(x) floor(x.syllons(ind)*fs),m1));
 maxafter2 = max(arrayfun(@(x) length(x.smtmp)-floor(x.syllons(ind)*fs),m1));
 maxbefore1 = max(arrayfun(@(x) floor(x.syllons(ind)*fs),m2));
@@ -37,8 +37,8 @@ set(gca,'fontweight','bold');
 
 ylim([0 1]);
 
-[~,ind1] = min([m1(:).motifdur]-mean([m1(:).motifdur]));
-[~,ind2] = min([m2(:).motifdur]-mean([m2(:).motifdur]));
+[~,ind1] = max([m1(:).motifdur]-mean([m1(:).motifdur]));
+[~,ind2] = max([m2(:).motifdur]-mean([m2(:).motifdur]));
 
 smtmp1 = m1(ind1).smtmp;
 smtmp2 = m2(ind2).smtmp;

@@ -15,7 +15,7 @@ temp = dtwtemplate.filtsong;
 temp_ons=dtwtemplate.ons;
 temp_offs=dtwtemplate.offs;
 [sp f tm1] = spectrogram(temp,w,overlap,NFFT,fs);
-indf = find(f>1000 & f<10000);
+indf = find(f>500 & f<10000);
 temp = abs(sp(indf,:));
 temp = temp./sum(temp,2);
 temp_onind = NaN(length(temp_ons),1);temp_offind = NaN(length(temp_offs),1);
@@ -25,9 +25,9 @@ for m = 1:length(temp_ons)
 end
 
 %process smtemp
-filttemp = bandpass(smtemp,fs,1000,10000,'hanningffir');
+filttemp = bandpass(smtemp,fs,500,10000,'hanningffir');
 [sp2 f2 tm2] = spectrogram(filttemp,w,overlap,NFFT,fs);
-indf = find(f2>1000 & f2 <10000);
+indf = find(f2>500 & f2 <10000);
 f2 = f2(indf);
 sp2 = abs(sp2(indf,:));
 sp2 = sp2./sum(sp2,2);
