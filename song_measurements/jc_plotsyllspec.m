@@ -15,7 +15,8 @@ tm = tm-0.016;
 indf = find(f>=300 & f<=10000);
 id = find(abs(sp)<=mean(mean(abs(sp))));
 sp(id)=mean(mean(abs(sp)))/2;
-hold(varargin{1});imagesc(tm,f(indf),log(abs(sp(indf,:))));axis('xy');colormap hot;hold on;
+axes(varargin{1});imagesc(tm,f(indf),log(abs(sp(indf,:))));axis('xy');colormap hot;hold on;
+ylim([300 10000]);xlim([tm(1) tm(end)]);
 
 t = fv.pitchcontour(:,1);pc = fv.pitchcontour(:,2);
 plot(t,pc,'g','linewidth',2);

@@ -11,7 +11,7 @@ else
     fighandle = figure;hold on;
 end
 [n b] = hist(runlength,[1:maxlen]);
-stairs(b,n/sum(n),mrk,'linewidth',2);hold on;
+stem(b,n/sum(n),mrk,'linewidth',2);hold on;
 xlabel('Repeat length (number of syllables)','FontWeight','bold')
 ylabel('Probability','FontWeight','bold');
 title(title1,'interpreter','none');

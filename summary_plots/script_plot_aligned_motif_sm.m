@@ -1,8 +1,8 @@
 %align smoothed amplitude waveform by syllable in motif 
 fs = 32000;
 ind = 1;
-m1 = motif_aabb_10_14_2014_sal;
-m2 = motif_aabb_10_14_2014_mid;
+m1 = motif_aabb_4_10_2014_sal;
+m2 = motif_aabb_4_11_2014_naspm2;
 maxbefore2 = max(arrayfun(@(x) floor(x.syllons(ind)*fs),m1));
 maxafter2 = max(arrayfun(@(x) length(x.smtmp)-floor(x.syllons(ind)*fs),m1));
 maxbefore1 = max(arrayfun(@(x) floor(x.syllons(ind)*fs),m2));
@@ -37,8 +37,8 @@ set(gca,'fontweight','bold');
 
 ylim([0 1]);
 
-[~,ind1] = max([m1(:).motifdur]-mean([m1(:).motifdur]));
-[~,ind2] = max([m2(:).motifdur]-mean([m2(:).motifdur]));
+[~,ind1] = min([m1(:).motifdur]-mean([m1(:).motifdur]));
+[~,ind2] = min([m2(:).motifdur]-mean([m2(:).motifdur]));
 
 smtmp1 = m1(ind1).smtmp;
 smtmp2 = m2(ind2).smtmp;
@@ -48,11 +48,12 @@ syllons2 = m2(ind2).syllons;
 sylloffs2 = m2(ind2).sylloffs;
 filtsong1 = bandpass(smtmp1,fs,500,10000,'hanningffir');
 filtsong2 = bandpass(smtmp2,fs,500,10000,'hanningffir');
-subtightplot(3,1,1,0.07,0.08,0.15);hold on;ax = gca;
-jc_spectrogram(filtsong1,fs,ax);hold on;
-x = get(gca,'xlim');ylim([500 10000]);
+subtightplot(3,1,1,0.07,0.08,0.15);hold on;ax1 = gca;
+jc_spectrogram(filtsong1,fs,ax1);hold on;ylim([500 10000]);
 plot([syllons1 syllons1],[500 10000],'g',[sylloffs1 sylloffs1],[500 10000],'g','linewidth',4);hold on;
-subtightplot(3,1,2,0.07,0.08,0.15);hold on;ax=gca;
-jc_spectrogram(filtsong2,fs,ax);
-set(gca,'xlim',x);ylim([500 10000]);
+
+subtightplot(3,1,2,0.07,0.08,0.15);hold on;ax2=gca;
+jc_spectrogram(filtsong2,fs,ax2);ylim([500 10000]);
 plot([syllons2 syllons2],[500 10000],'g',[sylloffs2 sylloffs2],[500 10000],'g','linewidth',4);hold on;
+x = get(ax1,'xlim');
+set(ax2,'xlim',x);

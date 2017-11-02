@@ -110,7 +110,13 @@ for i = 1:length(ff)
         end
 
         %determine syllable onsets and offsets by dtw segmentation
-        [ons offs] = dtw_segment(smtemp,dtwtemplate,fs);
+        if ~isempty(dtwtemplate) & ~isfield(params,'peaksegment')
+            [ons offs] = dtw_segment(smtemp,dtwtemplate,fs);
+        elseif isempty(dtwtemplate) & isfield(params,'peaksegment')
+            [ons offs] = peaksegment(smtemp,fs);
+        elseif ~isempty(dtwtemplate) & isfield(params,'peaksegment')
+            [ons offs] = peaksegment(smtemp,fs,dtwtemplate);
+        end
         sm_ons=ons*fs;
         onsamp = onsamp+sm_ons;
         ton = (onsamp(1)/fs)*1e3;%best estimate of time onset in song in ms

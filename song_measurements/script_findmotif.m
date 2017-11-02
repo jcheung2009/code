@@ -9,10 +9,13 @@ if isempty(ind)
 end
 
 for ii = 1:length(params.findmotif)
-    if ~exist(params.findmotif(ii).dtwtemplate)
+    if ~isempty(params.findmotif(ii).dtwtemplate)%exist(params.findmotif(ii).dtwtemplate)
         load(['analysis/',params.findmotif(ii).dtwtemplate]);
+        dtwtemplate = eval([params.findmotif(ii).dtwtemplate]);
+    else
+        dtwtemplate = '';
     end
-    dtwtemplate = eval([params.findmotif(ii).dtwtemplate]);
+    
     for i = ind(1):ind(2)%1:length(ff)
         if isempty(ff(i).name)
             continue

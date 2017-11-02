@@ -63,6 +63,8 @@ for ifn=1:length(ff)
                 smtemp=dat(onsamp-nbuffer:offsamp+nbuffer);%unfiltered amplitude envelop of syllable
                 if ~isempty(dtwtemplate)
                     [sm_ons sm_offs] = dtw_segment(smtemp,dtwtemplate,fs);
+                elseif isempty(dtwtemplate) & isfield(params,'peaksegment')
+                    [sm_ons sm_offs] = peaksegment(smtemp,fs);
                 else
                     [sm_ons sm_offs] = syl_ampsegment(smtemp,fs);
                 end
