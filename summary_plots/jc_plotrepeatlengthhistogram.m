@@ -11,11 +11,12 @@ else
     fighandle = figure;hold on;
 end
 [n b] = hist(runlength,[1:maxlen]);
-stem(b,n/sum(n),mrk,'linewidth',2);hold on;
+stairs(b,n/sum(n),mrk,'linewidth',2);hold on;
 xlabel('Repeat length (number of syllables)','FontWeight','bold')
 ylabel('Probability','FontWeight','bold');
 title(title1,'interpreter','none');
 xlim([1 maxlen]);
 set(gca,'fontweight','bold');
-
+y = get(gca,'ylim');
+plot(mean(runlength),y(1),'^','color',mrk,'linewidth',2);hold on;
 

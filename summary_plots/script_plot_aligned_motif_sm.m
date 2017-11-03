@@ -1,8 +1,8 @@
 %align smoothed amplitude waveform by syllable in motif 
 fs = 32000;
 ind = 1;
-m1 = motif_aabb_4_10_2014_sal;
-m2 = motif_aabb_4_11_2014_naspm2;
+m1 = motif_dac_saline_12_11_2016_pd;
+m2 = motif_dac_naspm_12_12_2016_pd;
 maxbefore2 = max(arrayfun(@(x) floor(x.syllons(ind)*fs),m1));
 maxafter2 = max(arrayfun(@(x) length(x.smtmp)-floor(x.syllons(ind)*fs),m1));
 maxbefore1 = max(arrayfun(@(x) floor(x.syllons(ind)*fs),m2));
