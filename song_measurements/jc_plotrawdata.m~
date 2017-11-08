@@ -53,15 +53,6 @@ if strcmp(runavg,'y')
         ent_avg = [ent_avg; timept1 nanmean(entdat(ind,2))];
         timept1 = timept1+jogsize;
     end
-    ind = isnan(fv_avg(:,2));
-    t = 1:length(fv_avg);
-    fv_avg(ind,2) = interp1(t(~ind),fv_avg(~ind,2),t(ind));
-    ind = isnan(vol_avg(:,2));
-    t = 1:length(vol_avg);
-    vol_avg(ind,2) = interp1(t(~ind),vol_avg(~ind,2),t(ind));
-    ind = isnan(ent_avg(:,2));
-    t = 1:length(ent_avg);
-    ent_avg(ind,2) = interp1(t(~ind),ent_avg(~ind,2),t(ind));
 end
         
 %% pitch
@@ -70,10 +61,11 @@ subtightplot(2,1,1,0.07,0.08,0.15);hold on;
 if isstr(marker)
     h = plot(pitchdat(:,1),pitchdat(:,2),marker);hold on
 else
+    marker = marker/max(marker);
     h = plot(pitchdat(:,1),pitchdat(:,2),'.','color',marker);hold on
 end
-if strcmp(runavg,'y')
-    plot(fv_avg(:,1),fv_avg(:,2),'color',color,'linewidth',2);
+if strcmp(runavg)
+    plot(fv_avg(:,1),fv_avg(:,2),'o','color',color,'linewidth',2);
 end
 if ~isempty(tbshift)
     xscale_hours_to_days(gca);
@@ -88,10 +80,8 @@ subtightplot(2,1,2,0.07,0.08,0.15);hold on;
 if isstr(marker)
     h = plot(voldat(:,1),voldat(:,2),marker);hold on
 else
+    marker = marker/max(marker);
     h = plot(voldat(:,1),voldat(:,2),'.','color',marker);hold on
-end
-if strcmp(runavg,'y')
-    plot(vol_avg(:,1),vol_avg(:,2),'color',color,'linewidth',2);
 end
 if ~isempty(tbshift)
     xscale_hours_to_days(gca);

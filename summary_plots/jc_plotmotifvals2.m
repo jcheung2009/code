@@ -1,4 +1,4 @@
-function jc_plotmotifvals2(motifinfo,motif,marker,tbshift,fignum,fignum2,removeoutliers);
+function jc_plotmotifvals2(motifinfo,motif,marker,tbshift,fignum,fignum2,removeoutliers,varargin);
 %plot raw motif tempo values in motifstruct for script_plotdata
 
 if isempty(fignum)
@@ -9,6 +9,13 @@ if isempty(fignum2)
 end
 if isempty(removeoutliers)
     removeoutliers = input('remove outliers?:','s');
+end
+
+if ~isempty(varargin)
+    runavg = 'y';
+    color = varargin{1};
+else
+    runavg = 'n';
 end
 
 motifdur = [[motifinfo(:).datenm]',[motifinfo(:).motifdur]'];
@@ -30,14 +37,49 @@ if removeoutliers == 'y'
     firstpeakdistance = jc_removeoutliers(firstpeakdistance,nstd,1);
 end
 
+%running average 
+if strcmp(runavg,'y')
+    numseconds = motifdur(end,1)-motifdur(1,1);
+    timewindow = 3600; % hr in seconds
+    jogsize = 900;%15 minutes
+    numtimewindows = floor(numseconds/jogsize)-(timewindow/jogsize)/2;%2*floor(numseconds/timewindow)-1;
+    if numtimewindows <= 0
+        numtimewindows = 1;
+    end
+    timept1 = motifdur(1,1);
+    mdur_avg = [];sdur_avg = [];gdur_avg = [];
+    for p = 1:numtimewindows
+        timept2 = timept1+timewindow;
+        ind = find(motifdur(:,1) >= timept1 & motifdur(:,1) < timept2);
+        mdur_avg = [mdur_avg;timept1 nanmean(motifdur(ind,2))];
+        ind = find(sylldur(:,1) >= timept1 & sylldur(:,1) < timept2);
+        sdur_avg = [sdur_avg; timept1 nanmean(sylldur(ind,2))];
+        ind = find(gapdur(:,1) >= timept1 & gapdur(:,1) < timept2);
+        gdur_avg = [gdur_avg; timept1 nanmean(gapdur(ind,2))];
+        timept1 = timept1+jogsize;
+    end
+    ind = isnan(mdur_avg(:,2));
+    t = 1:length(mdur_avg);
+    mdur_avg(ind,2) = interp1(t(~ind),mdur_avg(~ind,2),t(ind));
+    ind = isnan(sdur_avg(:,2));
+    t = 1:length(sdur_avg);
+    sdur_avg(ind,2) = interp1(t(~ind),sdur_avg(~ind,2),t(ind));
+    ind = isnan(gdur_avg(:,2));
+    t = 1:length(gdur_avg);
+    gdur_avg(ind,2) = interp1(t(~ind),gdur_avg(~ind,2),t(ind));
+end
+
+
 %% motif duration
 figure(fignum);hold on;
 subtightplot(3,1,1,0.07,0.08,0.15);hold on;
 if isstr(marker)
     h = plot(motifdur(:,1),motifdur(:,2),marker);hold on
 else
-    marker = marker/max(marker);
     h = plot(motifdur(:,1),motifdur(:,2),'.','color',marker);hold on
+end
+if strcmp(runavg,'y')
+    plot(mdur_avg(:,1),mdur_avg(:,2),'color',color,'linewidth',2);
 end
 
 if ~isempty(tbshift)
@@ -54,8 +96,10 @@ subtightplot(3,1,2,0.07,0.08,0.15);hold on;
 if isstr(marker)
     h = plot(sylldur(:,1),sylldur(:,2),marker);hold on
 else
-    marker = marker/max(marker);
     h = plot(sylldur(:,1),sylldur(:,2),'.','color',marker);hold on
+end
+if strcmp(runavg,'y')
+    plot(sdur_avg(:,1),sdur_avg(:,2),'color',color,'linewidth',2);
 end
 
 if ~isempty(tbshift)
@@ -72,9 +116,12 @@ subtightplot(3,1,3,0.07,0.08,0.15);hold on;
 if isstr(marker)
     h = plot(gapdur(:,1),gapdur(:,2),marker);hold on
 else
-    marker = marker/max(marker);
     h = plot(gapdur(:,1),gapdur(:,2),'.','color',marker);hold on
 end
+if strcmp(runavg,'y')
+    plot(gdur_avg(:,1),gdur_avg(:,2),'color',color,'linewidth',2);
+end
+
 
 if ~isempty(tbshift)
     xscale_hours_to_days(gca);
@@ -90,7 +137,6 @@ figure(fignum2);hold on;
 if isstr(marker)
     h = plot(firstpeakdistance(:,1),firstpeakdistance(:,2),marker);hold on;
 else
-    marker = marker/max(marker);
     h = plot(firstpeakdistance(:,1),firstpeakdistance(:,2),'.','color',marker);hold on;
 end
 

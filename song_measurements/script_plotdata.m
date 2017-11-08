@@ -7,6 +7,12 @@ if isempty(ind)
     ind = [1 length(ff)];
 end
 numepochs = params.numepochs;
+if isfield(params,'runavg')
+    runavg = params.runavg;
+else 
+    runavg='';
+end
+
 if ~isempty(numepochs)
     tbshft = repmat([0:length(ff)/numepochs-1],numepochs,1);
     tbshft = tbshft(:);
@@ -39,7 +45,7 @@ for i = ind(1):ind(2)
     end
     disp(ff(i).name);
     
-    [mrk color] = markercolor(ff(i).name);
+    [mrk color] = markercolor(ff(i).name,runavg);
     
     if ~isempty(numepochs)
         tb=tbshft(i);
@@ -58,7 +64,7 @@ for i = ind(1):ind(2)
             end
             fv = eval([params.findnote(n).fvstruct,ff(i).name]);
             if ~isempty(fv)
-                jc_plotrawdata(fv,params.findnote(n).syllable,mrk,tb,fvfig(n),params.removeoutliers);
+                jc_plotrawdata(fv,params.findnote(n).syllable,mrk,tb,fvfig(n),params.removeoutliers,color);
             end
         end
     end
@@ -70,7 +76,7 @@ for i = ind(1):ind(2)
             end
             mt = eval([params.findmotif(n).motifstruct,ff(i).name]);
             if ~isempty(fieldnames(mt))
-                jc_plotmotifvals2(mt,params.findmotif(n).motif,mrk,tb,motiffig(n).a,motiffig(n).b,params.removeoutliers);
+                jc_plotmotifvals2(mt,params.findmotif(n).motif,mrk,tb,motiffig(n).a,motiffig(n).b,params.removeoutliers,color);
             end 
         end
     end
