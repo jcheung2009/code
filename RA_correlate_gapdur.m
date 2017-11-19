@@ -3,6 +3,7 @@ config;
 %also measure burst alignment with sylloff1 or syllon2 
 
 spk_gapdur_corr = [];spk_dur_corr= [];case_name = {};
+spk_gapdur_corr_prev = []; spk_gapdur_corr_next = [];
 win = gausswin(20);%for smoothing spike trains, 20 ms
 win = win./sum(win);
 seqlen = 6;%4 = 2 syllables before and after target gap
@@ -74,7 +75,9 @@ for i = 1:length(ff)
         end
         [~,ix] = sort(gapdur_id,'descend');%order trials by gapdur
         gapdur_id = gapdur_id(ix);spktms = spktms(ix);seqons = seqons(ix,:);seqoffs = seqoffs(ix,:);smooth_spiketrains=smooth_spiketrains(ix,:);
-        
+        gapseq = seqons(:,2:end)-seqoffs(:,1:end-1);
+        gapdur_id_prev = gapseq(:,seqlen/2-1);%gapdur of gap before target gap
+        gapdur_id_next = gapseq(:,seqlen/2+1);%gapdur of gap after target gap
         for ixx = 1:length(pkid)%for each burst found
             burstend = wc(pkid(ixx),2);
             burstst = wc(pkid(ixx),1);
@@ -136,6 +139,10 @@ for i = 1:length(ff)
             enid = regexp(ff(i).name,'_TH');
             unitid = ff(i).name(stid+1:enid-1);
             case_name = [case_name,{unitid,gapids{n}}];
+            [r3 p3] = corrcoef(npks_burst,gapdur_id_prev);
+            spk_gapdur_corr_prev = [spk_gapdur_corr_prev; r3(2) p3(2)];
+            [r4 p4] = corrcoef(npks_burst,gapdur_id_next);
+            spk_gapdur_corr_next = [spk_gapdur_corr_next; r4(2) p4(2)];
             
             if eval(plotcasecondition)
                 thr1 = quantile(gapdur_id,0.25);%threshold for small gaps

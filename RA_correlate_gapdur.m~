@@ -74,7 +74,9 @@ for i = 1:length(ff)
         end
         [~,ix] = sort(gapdur_id,'descend');%order trials by gapdur
         gapdur_id = gapdur_id(ix);spktms = spktms(ix);seqons = seqons(ix,:);seqoffs = seqoffs(ix,:);smooth_spiketrains=smooth_spiketrains(ix,:);
-        
+        gapseq = seqons(:,2:end)-seqoffs(:,1:end-1);
+        gapdur_id_prev = gapseq(:,seqlen/2-1);%gapdur of gap before target gap
+        gapdur_id_next = gapseq(:,seqlen/2+1);%gapdur of gap after target gap
         for ixx = 1:length(pkid)%for each burst found
             burstend = wc(pkid(ixx),2);
             burstst = wc(pkid(ixx),1);
@@ -136,6 +138,8 @@ for i = 1:length(ff)
             enid = regexp(ff(i).name,'_TH');
             unitid = ff(i).name(stid+1:enid-1);
             case_name = [case_name,{unitid,gapids{n}}];
+            [r p] = corrcoef(npks_burst,gapdur_id_prev);
+            spk_gapdur_corr_prev = [spk_gapdur_corr_prev; r(2) p(2)];
             
             if eval(plotcasecondition)
                 thr1 = quantile(gapdur_id,0.25);%threshold for small gaps
@@ -472,32 +476,17 @@ randnumsignificantnegcorr = sum((spk_gapdur_pval_rand<=0.05).*(spk_gapdur_corr_r
 randpropsignificantnegcorr = randnumsignificantnegcorr./size(spk_gapdur_pval_rand,2);
 randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
 randpropsignificantnegcorr_lo = randpropsignificantnegcorr_sorted(floor(aph*ntrials/2));
-randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(995);
+randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
 
 randnumsignificantposcorr = sum((spk_gapdur_pval_rand<=0.05).*(spk_gapdur_corr_rand>0),2);
 randpropsignificantposcorr = randnumsignificantposcorr./size(spk_gapdur_pval_rand,2);
 randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
 randpropsignificantposcorr_lo = randpropsignificantposcorr_sorted(floor(aph*ntrials/2));
-randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(995);
+randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
 
 disp(['shuffled proportion of cases that are significant (99% CI):',num2str(randpropsignificant_lo),'-',num2str(randpropsignificant_hi)]);
 disp(['shuffled proportion of cases that are significantly negative corr (99% CI):',num2str(randpropsignificantnegcorr_lo),'-',num2str(randpropsignificantnegcorr_hi)]);
 disp(['shuffled proportion of cases that are significantly positive corr (99% CI):',num2str(randpropsignificantposcorr_lo),'-',num2str(randpropsignificantposcorr_hi)]);
-
-% randnumsignificantnegcorr = sum((spk_gapdur_pval_rand<=0.05).*(spk_gapdur_corr_rand<0),2);
-% randpropsignificantnegcorr = randnumsignificantnegcorr./randnumsignificant;
-% randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
-% randpropsignificantnegcorr_lo = randpropsignificantnegcorr_sorted(5);
-% randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(995);
-% 
-% randnumsignificantposcorr = sum((spk_gapdur_pval_rand<=0.05).*(spk_gapdur_corr_rand>0),2);
-% randpropsignificantposcorr = randnumsignificantposcorr./randnumsignificant;
-% randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
-% randpropsignificantposcorr_lo = randpropsignificantposcorr_sorted(5);
-% randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(995);
-% 
-% disp(['shuffled proportion of significant cases that are negative corr (99% CI):',num2str(randpropsignificantnegcorr_lo),'-',num2str(randpropsignificantnegcorr_hi)]);
-% disp(['shuffled proportion of significant cases that are positive corr (99% CI):',num2str(randpropsignificantposcorr_lo),'-',num2str(randpropsignificantposcorr_hi)]);
 
 figure;hold on;[n b] = hist(randpropsignificant,[0:0.001:0.25]);
 stairs(b,n/sum(n),'k','linewidth',2);y=get(gca,'ylim');
