@@ -6,8 +6,7 @@ spk_dur_corr = [];
 win = gausswin(20);%for smoothing spike trains, 20 ms
 win = win./sum(win);
 seqlen = 6;%4 = 2 syllables before and after target gap
-%plotcasecondition = 'p(2)<=0.05 & abs(r(2)) >= 0.35';%plot significant and strongly correlated cases 
-plotcasecondition = 'p(2)<= 0.05 & p(2) > 0.05';%not plot anything
+plotcasecondition = 'p(2)<=0.05 & abs(r(2)) >= 0.35';%plot significant and strongly correlated cases 
 
 ff = load_batchf('batchfile');
 birdid = arrayfun(@(x) x.birdname,params,'unif',0);
@@ -212,6 +211,10 @@ disp(['proportion of cases that are significantly negatively correlated = ',num2
 disp(['proportion of cases that are positively correlated = ',num2str(length(poscorr)/numcases)]);
 disp(['average r value for significant negative correlations = ',num2str(mean(spk_dur_corr(negcorr,1)))]);
 disp(['average r value for significant positive correlations = ',num2str(mean(spk_dur_corr(poscorr,1)))]);
+durcorr_neg = find(spk_dur_corr(negcorr,2)<=0.05 | spk_dur_corr(negcorr,4)<=0.05);
+disp(['proportion of significant negative correlations that are also correlated with dur1 OR dur2 = ',num2str(length(durcorr_neg)/length(negcorr))]);
+durcorr_pos = find(spk_dur_corr(poscorr,2)<=0.05 | spk_dur_corr(poscorr,4)<=0.05);
+disp(['proportion of significant positive correlations that are also correlated with dur1 OR dur2 = ',num2str(length(durcorr_pos)/length(poscorr))]);
            
 ind = find(spk_dur_corr(:,2)<=0.05);
 figure;hold on;[n b] = hist(spk_dur_corr(ind,1),[-1:0.1:1]);
@@ -227,7 +230,7 @@ text(0,1,{['total active units:',num2str(numcases)];...
     'verticalalignment','top');
 
 %% shuffle 
-ntrials = 1000;aph = 0.01;%99% CI
+ntrials = 1000;
 spk_dur_corr_rand = [];spk_dur_pval_rand=[];
 for i = 1:length(ff)
     load(ff(i).name);
@@ -349,37 +352,50 @@ for i = 1:length(ff)
             p = p(1:end-1,end);
             spk_dur_corr_rand = [spk_dur_corr_rand r];
             spk_dur_pval_rand = [spk_dur_pval_rand p];
-        end
-    end
 end
 randnumsignificant = sum(spk_dur_pval_rand<=0.05,2);    
 randpropsignificant = randnumsignificant/size(spk_dur_pval_rand,2);
 randpropsignificant_sorted = sort(randpropsignificant);
-randpropsignificant_lo = randpropsignificant_sorted(floor(aph*ntrials/2));
-randpropsignificant_hi = randpropsignificant_sorted(ceil(ntrials-(aph*ntrials/2)));
+randpropsignificant_lo = randpropsignificant_sorted(5);
+randpropsignificant_hi = randpropsignificant_sorted(995);
 
 randnumsignificantnegcorr = sum((spk_dur_pval_rand<=0.05).*(spk_dur_corr_rand<0),2);
 randpropsignificantnegcorr = randnumsignificantnegcorr./size(spk_dur_pval_rand,2);
 randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
-randpropsignificantnegcorr_lo = randpropsignificantnegcorr_sorted(floor(aph*ntrials/2));
-randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+randpropsignificantnegcorr_lo = randpropsignificantnegcorr_sorted(5);
+randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(995);
 
 randnumsignificantposcorr = sum((spk_dur_pval_rand<=0.05).*(spk_dur_corr_rand>0),2);
 randpropsignificantposcorr = randnumsignificantposcorr./size(spk_dur_pval_rand,2);
 randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
-randpropsignificantposcorr_lo = randpropsignificantposcorr_sorted(floor(aph*ntrials/2));
-randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+randpropsignificantposcorr_lo = randpropsignificantposcorr_sorted(5);
+randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(995);
 
 disp(['shuffled proportion of cases that are significant (99% CI):',num2str(randpropsignificant_lo),'-',num2str(randpropsignificant_hi)]);
 disp(['shuffled proportion of cases that are significantly negative corr (99% CI):',num2str(randpropsignificantnegcorr_lo),'-',num2str(randpropsignificantnegcorr_hi)]);
 disp(['shuffled proportion of cases that are significantly positive corr (99% CI):',num2str(randpropsignificantposcorr_lo),'-',num2str(randpropsignificantposcorr_hi)]);
+
+% randnumsignificantnegcorr = sum((spk_dur_pval_rand<=0.05).*(spk_dur_corr_rand<0),2);
+% randpropsignificantnegcorr = randnumsignificantnegcorr./randnumsignificant;
+% randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
+% randpropsignificantnegcorr_lo = randpropsignificantnegcorr_sorted(5);
+% randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(995);
+% 
+% randnumsignificantposcorr = sum((spk_dur_pval_rand<=0.05).*(spk_dur_corr_rand>0),2);
+% randpropsignificantposcorr = randnumsignificantposcorr./randnumsignificant;
+% randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
+% randpropsignificantposcorr_lo = randpropsignificantposcorr_sorted(5);
+% randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(995);
+% 
+% disp(['shuffled proportion of significant cases that are negative corr (99% CI):',num2str(randpropsignificantnegcorr_lo),'-',num2str(randpropsignificantnegcorr_hi)]);
+% disp(['shuffled proportion of significant cases that are positive corr (99% CI):',num2str(randpropsignificantposcorr_lo),'-',num2str(randpropsignificantposcorr_hi)]);
 
 figure;hold on;[n b] = hist(randpropsignificant,[0:0.001:0.25]);
 stairs(b,n/sum(n),'k','linewidth',2);y=get(gca,'ylim');
 plot(randpropsignificant_hi,y(1),'k^','markersize',8);hold on;
 plot(randpropsignificant_lo,y(1),'k^','markersize',8);hold on;
 plot(numsignificant/numcases,y(1),'k^','markersize',8,'markerfacecolor','k');hold on;
-title('shuffled RA activity vs syll duration correlations');
+title('shuffled RA activity vs gap duration correlations');
 xlabel('proportion of significant correlations');ylabel('probability');set(gca,'fontweight','bold');
 
 figure;hold on;[n b] = hist(randpropsignificantnegcorr,[0:0.001:0.25]);
@@ -387,7 +403,7 @@ stairs(b,n/sum(n),'k','linewidth',2);y=get(gca,'ylim');
 plot(randpropsignificantnegcorr_hi,y(1),'b^','markersize',8);hold on;
 plot(randpropsignificantnegcorr_lo,y(1),'b^','markersize',8);hold on;
 plot(length(negcorr)/numcases,y(1),'b^','markersize',8,'markerfacecolor','b');hold on;
-title('shuffled RA activity vs syll duration correlations');
+title('shuffled RA activity vs gap duration correlations');
 xlabel('proportion of significantly negative correlations');ylabel('probability');set(gca,'fontweight','bold');
 
 figure;hold on;[n b] = hist(randpropsignificantposcorr,[0:0.001:0.25]);
@@ -395,5 +411,5 @@ stairs(b,n/sum(n),'k','linewidth',2);y=get(gca,'ylim');
 plot(randpropsignificantposcorr_lo,y(1),'r^','markersize',8);hold on;
 plot(randpropsignificantposcorr_hi,y(1),'r^','markersize',8);hold on;
 plot(length(poscorr)/numcases,y(1),'r^','markersize',8,'markerfacecolor','r');hold on;
-title('shuffled RA activity vs syll duration correlations');
+title('shuffled RA activity vs gap duration correlations');
 xlabel('proportion of significantly positive correlations');ylabel('probability');set(gca,'fontweight','bold');

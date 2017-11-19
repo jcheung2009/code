@@ -472,17 +472,32 @@ randnumsignificantnegcorr = sum((spk_gapdur_pval_rand<=0.05).*(spk_gapdur_corr_r
 randpropsignificantnegcorr = randnumsignificantnegcorr./size(spk_gapdur_pval_rand,2);
 randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
 randpropsignificantnegcorr_lo = randpropsignificantnegcorr_sorted(floor(aph*ntrials/2));
-randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(995);
 
 randnumsignificantposcorr = sum((spk_gapdur_pval_rand<=0.05).*(spk_gapdur_corr_rand>0),2);
 randpropsignificantposcorr = randnumsignificantposcorr./size(spk_gapdur_pval_rand,2);
 randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
 randpropsignificantposcorr_lo = randpropsignificantposcorr_sorted(floor(aph*ntrials/2));
-randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(995);
 
 disp(['shuffled proportion of cases that are significant (99% CI):',num2str(randpropsignificant_lo),'-',num2str(randpropsignificant_hi)]);
 disp(['shuffled proportion of cases that are significantly negative corr (99% CI):',num2str(randpropsignificantnegcorr_lo),'-',num2str(randpropsignificantnegcorr_hi)]);
 disp(['shuffled proportion of cases that are significantly positive corr (99% CI):',num2str(randpropsignificantposcorr_lo),'-',num2str(randpropsignificantposcorr_hi)]);
+
+% randnumsignificantnegcorr = sum((spk_gapdur_pval_rand<=0.05).*(spk_gapdur_corr_rand<0),2);
+% randpropsignificantnegcorr = randnumsignificantnegcorr./randnumsignificant;
+% randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
+% randpropsignificantnegcorr_lo = randpropsignificantnegcorr_sorted(5);
+% randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(995);
+% 
+% randnumsignificantposcorr = sum((spk_gapdur_pval_rand<=0.05).*(spk_gapdur_corr_rand>0),2);
+% randpropsignificantposcorr = randnumsignificantposcorr./randnumsignificant;
+% randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
+% randpropsignificantposcorr_lo = randpropsignificantposcorr_sorted(5);
+% randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(995);
+% 
+% disp(['shuffled proportion of significant cases that are negative corr (99% CI):',num2str(randpropsignificantnegcorr_lo),'-',num2str(randpropsignificantnegcorr_hi)]);
+% disp(['shuffled proportion of significant cases that are positive corr (99% CI):',num2str(randpropsignificantposcorr_lo),'-',num2str(randpropsignificantposcorr_hi)]);
 
 figure;hold on;[n b] = hist(randpropsignificant,[0:0.001:0.25]);
 stairs(b,n/sum(n),'k','linewidth',2);y=get(gca,'ylim');

@@ -207,18 +207,18 @@ for i = 1:length(ff)
 end
 
 ind = find(cellfun(@(x) ~isempty(x),prop_significant_negcorr_lag_gaps));
-propnegsig = cell2mat(cellfun(@(x) length(find(x(:,2)<=0.05))/length(x),prop_significant_negcorr_lag_gaps(ind),'un',0));
-figure;subplot(2,1,1);hold on;plot(trials(ind),propnegsig,'marker','o');
 mnr = cell2mat(cellfun(@(x) nanmean(x(:,1)),prop_significant_negcorr_lag_gaps(ind),'un',0));
-subplot(2,1,2);hold on;plot(trials(ind),mnr,'marker','o');hold on;
-
+mnp = cell2mat(cellfun(@(x) nanmean(x(:,2)),prop_significant_negcorr_lag_gaps(ind),'un',0));
+figure;subplot(2,1,1);hold on;plot(trials(ind),mnr,'marker','o');
+subplot(2,1,2);hold on;plot(trials(ind),mnp,'marker','o');hold on;
+plot([trials(ind(1)) trials(ind(end))],[0.05 0.05],'k');hold on;
 
 ind = find(cellfun(@(x) ~isempty(x),prop_significant_poscorr_lag_gaps));
-proppossig = cell2mat(cellfun(@(x) length(find(x(:,2)<=0.05))/length(x),prop_significant_poscorr_lag_gaps(ind),'un',0));
-figure;subplot(2,1,1);hold on;plot(trials(ind),proppossig,'marker','o');
 mnr = cell2mat(cellfun(@(x) nanmean(x(:,1)),prop_significant_poscorr_lag_gaps(ind),'un',0));
-subplot(2,1,2);hold on;plot(trials(ind),mnr,'marker','o');hold on;
-
+mnp = cell2mat(cellfun(@(x) nanmean(x(:,2)),prop_significant_poscorr_lag_gaps(ind),'un',0));
+figure;subplot(2,1,1);hold on;plot(trials(ind),mnr,'marker','o');
+subplot(2,1,2);hold on;plot(trials(ind),mnp,'marker','o');hold on;
+plot([trials(ind(1)) trials(ind(end))],[0.05 0.05],'k');hold on;
 
 
                 
