@@ -5,13 +5,17 @@ config;
 win = gausswin(20);%for smoothing spike trains
 win = win./sum(win);
 seqlen = 6;%4 = 2 syllables before and after target gap
+randpropsignificantnegcorr_hi = 0.036932;
+randpropsignificantnegcorr_lo = 0.012311;
+randpropsignificantposcorr_hi = 0.037879;
+randpropsignificantposcorr_lo = 0.013258;
 
 windowsize = 40;%ms
 shift = 10;%ms
 min_time_before = -350;
 max_time_after = 350;
 trials = [min_time_before:shift:max_time_after];
-prop_significant_cases_lag_gaps = cell(length(trials),1);
+cases_lag_gaps = cell(length(trials),1);
 
 ff = load_batchf('batchfile');
 birdid = arrayfun(@(x) x.birdname,params,'unif',0);
@@ -128,17 +132,24 @@ for i = 1:length(ff)
                     if isempty(trialind)
                         continue
                     else
-                        prop_significant_cases_lag_gaps{trialind} = [prop_significant_cases_lag_gaps{trialind}; r(2) p(2)];
+                        cases_lag_gaps{trialind} = [cases_lag_gaps{trialind}; r(2) p(2)];
                     end
                 end
         end
     end
 end
 
-ind = find(cellfun(@(x) ~isempty(x),prop_significant_cases_lag_gaps));
-propnegsig = cell2mat(cellfun(@(x) length(find(x(:,2)<=0.05 & x(:,1)<0))/length(x),prop_significant_cases_lag_gaps(ind),'un',0));
-figure;subplot(2,1,1);hold on;plot(trials(ind),propnegsig,'marker','o');
-            
-mnr = cell2mat(cellfun(@(x) nanmean(x(x(:,2)<=0.05 & x(:,1)<0,1)),prop_significant_cases_lag_gaps(ind),'un',0));
-subplot(2,1,2);hold on;plot(trials(ind),mnr,'marker','o');hold on;
-  
+ind = find(cellfun(@(x) ~isempty(x),cases_lag_gaps));
+[propnegsig hi lo] = cellfun(@(x) jc_BootstrapfreqCI(x(:,2)<=0.05 & x(:,1)<0),cases_lag_gaps(ind),'un',1);
+figure;hold on;plot(trials(ind),propnegsig,'b','marker','o','linewidth',2);
+patch([trials(ind) fliplr(trials(ind))],[hi' fliplr(lo')],[0.3 0.3 0.7],'edgecolor','none','facealpha',0.7);
+plot([trials(ind(1)) trials(ind(end))],[randpropsignificantnegcorr_hi randpropsignificantnegcorr_hi],'color',[0.5 0.5 0.5],'linewidth',2);
+plot([trials(ind(1)) trials(ind(end))],[randpropsignificantnegcorr_lo randpropsignificantnegcorr_lo],'color',[0.5 0.5 0.5],'linewidth',2);
+xlabel('time relative to target gap (ms)');ylabel('proportion significantly negative cases');
+
+[proppossig hi lo] = cellfun(@(x) jc_BootstrapfreqCI(x(:,2)<=0.05 & x(:,1)>0),cases_lag_gaps(ind),'un',1);
+figure;hold on;plot(trials(ind),proppossig,'r','marker','o','linewidth',2);
+patch([trials(ind) fliplr(trials(ind))],[hi' fliplr(lo')],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.7);
+plot([trials(ind(1)) trials(ind(end))],[randpropsignificantposcorr_hi randpropsignificantposcorr_hi],'color',[0.5 0.5 0.5],'linewidth',2);
+plot([trials(ind(1)) trials(ind(end))],[randpropsignificantposcorr_lo randpropsignificantposcorr_lo],'color',[0.5 0.5 0.5],'linewidth',2);
+xlabel('time relative to target gap (ms)');ylabel('proportion significantly positive cases');

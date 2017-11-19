@@ -5,13 +5,15 @@ config;
 win = gausswin(20);%for smoothing spike trains
 win = win./sum(win);
 seqlen = 6;%4 = 2 syllables before and after target gap
+randpropsignificantnegcorr_hi = 
+randpropsignificantnegcorr_lo = 
 
 windowsize = 40;%ms
 shift = 10;%ms
 min_time_before = -350;
 max_time_after = 350;
 trials = [min_time_before:shift:max_time_after];
-prop_significant_cases_lag_gaps = cell(length(trials),1);
+cases_lag_gaps = cell(length(trials),1);
 
 ff = load_batchf('batchfile');
 birdid = arrayfun(@(x) x.birdname,params,'unif',0);
@@ -128,20 +130,20 @@ for i = 1:length(ff)
                     if isempty(trialind)
                         continue
                     else
-                        prop_significant_cases_lag_gaps{trialind} = [prop_significant_cases_lag_gaps{trialind}; r(2) p(2)];
+                        cases_lag_gaps{trialind} = [cases_lag_gaps{trialind}; r(2) p(2)];
                     end
                 end
         end
     end
 end
 
-ind = find(cellfun(@(x) ~isempty(x),prop_significant_cases_lag_gaps));
-propnegsig = cell2mat(cellfun(@(x) length(find(x(:,2)<=0.05 & x(:,1)<0))/length(x),prop_significant_cases_lag_gaps(ind),'un',0));
+ind = find(cellfun(@(x) ~isempty(x),cases_lag_gaps));
+propnegsig = cell2mat(cellfun(@(x) length(find(x(:,2)<=0.05 & x(:,1)<0))/length(x),cases_lag_gaps(ind),'un',0));
 figure;subplot(2,1,1);hold on;plot(trials(ind),propnegsig,'marker','o');
-            
-mnr = cell2mat(cellfun(@(x) nanmean(x(x(:,2)<=0.05 & x(:,1)<0,1)),prop_significant_cases_lag_gaps(ind),'un',0));
-figure;subplot(2,1,1);hold on;plot(trials(ind),mnr,'marker','o');
-subplot(2,1,2);hold on;plot(trials(ind),mnp,'marker','o');hold on;
-plot([trials(ind(1)) trials(ind(end))],[0.05 0.05],'k');hold on;      
+plot([trials(ind(1)) trials(ind(end))],[
+xlabel('time relative to target gap (ms)');ylabel('proportion significantly negative cases');
 
-sig = cell2mat(cellfun(@(x) nanmean(abs(x(x(:,2)<=0.05,:))),prop_significant_cases_lag_gaps,'un',0))
+            
+mnr = cell2mat(cellfun(@(x) nanmean(x(x(:,2)<=0.05 & x(:,1)<0,1)),cases_lag_gaps(ind),'un',0));
+subplot(2,1,2);hold on;plot(trials(ind),mnr,'marker','o');hold on;
+  
