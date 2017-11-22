@@ -4,6 +4,7 @@ config;
 
 spk_gapdur_corr = [];spk_dur_corr= [];case_name = {};
 spk_gapdur_corr_prev = []; spk_gapdur_corr_next = [];
+prevspk_gapdur_corr = []; nextspk_gapdur_corr = [];
 win = gausswin(20);%for smoothing spike trains, 20 ms
 win = win./sum(win);
 seqlen = 6;%4 = 2 syllables before and after target gap
@@ -49,10 +50,68 @@ for i = 1:length(ff)
         if length(gapdur_id)<25
             continue
         end
+        
+        %correlate prev gaps' activity with target gapdur
+        seqst_prev = ceil(max(seqoffs(:,seqlen/2-1)-seqons(:,1)));%boundaries for sequence activity relative to target gap (sylloff1)
+        seqend_prev = ceil(max(seqoffs(:,end)-seqoffs(:,seqlen/2-1)));
+        spktms_prev = cell(size(seqons,1),1);%spike times for each trial relative to target gap 
+        smooth_spiketrains_prev = zeros(length(gapdur_id),seqst_prev+seqend_prev+1);
+        for m = 1:size(seqons,1)
+            temp = zeros(1,seqst_prev+seqend_prev+1);
+            x = spiketimes(find(spiketimes>=(seqoffs(m,seqlen/2-1)-seqst_prev) & ...
+                spiketimes<=(seqoffs(m,seqlen/2-1)+seqend_prev)));
+            spktms_prev{m} = x - seqoffs(m,seqlen/2-1); %spike times aligned by sylloff1 
+            spktimes = round(spktms_prev{m})+seqst_prev+1;
+            temp(spktimes) = 1;
+            smooth_spiketrains_prev(m,:) = conv(temp,win,'same');
+        end
+        tb_prev = [-seqst_prev:seqend_prev];
+        PSTH_mn_prev = mean(smooth_spiketrains_prev,1).*1000;
+        [pks, locs,w,~,wc] = findpeaks2(PSTH_mn_prev,'MinPeakHeight',50,...
+            'MinPeakDistance',20,'MinPeakWidth',10,'Annotate','extents');%find bursts in premotor win
+        wc = round(wc);
+        pkid = find(tb_prev(locs)>=-40 & tb_prev(locs)<=0);
+        if ~isempty(pkid)
+            burstend = wc(pkid(end),2);
+            burstst = wc(pkid(end),1);
+            wth = w(pkid(end));
+            npks_burst = cellfun(@(x) length(find(x>=tb_prev(burstst)&x<tb_prev(burstend))),spktms_prev);%extract nspks in each trial
+            [r5 p5] = corrcoef(npks_burst,gapdur_id);
+            prevspk_gapdur_corr = [prevspk_gapdur_corr; r5(2) p5(2)];
+        end
+        
+        %correlate next gaps' activity with target gapdur
+        seqst_next = ceil(max(seqoffs(:,seqlen/2+1)-seqons(:,1)));%boundaries for sequence activity relative to target gap (sylloff1)
+        seqend_next = ceil(max(seqoffs(:,end)-seqoffs(:,seqlen/2+1)));
+        spktms_next = cell(size(seqons,1),1);%spike times for each trial relative to target gap 
+        smooth_spiketrains_next = zeros(length(gapdur_id),seqst_next+seqend_next+1);
+        for m = 1:size(seqons,1)
+            temp = zeros(1,seqst_next+seqend_next+1);
+            x = spiketimes(find(spiketimes>=(seqoffs(m,seqlen/2+1)-seqst_next) & ...
+                spiketimes<=(seqoffs(m,seqlen/2+1)+seqend_next)));
+            spktms_next{m} = x - seqoffs(m,seqlen/2+1); %spike times aligned by sylloff1 
+            spktimes = round(spktms_next{m})+seqst_next+1;
+            temp(spktimes) = 1;
+            smooth_spiketrains_next(m,:) = conv(temp,win,'same');
+        end
+        tb_next = [-seqst_next:seqend_next];
+        PSTH_mn_next = mean(smooth_spiketrains_next,1).*1000;
+        [pks, locs,w,~,wc] = findpeaks2(PSTH_mn_next,'MinPeakHeight',50,...
+            'MinPeakDistance',20,'MinPeakWidth',10,'Annotate','extents');%find bursts in premotor win
+        wc = round(wc);
+        pkid = find(tb_next(locs)>=-40 & tb_next(locs)<=0);
+        if ~isempty(pkid)
+            burstend = wc(pkid(end),2);
+            burstst = wc(pkid(end),1);
+            wth = w(pkid(end));
+            npks_burst = cellfun(@(x) length(find(x>=tb_next(burstst)&x<tb_next(burstend))),spktms_next);%extract nspks in each trial
+            [r6 p6] = corrcoef(npks_burst,gapdur_id);
+            nextspk_gapdur_corr = [nextspk_gapdur_corr; r6(2) p6(2)];
+        end
 
+        %correlate target gaps' activity with target gapdur
         seqst = ceil(max(seqoffs(:,seqlen/2)-seqons(:,1)));%boundaries for sequence activity relative to target gap (sylloff1)
         seqend = ceil(max(seqoffs(:,end)-seqoffs(:,seqlen/2)));
-        
         spktms = cell(size(seqons,1),1);%spike times for each trial relative to target gap 
         smooth_spiketrains = zeros(length(gapdur_id),seqst+seqend+1);
         for m = 1:size(seqons,1)
@@ -343,6 +402,90 @@ xlabel('burst width (ms)');ylabel('correlation');
 text(0,1,{['r=',num2str(r(2))];['p=',num2str(p(2))]},'units','normalized',...
     'verticalalignment','top');
 
+%compare percentage of cases with significant correlations with target gap
+%vs prev and next gap for neural activity at target gap
+figure;hold on;ax = gca;
+[mn1 hi1 lo1] = jc_BootstrapfreqCI(spk_gapdur_corr_prev(:,2)<=0.05);
+[mn2 hi2 lo2] = jc_BootstrapfreqCI(spk_gapdur_corr(:,2)<=0.05);
+[mn3 hi3 lo3] = jc_BootstrapfreqCI(spk_gapdur_corr_next(:,2)<=0.05);
+b=bar(ax,[1 2],[mn1 mn2 mn3;NaN NaN NaN]);
+b(1).FaceColor = 'none';b(1).EdgeColor=[0.5 0.5 0.5];
+b(2).FaceColor = 'none';b(2).EdgeColor='r';
+b(3).FaceColor = 'none';b(3).EdgeColor=[0.5 0.5 0.5];
+offset = 0.2222;
+errorbar(1-offset,mn1,hi1-mn1,'color',[0.5 0.5 0.5]);
+errorbar(1,mn2,hi2-mn2,'r');
+errorbar(1+offset,mn3,hi3-mn3,'color',[0.5 0.5 0.5]);
+plot(ax,[1-2*offset 1+2*offset],[0.069129 0.069129],'--','color',[0.5 0.5 0.5]);
+
+[mn1 hi1 lo1] = jc_BootstrapfreqCI(spk_gapdur_corr_prev(:,2)<=0.05 & spk_gapdur_corr_prev(:,1)<0);
+[mn2 hi2 lo2] = jc_BootstrapfreqCI(spk_gapdur_corr(:,2)<=0.05 & spk_gapdur_corr(:,1)<0);
+[mn3 hi3 lo3] = jc_BootstrapfreqCI(spk_gapdur_corr_next(:,2)<=0.05 & spk_gapdur_corr_next(:,1)<0);
+b=bar(ax,[2 3],[mn1 mn2 mn3;NaN NaN NaN]);
+b(1).FaceColor = 'none';b(1).EdgeColor=[0.5 0.5 0.5];
+b(2).FaceColor = 'none';b(2).EdgeColor='r';
+b(3).FaceColor = 'none';b(3).EdgeColor=[0.5 0.5 0.5];
+errorbar(2-offset,mn1,hi1-mn1,'color',[0.5 0.5 0.5]);
+errorbar(2,mn2,hi2-mn2,'r');
+errorbar(2+offset,mn3,hi3-mn3,'color',[0.5 0.5 0.5]);
+plot(ax,[2-2*offset 2+2*offset],[.037879 0.037879],'--','color',[0.5 0.5 0.5]);
+
+[mn1 hi1 lo1] = jc_BootstrapfreqCI(spk_gapdur_corr_prev(:,2)<=0.05 & spk_gapdur_corr_prev(:,1)>0);
+[mn2 hi2 lo2] = jc_BootstrapfreqCI(spk_gapdur_corr(:,2)<=0.05 & spk_gapdur_corr(:,1)>0);
+[mn3 hi3 lo3] = jc_BootstrapfreqCI(spk_gapdur_corr_next(:,2)<=0.05 & spk_gapdur_corr_next(:,1)>0);
+b=bar(ax,[3 4],[mn1 mn2 mn3;NaN NaN NaN]);
+b(1).FaceColor = 'none';b(1).EdgeColor=[0.5 0.5 0.5];
+b(2).FaceColor = 'none';b(2).EdgeColor='r';
+b(3).FaceColor = 'none';b(3).EdgeColor=[0.5 0.5 0.5];
+errorbar(3-offset,mn1,hi1-mn1,'color',[0.5 0.5 0.5]);
+errorbar(3,mn2,hi2-mn2,'r');
+errorbar(3+offset,mn3,hi3-mn3,'color',[0.5 0.5 0.5]);
+plot(ax,[3-2*offset 3+2*offset],[.037879 0.037879],'--','color',[0.5 0.5 0.5]);
+xticks(ax,[1,2,3]);xticklabels({'all','negative','positive'});xlim([0.5 3.5])
+ylabel('proportion of cases with significant correlations');
+
+%compare percentage of cases with significant correlations with
+%prev/current/next gap's activity with current gapdur
+figure;hold on;ax = gca;
+[mn1 hi1 lo1] = jc_BootstrapfreqCI(prevspk_gapdur_corr(:,2)<=0.05);
+[mn2 hi2 lo2] = jc_BootstrapfreqCI(spk_gapdur_corr(:,2)<=0.05);
+[mn3 hi3 lo3] = jc_BootstrapfreqCI(nextspk_gapdur_corr(:,2)<=0.05);
+b=bar(ax,[1 2],[mn1 mn2 mn3;NaN NaN NaN]);
+b(1).FaceColor = 'none';b(1).EdgeColor=[0.5 0.5 0.5];
+b(2).FaceColor = 'none';b(2).EdgeColor='r';
+b(3).FaceColor = 'none';b(3).EdgeColor=[0.5 0.5 0.5];
+offset = 0.2222;
+errorbar(1-offset,mn1,hi1-mn1,'color',[0.5 0.5 0.5]);
+errorbar(1,mn2,hi2-mn2,'r');
+errorbar(1+offset,mn3,hi3-mn3,'color',[0.5 0.5 0.5]);
+plot(ax,[1-2*offset 1+2*offset],[0.069129 0.069129],'--','color',[0.5 0.5 0.5]);
+
+[mn1 hi1 lo1] = jc_BootstrapfreqCI(prevspk_gapdur_corr(:,2)<=0.05 & prevspk_gapdur_corr(:,1)<0);
+[mn2 hi2 lo2] = jc_BootstrapfreqCI(spk_gapdur_corr(:,2)<=0.05 & spk_gapdur_corr(:,1)<0);
+[mn3 hi3 lo3] = jc_BootstrapfreqCI(nextspk_gapdur_corr(:,2)<=0.05 & nextspk_gapdur_corr(:,1)<0);
+b=bar(ax,[2 3],[mn1 mn2 mn3;NaN NaN NaN]);
+b(1).FaceColor = 'none';b(1).EdgeColor=[0.5 0.5 0.5];
+b(2).FaceColor = 'none';b(2).EdgeColor='r';
+b(3).FaceColor = 'none';b(3).EdgeColor=[0.5 0.5 0.5];
+errorbar(2-offset,mn1,hi1-mn1,'color',[0.5 0.5 0.5]);
+errorbar(2,mn2,hi2-mn2,'r');
+errorbar(2+offset,mn3,hi3-mn3,'color',[0.5 0.5 0.5]);
+plot(ax,[2-2*offset 2+2*offset],[.037879 0.037879],'--','color',[0.5 0.5 0.5]);
+
+[mn1 hi1 lo1] = jc_BootstrapfreqCI(prevspk_gapdur_corr(:,2)<=0.05 & prevspk_gapdur_corr(:,1)>0);
+[mn2 hi2 lo2] = jc_BootstrapfreqCI(spk_gapdur_corr(:,2)<=0.05 & spk_gapdur_corr(:,1)>0);
+[mn3 hi3 lo3] = jc_BootstrapfreqCI(nextspk_gapdur_corr(:,2)<=0.05 & nextspk_gapdur_corr(:,1)>0);
+b=bar(ax,[3 4],[mn1 mn2 mn3;NaN NaN NaN]);
+b(1).FaceColor = 'none';b(1).EdgeColor=[0.5 0.5 0.5];
+b(2).FaceColor = 'none';b(2).EdgeColor='r';
+b(3).FaceColor = 'none';b(3).EdgeColor=[0.5 0.5 0.5];
+errorbar(3-offset,mn1,hi1-mn1,'color',[0.5 0.5 0.5]);
+errorbar(3,mn2,hi2-mn2,'r');
+errorbar(3+offset,mn3,hi3-mn3,'color',[0.5 0.5 0.5]);
+plot(ax,[3-2*offset 3+2*offset],[.037879 0.037879],'--','color',[0.5 0.5 0.5]);
+xticks(ax,[1,2,3]);xticklabels({'all','negative','positive'});xlim([0.5 3.5])
+ylabel('proportion of cases with significant correlations');
+
 %% shuffle 
 ntrials = 1000;aph = 0.01;%99% CI 
 spk_gapdur_corr_rand = [];spk_gapdur_pval_rand=[];
@@ -487,9 +630,9 @@ randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
 randpropsignificantposcorr_lo = randpropsignificantposcorr_sorted(floor(aph*ntrials/2));
 randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
 
-disp(['shuffled proportion of cases that are significant (99% CI):',num2str(randpropsignificant_lo),'-',num2str(randpropsignificant_hi)]);
-disp(['shuffled proportion of cases that are significantly negative corr (99% CI):',num2str(randpropsignificantnegcorr_lo),'-',num2str(randpropsignificantnegcorr_hi)]);
-disp(['shuffled proportion of cases that are significantly positive corr (99% CI):',num2str(randpropsignificantposcorr_lo),'-',num2str(randpropsignificantposcorr_hi)]);
+disp(['shuffled proportion of cases that are significant (99% CI):',num2str(randpropsignificant_lo),'-',num2str(randpropsignificant_hi)]);%0.034091, 0.069129
+disp(['shuffled proportion of cases that are significantly negative corr (99% CI):',num2str(randpropsignificantnegcorr_lo),'-',num2str(randpropsignificantnegcorr_hi)]);%0.013258,0.037879
+disp(['shuffled proportion of cases that are significantly positive corr (99% CI):',num2str(randpropsignificantposcorr_lo),'-',num2str(randpropsignificantposcorr_hi)]);%0.014205,0.037879
 
 figure;hold on;[n b] = hist(randpropsignificant,[0:0.001:0.25]);
 stairs(b,n/sum(n),'k','linewidth',2);y=get(gca,'ylim');

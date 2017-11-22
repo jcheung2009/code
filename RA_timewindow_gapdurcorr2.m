@@ -158,7 +158,7 @@ for i = 1:length(ff)
         %                             patch([seqons_a(m,syll) seqoffs_a(m,syll) seqoffs_a(m,syll) seqons_a(m,syll)]-anchorpt(m),...
         %                                  [cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
         %                         end
-                                cnt=cnt+1;
+%                               cnt=cnt+1;
                                 temp = zeros(1,seqst2+seqend2+1);
                                 spktimes = round(spktms_aligned{m})+seqst2+1;
                                 temp(spktimes) = 1;
@@ -220,7 +220,7 @@ ind = find(cellfun(@(x) ~isempty(x),poscases_lag_gaps));
 [hi lo mnrpos] = cellfun(@(x) mBootstrapCI(x(:,1)),poscases_lag_gaps(ind),'un',1);
 subplot(2,1,2);hold on;plot(trials(ind),mnrpos,'r','marker','o','linewidth',2);
 patch([trials(ind) fliplr(trials(ind))],[hi' fliplr(lo')],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.7);
-
+xlabel('time relative to target gap (ms)');ylabel('average correlation');
 
 
 
