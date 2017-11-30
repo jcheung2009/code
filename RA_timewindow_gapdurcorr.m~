@@ -122,32 +122,38 @@ for i = 1:length(ff)
                             xlim([-seqst2 seqend2]);ylim([0 cnt]);xlabel('time (ms)');ylabel('trial');
                             
                             subplot(2,1,2);hold on;
-                            patch([-seqst2:seqend2 fliplr(-seqst2:seqend2)],([mean(smooth_spiketrains,1)-...
-                                stderr(smooth_spiketrains,1)...
-                                fliplr(mean(smooth_spiketrains,1)+...
-                                stderr(smooth_spiketrains,1))])*1000,[0.5 0.5 0.5],'edgecolor','none','facealpha',0.7);
+                            patch([-seqst2:seqend2 fliplr(-seqst2:seqend2)],([mean(smooth_spiketrains_a,1)-...
+                                stderr(smooth_spiketrains_a,1)...
+                                fliplr(mean(smooth_spiketrains_a,1)+...
+                            stderr(smooth_spiketrains_a,1))])*1000,[0.5 0.5 0.5],'edgecolor','none','facealpha',0.7);
                             xlim([-seqst2 seqend2]);xlabel('time (ms)');ylabel('Hz');set(gca,'fontweight','bold');
-                            plot(tb(locs),pks,'ok');hold on; 
-                            plot(tb(locs(pkid(ixx))),pks(pkid(ixx)),'or');hold on;
-                            yl = get(gca,'ylim');
-                            plot(repmat([tb(burstst) tb(burstend)],2,1),yl,'b');hold on;
-                        end  
+                            plot(tb_a(locs_a),pks_a,'ok');hold on; 
                     end
+
+                 
+                
+                
+                plot(tb_a(locs_a(targetpks)),pks_a(targetpks),'or');hold on;
+                
+                yl = get(gca,'ylim');
+                plot(repmat([tb_a(burstst_a) tb_a(burstend_a)],2,1),yl,'b');hold on;
+
+                
         end
     end
 end
 
-% ind = find(cellfun(@(x) ~isempty(x),c));
-% [propnegsig hi lo] = cellfun(@(x) jc_BootstrapfreqCI(x(:,2)<=0.05 & x(:,1)<0),c(ind),'un',1);
-% figure;hold on;plot(lags(ind),propnegsig,'b','marker','o','linewidth',2);
-% patch([lags(ind) fliplr(lags(ind))],[hi' fliplr(lo')],[0.3 0.3 0.7],'edgecolor','none','facealpha',0.7);
-% plot([lags(ind(1)) lags(ind(end))],[randpropsignificantnegcorr_hi randpropsignificantnegcorr_hi],'color',[0.5 0.5 0.5],'linewidth',2);
-% plot([lags(ind(1)) lags(ind(end))],[randpropsignificantnegcorr_lo randpropsignificantnegcorr_lo],'color',[0.5 0.5 0.5],'linewidth',2);
-% xlabel('time relative to target gap (ms)');ylabel('proportion significantly negative cases');
-% 
-% [proppossig hi lo] = cellfun(@(x) jc_BootstrapfreqCI(x(:,2)<=0.05 & x(:,1)>0),c(ind),'un',1);
-% figure;hold on;plot(lags(ind),proppossig,'r','marker','o','linewidth',2);
-% patch([lags(ind) fliplr(lags(ind))],[hi' fliplr(lo')],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.7);
-% plot([lags(ind(1)) lags(ind(end))],[randpropsignificantposcorr_hi randpropsignificantposcorr_hi],'color',[0.5 0.5 0.5],'linewidth',2);
-% plot([lags(ind(1)) lags(ind(end))],[randpropsignificantposcorr_lo randpropsignificantposcorr_lo],'color',[0.5 0.5 0.5],'linewidth',2);
-% xlabel('time relative to target gap (ms)');ylabel('proportion significantly positive cases');
+ind = find(cellfun(@(x) ~isempty(x),c));
+[propnegsig hi lo] = cellfun(@(x) jc_BootstrapfreqCI(x(:,2)<=0.05 & x(:,1)<0),c(ind),'un',1);
+figure;hold on;plot(lags(ind),propnegsig,'b','marker','o','linewidth',2);
+patch([lags(ind) fliplr(lags(ind))],[hi' fliplr(lo')],[0.3 0.3 0.7],'edgecolor','none','facealpha',0.7);
+plot([lags(ind(1)) lags(ind(end))],[randpropsignificantnegcorr_hi randpropsignificantnegcorr_hi],'color',[0.5 0.5 0.5],'linewidth',2);
+plot([lags(ind(1)) lags(ind(end))],[randpropsignificantnegcorr_lo randpropsignificantnegcorr_lo],'color',[0.5 0.5 0.5],'linewidth',2);
+xlabel('time relative to target gap (ms)');ylabel('proportion significantly negative cases');
+
+[proppossig hi lo] = cellfun(@(x) jc_BootstrapfreqCI(x(:,2)<=0.05 & x(:,1)>0),c(ind),'un',1);
+figure;hold on;plot(lags(ind),proppossig,'r','marker','o','linewidth',2);
+patch([lags(ind) fliplr(lags(ind))],[hi' fliplr(lo')],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.7);
+plot([lags(ind(1)) lags(ind(end))],[randpropsignificantposcorr_hi randpropsignificantposcorr_hi],'color',[0.5 0.5 0.5],'linewidth',2);
+plot([lags(ind(1)) lags(ind(end))],[randpropsignificantposcorr_lo randpropsignificantposcorr_lo],'color',[0.5 0.5 0.5],'linewidth',2);
+xlabel('time relative to target gap (ms)');ylabel('proportion significantly positive cases');

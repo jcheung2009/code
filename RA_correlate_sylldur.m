@@ -11,7 +11,8 @@ function [spk_dur_corr case_name] = RA_correlate_sylldur(batchfile,seqlen,...
 %(plot strongly significant cases),'y++su' (...single units)
 %shuff = 'n' or 'y' (shuffled analysis, for cases with peak activity greater than thresh)
 %spk_dur_corr = [corrcoef pval alignment firingrate width mn(pct_error)...
-%numtrials, corrcoefdur1 pval corrcoefdur2 pval]
+%numtrials]
+%alignby=1 or 2 (on2 vs off1)
 
 %parameters
 config; 
@@ -55,7 +56,7 @@ for i = 1:length(ff)
             continue
         end
 
-        %correlate current dur's activity with target dur
+        %compute PSTH from spike trains aligned to onset of target element
         seqst = ceil(max(seqons(:,seqlen/2+targetactivity+1)-seqons(:,1)));%boundaries for sequence activity relative to target gap (syllon2)
         seqend = ceil(max(seqoffs(:,end)-seqons(:,seqlen/2+targetactivity+1)));
         spktms = cell(size(seqons,1),1);%spike times for each trial relative to target syll 
@@ -132,52 +133,72 @@ for i = 1:length(ff)
                 10,'MinPeakWidth',10,'Annotate','extents','WidthReference','halfheight');
             if ~isempty(locs2)
                 wc2 = round(wc2);
-                [xy,ix] = min(abs(tb2(locs2)-(tb(locs(pkid(ixx)))-mean(anchor))));
-                burstend2 = wc2(ix,2)+(wc2(ix,2)-locs2(ix));%find burst border
-                burstst2 = wc2(ix,1)-(locs2(ix)-wc2(ix,1));
-                if ix < size(wc2,1) 
-                    if burstend2 > wc2(ix+1,1)
-                        burstend2 = ceil((wc2(ix,2)+wc2(ix+1,1))/2);
-                    end
-                end
-                if ix ~= 1
-                    if burstst2 < wc2(ix-1,2)
-                        burstst2 = floor((wc2(ix,1)+wc2(ix-1,2))/2);
-                    end
-                end
-                
-                r = xcorr(smooth_spiketrains_off1(:,burstst2:burstend2)',0,'coeff');
-                r = reshape(r,[size(smooth_spiketrains_off1,1) size(smooth_spiketrains_off1,1)]);
-                r = r(find(triu(r,1)));
-                varburst2 = nanmean(r);
-                
-                if varburst1 < varburst2
-                    alignby=2;%off1
-                    wth=w2(ix);
-                    pkactivity = (pks2(ix)-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
-                    npks_burst = cellfun(@(x) length(find(x>=tb2(burstst2)&x<tb2(burstend2))),spktms_off1);%extract nspks in each trial
-                else
-                    alignby=1;%on2
+                ix = find(tb2(locs2)>=motorwin-mean(anchor) & tb2(locs2)<=-mean(anchor));
+                if isempty(ix)
+                    alignby=1;
                     wth=w(pkid(ixx));
                     pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
-                    npks_burst = cellfun(@(x) length(find(x>=tb(burstst)&x<tb(burstend))),spktms);%extract nspks in each trial
+                    npks_burst = cellfun(@(x) length(find(x>=tb(burstst)&x<tb(burstend))),spktms)';%extract nspks in each trial
+                else
+                    [xy,ix] = min(abs(tb2(locs2)-(tb(locs(pkid(ixx)))-mean(anchor))));
+                    burstend2 = wc2(ix,2)+(wc2(ix,2)-locs2(ix));%find burst border
+                    burstst2 = wc2(ix,1)-(locs2(ix)-wc2(ix,1));
+                    if ix < size(wc2,1) 
+                        if burstend2 > wc2(ix+1,1)
+                            burstend2 = ceil((wc2(ix,2)+wc2(ix+1,1))/2);
+                        end
+                    end
+                    if ix ~= 1
+                        if burstst2 < wc2(ix-1,2)
+                            burstst2 = floor((wc2(ix,1)+wc2(ix-1,2))/2);
+                        end
+                    end
+
+                    r = xcorr(smooth_spiketrains_off1(:,burstst2:burstend2)',0,'coeff');
+                    r = reshape(r,[size(smooth_spiketrains_off1,1) size(smooth_spiketrains_off1,1)]);
+                    r = r(find(triu(r,1)));
+                    varburst2 = nanmean(r);
+
+                    if varburst1 < varburst2
+                        alignby=2;%off1
+                        wth=w2(ix);
+                        pkactivity = (pks2(ix)-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
+                        npks_burst = cellfun(@(x) length(find(x>=tb2(burstst2)&x<tb2(burstend2))),spktms_off1);%extract nspks in each trial
+                    else
+                        alignby=1;%on2
+                        wth=w(pkid(ixx));
+                        pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
+                        npks_burst = cellfun(@(x) length(find(x>=tb(burstst)&x<tb(burstend))),spktms)';%extract nspks in each trial
+                    end
                 end
             else
                 alignby=1;
                 wth=w(pkid(ixx));
                 pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
-                npks_burst = cellfun(@(x) length(find(x>=tb(burstst)&x<tb(burstend))),spktms);%extract nspks in each trial
+                npks_burst = cellfun(@(x) length(find(x>=tb(burstst)&x<tb(burstend))),spktms)';%extract nspks in each trial
             end
             
-            if strcmp(shuff,'y')
+            %shuffle analysis
+            if ~isempty(strfind(shuff,'y'))
                 shufftrials = 1000;
-                if pkactivity >= activitythresh
-                    npks_burst_shuff = repmat(npks_burst,shufftrials,1);
-                    npks_burst_shuff = permute_rowel(npks_burst_shuff);
-                    [r p] = corrcoef([npks_burst_shuff',dur_id_corr]);
-                    r = r(1:end-1,end);
-                    p = p(1:end-1,end);
-                    spk_dur_corr = [spk_dur_corr r p];
+                if isempty(strfind(shuff,'su'))
+                    if pkactivity >= activitythresh
+                        npks_burst_shuff = repmat(npks_burst,shufftrials,1);
+                        npks_burst_shuff = permute_rowel(npks_burst_shuff);
+                        [r p] = corrcoef([npks_burst_shuff',dur_id_corr]);
+                        r = r(1:end-1,end);
+                        p = p(1:end-1,end);
+                        spk_dur_corr = [spk_dur_corr r p];
+                    end
+                else
+                    if mean(pct_error)<=0.01
+                        npks_burst_shuff = repmat(npks_burst,shufftrials,1);
+                        npks_burst_shuff = permute_rowel(npks_burst_shuff);
+                        [r p] = corrcoef([npks_burst_shuff',dur_id_corr]);
+                        r = r(1:end-1,end);
+                        p = p(1:end-1,end);
+                        spk_dur_corr = [spk_dur_corr r p];
+                    end
                 end
             else
                 [r p] = corrcoef(npks_burst,dur_id_corr);
@@ -195,8 +216,11 @@ for i = 1:length(ff)
                 smalldurs_id = find(dur_id <= thr1);
                 thr2 = quantile(dur_id,0.75);%threshold for large gaps
                 largedurs_id = find(dur_id >= thr2);
-                spktms_off1_inburst = cellfun(@(x) x(find(x>=tb2(burstst2)&x<tb2(burstend2))),spktms_off1,'un',0);
-                spktms_inburst = cellfun(@(x) x(find(x>=tb(burstst)&x<tb(burstend))),spktms,'un',0);
+                if alignby==1
+                    spktms_inburst = cellfun(@(x) x(find(x>=tb(burstst)&x<tb(burstend))),spktms,'un',0);
+                elseif alignby==2
+                    spktms_off1_inburst = cellfun(@(x) x(find(x>=tb2(burstst2)&x<tb2(burstend2))),spktms_off1,'un',0);
+                end
                 figure;subplot(2,1,1);hold on;cnt=0;
                 for m = 1:length(dur_id)
                     if alignby==1
@@ -229,7 +253,8 @@ for i = 1:length(ff)
                 [~,stid] = regexp(ff(i).name,'data_');
                 enid = regexp(ff(i).name,'_TH');
                 unitid = ff(i).name(stid+1:enid-1);
-                title([unitid,' ',gapids{n},' r=',num2str(r(2))],'interpreter','none');
+                singleunit = mean(pct_error)<=0.01;
+                title([unitid,' ',gapids{n},' r=',num2str(r(2)),' unit=',num2str(singleunit)],'interpreter','none');
                 xlabel('time (ms)');ylabel('trial');set(gca,'fontweight','bold');
                 if alignby==1
                     xlim([-seqst seqend]);ylim([0 cnt]);

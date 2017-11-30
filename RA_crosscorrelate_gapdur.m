@@ -1,13 +1,23 @@
-function [c lags] = RA_crosscorrelate_gapdur(batchfile,seqlen,minsampsize,activitythresh,timewin,plot);
-%predictability gap duration of activity in time windows before and after target gap
-%for all units 
+function [c lags shuffc] = RA_crosscorrelate_gapdur(batchfile,seqlen,minsampsize,...
+    activitythresh,timewin,plotfig,singleunits);
+%finds burst at different time lags relative to target gap and computes
+%correlation
+%seqlen = length of syllable sequence, target gap is middle
+%minsampsize = minimum number of trials
+%activitythresh = for peak detection (zsc relative to shuffled)
+%timewin = [min max], min and max time in ms relative to target gap onset
+%plotfit = 1 or 0, plot peak detection for troubleshooting
+%singleunits = 1 or 0, restrict to single units if 1, only use
+%activitythresh for 0 
 
-
+config;
 win = gausswin(20);%for smoothing spike trains
 win = win./sum(win);
-shift = 10;%ms
+shift = 20;%ms
+shufftrials = 1000;
 lags = [timewin(1):shift:timewin(2)];
 c = cell(length(lags),1);
+shuffc = cell(length(lags),1);
 
 ff = load_batchf('batchfile');
 birdid = arrayfun(@(x) x.birdname,params,'unif',0);
@@ -84,9 +94,17 @@ for i = 1:length(ff)
                     %for each burst found
                     for ixx = 1:length(pkid)
                         pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
-                        if pkactivity < activitythresh
-                            continue
+                        
+                        if singleunits==0
+                            if pkactivity < activitythresh
+                                continue
+                            end
+                        else
+                            if mean(pct_error) > 0.01
+                                continue
+                            end
                         end
+                        
                         burstend = wc(pkid(ixx),2)+(wc(pkid(ixx),2)-locs(pkid(ixx)));
                         burstst = wc(pkid(ixx),1)-(locs(pkid(ixx))-(wc(pkid(ixx),1)));
                         if pkid(ixx)<size(wc,1)
@@ -99,19 +117,35 @@ for i = 1:length(ff)
                                 burstst = floor((wc(pkid(ixx),1)+wc(pkid(ixx)-1,2))/2);
                             end
                         end
+                        if burstst <= 0
+                            burstst = 1;
+                        end
+                        if burstend > length(tb)
+                            burstend = length(tb);
+                        end
                         
                         npks_burst = cellfun(@(x) length(find(x>=tb(burstst)&x<tb(burstend))),spktms_aligned);
                         [r p] = corrcoef(npks_burst,gapdur_id);
-                        lagind = max(find(mean(anchorpt)+tb_a(locs_a(targetpks(ix)))-lags>0));
+                        npks_burst_shuff = repmat(npks_burst,shufftrials,1);
+                        npks_burst_shuff = permute_rowel(npks_burst_shuff);
+                        [r2 p2] = corrcoef([npks_burst_shuff',gapdur_id]);
+                        r2 = r2(1:end-1,end);
+                        p2 = p2(1:end-1,end);
+                        
+                        lagind = max(find(mean(anchorpt)+tb(locs(pkid(ixx)))-lags>0));
                         if isempty(lagind)
                             continue
                         else
                             c{lagind} = [c{lagind}; r(2) p(2)];
+                            shuffc{lagind} = [shuffc{lagind} r2 p2];
                         end
                         
-                        if plot==1
+                        if plotfig==1
                             figure;subplot(2,1,1);hold on;cnt=0;
                             for m = 1:length(gapdur_id)
+                                if isempty(spktms_aligned{m})
+                                    continue
+                                end
                                 plot(repmat(spktms_aligned{m},2,1),[cnt cnt+1],'k');hold on;
                                 for syll=1:seqlen
                                 patch([seqons_a(m,syll) seqoffs_a(m,syll) seqoffs_a(m,syll) seqons_a(m,syll)]-anchorpt(m),...
@@ -131,23 +165,10 @@ for i = 1:length(ff)
                             plot(tb(locs(pkid(ixx))),pks(pkid(ixx)),'or');hold on;
                             yl = get(gca,'ylim');
                             plot(repmat([tb(burstst) tb(burstend)],2,1),yl,'b');hold on;
+                            pause
                         end  
                     end
         end
     end
 end
 
-% ind = find(cellfun(@(x) ~isempty(x),c));
-% [propnegsig hi lo] = cellfun(@(x) jc_BootstrapfreqCI(x(:,2)<=0.05 & x(:,1)<0),c(ind),'un',1);
-% figure;hold on;plot(lags(ind),propnegsig,'b','marker','o','linewidth',2);
-% patch([lags(ind) fliplr(lags(ind))],[hi' fliplr(lo')],[0.3 0.3 0.7],'edgecolor','none','facealpha',0.7);
-% plot([lags(ind(1)) lags(ind(end))],[randpropsignificantnegcorr_hi randpropsignificantnegcorr_hi],'color',[0.5 0.5 0.5],'linewidth',2);
-% plot([lags(ind(1)) lags(ind(end))],[randpropsignificantnegcorr_lo randpropsignificantnegcorr_lo],'color',[0.5 0.5 0.5],'linewidth',2);
-% xlabel('time relative to target gap (ms)');ylabel('proportion significantly negative cases');
-% 
-% [proppossig hi lo] = cellfun(@(x) jc_BootstrapfreqCI(x(:,2)<=0.05 & x(:,1)>0),c(ind),'un',1);
-% figure;hold on;plot(lags(ind),proppossig,'r','marker','o','linewidth',2);
-% patch([lags(ind) fliplr(lags(ind))],[hi' fliplr(lo')],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.7);
-% plot([lags(ind(1)) lags(ind(end))],[randpropsignificantposcorr_hi randpropsignificantposcorr_hi],'color',[0.5 0.5 0.5],'linewidth',2);
-% plot([lags(ind(1)) lags(ind(end))],[randpropsignificantposcorr_lo randpropsignificantposcorr_lo],'color',[0.5 0.5 0.5],'linewidth',2);
-% xlabel('time relative to target gap (ms)');ylabel('proportion significantly positive cases');

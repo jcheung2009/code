@@ -1,7 +1,9 @@
 function [mrk color] = markercolor(fn,varargin);
 %determine marker and line color from filename 
-if ~isempty(varargin)
+if ~isempty(varargin{1})
     runavg = 'y';
+else
+    runavg = 'n';
 end
 
 if (~isempty(strfind(lower(fn),'naspm')) & ~isempty(strfind(lower(fn),'apv')))|...
