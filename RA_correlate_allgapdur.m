@@ -1,18 +1,21 @@
-function [spk_allgapsdur_corr] = RA_correlate_allgapdur(batchfile,seqlen,...
-    minsampsize,activitythresh,motorwin,plotcondition)
+function [spk_allgapsdur_corr shuff] = RA_correlate_allgapdur(batchfile,seqlen,...
+    minsampsize,activitythresh,motorwin,singleunits,plotcondition)
 %for units that are significantly correlated with target gap, do they also
 %%burst before other gaps and are those bursts correlated with their respective gaps? 
 %minsampsize = minimum number of trials 
 %activitythresh = for peak detection (zscore relative to shuffled activity)
 %motorwin = -40 (40 ms premotor window)
 %spk_allgapsdur_corr = [corrcoef(for other gap) pval corrcoef(target gap)]
+%singleunits = 1 or 0, restrict to single units if 1, only use
+%activitythresh for 0 
 
 %parameters
 config; 
 win = gausswin(20);%for smoothing spike trains, 20 ms
 win = win./sum(win);
+shufftrials=1000;
 
-spk_allgapsdur_corr = [];
+spk_allgapsdur_corr = [];shuff = [];
 ff = load_batchf('batchfile');
 birdid = arrayfun(@(x) x.birdname,params,'unif',0);
 for i = 1:length(ff)
@@ -72,12 +75,6 @@ for i = 1:length(ff)
         %order trials by gapdur
         [~,ix] = sort(gapdur_id,'descend');
         gapdur_id = gapdur_id(ix);spktms = spktms(ix);seqons = seqons(ix,:);seqoffs = seqoffs(ix,:);smooth_spiketrains=smooth_spiketrains(ix,:);
-        if targetgapdur ~= 0
-            gapseq = seqons(:,2:end)-seqoffs(:,1:end-1);
-            gapdur_id_corr = gapseq(:,seqlen/2+targetgapdur);%gapdur for correlation with activity
-        else
-            gapdur_id_corr = gapdur_id;    
-        end
         
         %for each burst found, test alignment and correlate with gapdur
         for ixx = 1:length(pkid)
@@ -99,8 +96,8 @@ for i = 1:length(ff)
             r = r(find(triu(r,1)));
             varburst1 = nanmean(r);%average pairwise correlation of spike trains 
             
-            seqons_alignedoff1 = seqons-seqoffs(:,seqlen/2+targetgapactivity);
-            anchor=seqons_alignedoff1(:,seqlen/2+targetgapactivity+1);
+            seqons_alignedoff1 = seqons-seqoffs(:,seqlen/2);
+            anchor=seqons_alignedoff1(:,seqlen/2+1);
             spktms_on2 = arrayfun(@(x) spktms{x}-anchor(x),1:length(spktms),'un',0);%realign spike times in each trial by on2
             seqst2 = ceil(abs(min([spktms_on2{:}])));
             seqend2 = ceil(abs(max([spktms_on2{:}])));
@@ -230,10 +227,18 @@ for i = 1:length(ff)
                             burstend_a = length(tb_a);
                         end
                         
-                        npks_burst = cellfun(@(x) length(find(x>=tb_a(burstst_a(idxx))&x<tb_a(burstend_a(idxx)))),spktms_aligned);
+                        npks_burst = cellfun(@(x) length(find(x>=tb_a(burstst_a)&x<tb_a(burstend_a))),spktms_aligned);
                         [r2 p2] = corrcoef(npks_burst,motifgapdurs(:,numgap));
                         spk_allgapsdur_corr = [spk_allgapsdur_corr; r2(2) p2(2) r(2)];
                         
+                        %shuffle analysis
+                        npks_burst_shuff = repmat(npks_burst,shufftrials,1);
+                        npks_burst_shuff = permute_rowel(npks_burst_shuff);
+                        [r p] = corrcoef([npks_burst_shuff',motifgapdurs(:,numgap)]);
+                        r = r(1:end-1,end);
+                        p = p(1:end-1,end);
+                        shuff = [shuff r p];
+
                         if p2(2)<=0.05 & plotcondition == 1
                             if alignby==1
                                 seqoffs_aligned = seqoffs-seqoffs(:,numgap);%align time of each offset by gap onset
@@ -251,7 +256,10 @@ for i = 1:length(ff)
                             seqoffs_aligned = seqoffs_aligned(ixxx,:);smooth_spiketrains_a = smooth_spiketrains_a(ixxx,:);
                             figure;subplot(2,1,1);hold on;cnt=0;
                             for m = 1:length(motifgapdurs)
-                                plot(repmat(spktms_aligned{m},2,1),[cnt cnt+1],'k');hold on;
+                                if ~isempty(spktms_aligned{m})
+                                    plot(repmat(spktms_aligned{m},2,1),[cnt cnt+1],'k');hold on;
+                                end
+                                
                                 if alignby==1
                                     for syll=1:seqlen
                                         patch([seqons_aligned(m,syll) seqoffs_aligned(m,syll) seqoffs_aligned(m,syll) seqons_aligned(m,syll)]-seqoffs_aligned(m,numgap),...
@@ -278,9 +286,10 @@ for i = 1:length(ff)
                                 fliplr(mean(smooth_spiketrains_a,1)+...
                                 stderr(smooth_spiketrains_a,1))])*1000,[0.5 0.5 0.5],'edgecolor','none','facealpha',0.7);
                             yl = get(gca,'ylim');
-                            plot(repmat([tb_a(burstst_a(idxx)) tb_a(burstend_a(idxx))],2,1),yl,'g','linewidth',2);hold on;
+                            plot(repmat([tb_a(burstst_a) tb_a(burstend_a)],2,1),yl,'g','linewidth',2);hold on;
                             xlim([-seqst2 seqend2]);
-                            xlabel('time (ms)');ylabel('Hz');set(gca,'fontweight','bold');    
+                            xlabel('time (ms)');ylabel('Hz');set(gca,'fontweight','bold');  
+                            pause
                         end   
                     end
                 end
@@ -292,80 +301,3 @@ for i = 1:length(ff)
     end
 end
 
-% %compare percentage of cases with significant all/negative/positive
-% %correlations for bursts at other gaps in motif when unit has significant
-% %correlation at target gap 
-% figure;hold on;ax=gca;
-% [mn1 hi1 lo1] = jc_BootstrapfreqCI(spk_allgapsdur_corr(:,2)<=0.05);
-% [mn2 hi2 lo2] = jc_BootstrapfreqCI(spk_gapdur_corr(:,2)<=0.05);
-% b=bar(ax,[1 2],[mn1 mn2;NaN NaN]);
-% b(1).FaceColor = 'none';b(1).EdgeColor=[0.5 0.5 0.5];
-% b(2).FaceColor = 'none';b(2).EdgeColor='r';
-% offset = 0.1429;
-% errorbar(1-offset,mn1,hi1-mn1,'color',[0.5 0.5 0.5]);
-% errorbar(1+offset,mn2,hi2-mn2,'r');
-% plot(ax,[1-2*offset 1+2*offset],[randpropsignificantcorr_hi randpropsignificantcorr_hi],'--','color',[0.5 0.5 0.5]);
-% 
-% [mn1 hi1 lo1] = jc_BootstrapfreqCI(spk_allgapsdur_corr(:,2)<=0.05 & spk_allgapsdur_corr(:,1)<0);
-% [mn2 hi2 lo2] = jc_BootstrapfreqCI(spk_gapdur_corr(:,2)<=0.05 & spk_gapdur_corr(:,1)<0);
-% b=bar(ax,[2 3],[mn1 mn2;NaN NaN]);
-% b(1).FaceColor = 'none';b(1).EdgeColor=[0.5 0.5 0.5];
-% b(2).FaceColor = 'none';b(2).EdgeColor='r';
-% offset = 0.1429;
-% errorbar(2-offset,mn1,hi1-mn1,'color',[0.5 0.5 0.5]);
-% errorbar(2+offset,mn2,hi2-mn2,'r');
-% plot(ax,[2-2*offset 2+2*offset],[randpropsignificantnegcorr_hi randpropsignificantnegcorr_hi],'--','color',[0.5 0.5 0.5]);
-% 
-% [mn1 hi1 lo1] = jc_BootstrapfreqCI(spk_allgapsdur_corr(:,2)<=0.05 & spk_allgapsdur_corr(:,1)>0);
-% [mn2 hi2 lo2] = jc_BootstrapfreqCI(spk_gapdur_corr(:,2)<=0.05 & spk_gapdur_corr(:,1)>0);
-% b=bar(ax,[3 4],[mn1 mn2;NaN NaN]);
-% b(1).FaceColor = 'none';b(1).EdgeColor=[0.5 0.5 0.5];
-% b(2).FaceColor = 'none';b(2).EdgeColor='r';
-% offset = 0.1429;
-% errorbar(3-offset,mn1,hi1-mn1,'color',[0.5 0.5 0.5]);
-% errorbar(3+offset,mn2,hi2-mn2,'r');
-% plot(ax,[3-2*offset 3+2*offset],[randpropsignificantposcorr_hi randpropsignificantposcorr_hi],'--','color',[0.5 0.5 0.5]);
-% 
-% xticks(ax,[1,2,3]);xticklabels({'all','negative','positive'});xlim([0.5 3.5])
-% ylabel('proportion of cases with significant correlations');
-% 
-% %% compare when unit was negatively correlated with target gap, proportion of cases that are significant/negative/positive for bursts at other gaps
-% figure;hold on;ax = gca;
-% ind = find(spk_allgapsdur_corr(:,3)<0);
-% [mn1 hi1 lo1] = jc_BootstrapfreqCI(spk_allgapsdur_corr(ind,2) <= 0.05);
-% ind = find(spk_allgapsdur_corr(:,3)>0);
-% [mn2 hi2 lo2] = jc_BootstrapfreqCI(spk_allgapsdur_corr(ind,2) <= 0.05);
-% b=bar(ax,[1 2],[mn1 mn2;NaN NaN]);
-% b(1).FaceColor = 'none';b(1).EdgeColor='b';
-% b(2).FaceColor = 'none';b(2).EdgeColor='r';
-% offset = 0.1429;
-% errorbar(1-offset,mn1,hi1-mn1,'b');
-% errorbar(1+offset,mn2,hi2-mn2,'r');
-% plot(ax,[1-2*offset 1+2*offset],[randpropsignificantcorr_hi randpropsignificantcorr_hi],'--','color',[0.5 0.5 0.5]);
-% 
-% ind = find(spk_allgapsdur_corr(:,3)<0);
-% [mn1 hi1 lo1] = jc_BootstrapfreqCI(spk_allgapsdur_corr(ind,2) <= 0.05 & spk_allgapsdur_corr(ind,1)<0);
-% ind = find(spk_allgapsdur_corr(:,3)>0);
-% [mn2 hi2 lo2] = jc_BootstrapfreqCI(spk_allgapsdur_corr(ind,2) <= 0.05 & spk_allgapsdur_corr(ind,1)<0);
-% b=bar(ax,[2 3],[mn1 mn2;NaN NaN]);
-% b(1).FaceColor = 'none';b(1).EdgeColor='b';
-% b(2).FaceColor = 'none';b(2).EdgeColor='r';
-% offset = 0.1429;
-% errorbar(2-offset,mn1,hi1-mn1,'b');
-% errorbar(2+offset,mn2,hi2-mn2,'r');
-% plot(ax,[2-2*offset 2+2*offset],[randpropsignificantnegcorr_hi randpropsignificantnegcorr_hi],'--','color',[0.5 0.5 0.5]);
-% 
-% ind = find(spk_allgapsdur_corr(:,3)<0);
-% [mn1 hi1 lo1] = jc_BootstrapfreqCI(spk_allgapsdur_corr(ind,2) <= 0.05 & spk_allgapsdur_corr(ind,1)>0);
-% ind = find(spk_allgapsdur_corr(:,3)>0);
-% [mn2 hi2 lo2] = jc_BootstrapfreqCI(spk_allgapsdur_corr(ind,2) <= 0.05 & spk_allgapsdur_corr(ind,1)>0);
-% b=bar(ax,[3 4],[mn1 mn2;NaN NaN]);
-% b(1).FaceColor = 'none';b(1).EdgeColor='b';
-% b(2).FaceColor = 'none';b(2).EdgeColor='r';
-% offset = 0.1429;
-% errorbar(3-offset,mn1,hi1-mn1,'b');
-% errorbar(3+offset,mn2,hi2-mn2,'r');
-% plot(ax,[3-2*offset 3+2*offset],[randpropsignificantposcorr_hi randpropsignificantposcorr_hi],'--','color',[0.5 0.5 0.5]);
-% 
-% xticks(ax,[1,2,3]);xticklabels({'all','negative','positive'});xlim([0.5 3.5])
-% ylabel('proportion of cases with significant correlations');

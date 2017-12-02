@@ -36,7 +36,7 @@ for i = 1:length(ff)
         seqoffs = offsets(bsxfun(@plus,idx',(0:seqlen-1)));
         dur_id = jc_removeoutliers(durs_all(idx+seqlen/2),3);
         dur_id = jc_removeoutliers(dur_id,3);
-        id = find(isnan(dur_id));dur_id(id) = [];seqons(id,:) = [];seqoffs(id,:)
+        id = find(isnan(dur_id));dur_id(id) = [];seqons(id,:) = [];seqoffs(id,:)=[];
         
         if ~isempty(find(seqoffs(:,end)-seqons(:,1)>=1000))
             id = find(seqoffs(:,end)-seqons(:,1)>=1000);

@@ -22,11 +22,11 @@ win = win./sum(win);
 if strcmp(plotcasecondition,'n')
     plotcasecondition = '1==0';
 elseif strcmp(plotcasecondition,'y+')
-    plotcasecondition = ['p(2)<=0.05 & pkactivity >=',num2str(activitythresh)];%plot significant and strongly correlated cases
+    plotcasecondition = ['p(2)<=0.05 & pkactivity >=',num2str(activitythresh)];
 elseif strcmp(plotcasecondition,'y++')
-    plotcasecondition = ['p(2)<=0.05 & abs(r(2)) >= 0.3 & pkactivity >=',num2str(activitythresh)];%plot significant and strongly correlated cases
+    plotcasecondition = ['p(2)<=0.05 & abs(r(2)) >= 0.3 & pkactivity >=',num2str(activitythresh)];
 elseif strcmp(plotcasecondition,'y+su')
-     plotcasecondition = ['p(2)<=0.05 & mean(pct_error)<=0.01 & pkactivity >=', num2str(activitythresh)];%plot significant and strongly correlated cases
+     plotcasecondition = ['p(2)<=0.05 & mean(pct_error)<=0.01'];
 end
 
 spk_gapdur_corr = [];case_name = {};
@@ -230,10 +230,9 @@ for i = 1:length(ff)
                 figure;subplot(2,1,1);hold on;cnt=0;
                 for m = 1:length(gapdur_id)
                     if alignby==1
-                        if isempty(spktms{m})
-                            continue
+                        if ~isempty(spktms{m})
+                            plot(repmat(spktms{m},2,1),[cnt cnt+1],'k');hold on;
                         end
-                        plot(repmat(spktms{m},2,1),[cnt cnt+1],'k');hold on;
                         if ~isempty(spktms_inburst{m})
                             plot(repmat(spktms_inburst{m},2,1),[cnt cnt+1],'g');hold on;
                         end
@@ -242,10 +241,9 @@ for i = 1:length(ff)
                                  [cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
                         end
                     elseif alignby==2
-                        if isempty(spktms_on2{m})
-                            continue
+                        if ~isempty(spktms_on2{m})
+                            plot(repmat(spktms_on2{m},2,1),[cnt cnt+1],'k');hold on;
                         end
-                        plot(repmat(spktms_on2{m},2,1),[cnt cnt+1],'k');hold on;
                         if ~isempty(spktms_on2_inburst{m})
                             plot(repmat(spktms_on2_inburst{m},2,1),[cnt cnt+1],'g');hold on;
                         end

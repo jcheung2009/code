@@ -1,4 +1,4 @@
-function [hiconf loconf] = mBootstrapCImed(invect,alpha)
+function [hiconf loconf med] = mBootstrapCImed(invect,varargin)
 %
 %
 % function [hiConf loConf] = mBootstrapConfInt(invect,alpha)
@@ -10,17 +10,24 @@ function [hiconf loconf] = mBootstrapCImed(invect,alpha)
 % uses 5000 iterations with replacement.
 %
 
-if(isempty(alpha))
+if(isempty(varargin))
     alpha = 0.95;
+else
+    alpha = varargin{1};
 end
 
 hithresh = alpha;
 lothresh = 1-alpha;
 
-numreps = 5000;
+if ~isempty(find(isnan(invect)))
+    removeind = find(isnan(invect));
+    invect(removeind) = [];
+end
+
+numreps = 1000;
 shuffvect = zeros(1,numreps);
 
-parfor i=1:numreps
+for i=1:numreps
     thesamp = invect(randi(length(invect),1,length(invect)));
     shuffvect(i) = median(thesamp);    
 end
@@ -30,3 +37,4 @@ shuffvect = sort(shuffvect);
 
 hiconf = shuffvect(fix(length(shuffvect) * hithresh));
 loconf = shuffvect(fix(length(shuffvect) * lothresh));
+med = mean(shuffvect);

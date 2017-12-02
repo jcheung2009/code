@@ -1,11 +1,8 @@
-function [spk_allgapsdur_corr] = RA_correlate_allgapdur(batchfile,seqlen,...
+function [spk_allgapsdur_corr shuff] = RA_correlate_gapdur(batchfile,seqlen,...
     minsampsize,activitythresh,motorwin,plotcondition)
 %for units that are significantly correlated with target gap, do they also
 %%burst before other gaps and are those bursts correlated with their respective gaps? 
-%minsampsize = minimum number of trials 
-%activitythresh = for peak detection (zscore relative to shuffled activity)
-%motorwin = -40 (40 ms premotor window)
-%spk_allgapsdur_corr = [corrcoef(for other gap) pval corrcoef(target gap)]
+
 
 %parameters
 config; 
