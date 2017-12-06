@@ -1,4 +1,4 @@
-function [spk_gapdur_corr case_name dattable] = RA_correlate_gapdur(batchfile,seqlen,...
+function [spk_gapdur_corr case_name dattable spk_gapsylldur_corr] = RA_correlate_gapdur(batchfile,seqlen,...
     minsampsize,activitythresh,motorwin,targetgapactivity,targetgapdur,plotcasecondition,shuff)
 %correlate premotor spikes with gapdur 
 %seqlen = length of syllable sequence (use 6)
@@ -12,7 +12,7 @@ function [spk_gapdur_corr case_name dattable] = RA_correlate_gapdur(batchfile,se
 %shuff = 'n' or 'y' (shuffled analysis, for cases with peak activity
 %greater than thresh and multi unit), or 'ysu' (for activity greater than thresh and single units)
 %spk_gapdur_corr = [corrcoef pval alignment firingrate width mn(pct_error)...
-%numtrials, corrcoefdur1 pval corrcoefdur2 pval durmotorwin]
+%numtrials, corrcoefdur1 pval corrcoefdur2 pval]
 %alignby=1 or 2 (off1 or on2)
 
 
@@ -30,7 +30,7 @@ elseif strcmp(plotcasecondition,'y+su')
      plotcasecondition = ['p(2)<=0.05 & mean(pct_error)<=0.01 & pkactivity >=',num2str(activitythresh)];
 end
 
-spk_gapdur_corr = [];case_name = {};
+spk_gapdur_corr = [];case_name = {};spk_gapsylldur_corr = [];
 dattable = table([],[],[],[],[],[],[],[],'VariableNames',{'dur','spikes',...
     'unittype','activity','birdid','unitid','seqid','corrpval'});
 ff = load_batchf(batchfile);
@@ -215,9 +215,8 @@ for i = 1:length(ff)
                     durmotorwin = tb(locs(pkid(ixx)))-mean(seqons(:,seqlen/2+1)-seqoffs(:,seqlen/2));
                 elseif alignby == 2
                     durmotorwin = tb2(locs2(ix));
-                end
                 spk_gapdur_corr = [spk_gapdur_corr; r(2) p(2) alignby pkactivity...
-                    wth mean(pct_error) length(gapdur_id) r1(2) p1(2) r2(2) p2(2) durmotorwin];
+                    wth mean(pct_error) length(gapdur_id) r1(2) p1(2) r2(2) p2(2)];
             end
 
             [~,stid] = regexp(ff(i).name,'data_');

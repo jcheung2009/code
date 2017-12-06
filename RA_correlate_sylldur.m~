@@ -12,7 +12,7 @@ function [spk_dur_corr case_name dattable] = RA_correlate_sylldur(batchfile,seql
 %shuff = 'n' or 'y' (shuffled analysis, for cases with peak activity
 %greater than thresh and multi unit), or 'ysu' (for activity greater than thresh and single units)
 %spk_dur_corr = [corrcoef pval alignment firingrate width mn(pct_error)...
-%numtrials corrcoefgap2 pvalgap2 gapmotorwin]
+%numtrials]
 %alignby=1 or 2 (on2 vs off1)
 
 %parameters
@@ -227,7 +227,7 @@ for i = 1:length(ff)
                         mean(seqoffs(:,ceil(seqlen/2))-seqons(:,ceil(seqlen/2))));
                 end
                 spk_dur_corr = [spk_dur_corr; r(2) p(2) alignby pkactivity...
-                    wth mean(pct_error) length(dur_id) rd(2) pd(2) gapmotorwin];
+                    wth mean(pct_error) length(dur_id) rd(2) pd(2) gap];
                 
             end
             

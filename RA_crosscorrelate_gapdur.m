@@ -7,8 +7,8 @@ function [c lags shuffc] = RA_crosscorrelate_gapdur(batchfile,seqlen,minsampsize
 %activitythresh = for peak detection (zsc relative to shuffled)
 %timewin = [min max], min and max time in ms relative to target gap onset
 %plotfit = 1 or 0, plot peak detection for troubleshooting
-%singleunits = 1 or 0, restrict to single units if 1, only use
-%activitythresh for 0 
+%singleunits = 1 or 0, restrict to single units if 1, use only multi units
+%0 (both have to pass activity threshold)
 
 config;
 win = gausswin(20);%for smoothing spike trains
@@ -96,11 +96,11 @@ for i = 1:length(ff)
                         pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
                         
                         if singleunits==0
-                            if pkactivity < activitythresh
+                            if mean(pct_error)<=0.01 | pkactivity < activitythresh
                                 continue
                             end
                         else
-                            if mean(pct_error) > 0.01
+                            if mean(pct_error) > 0.01 | pkactivity < activitythresh
                                 continue
                             end
                         end

@@ -6,8 +6,7 @@ function [spk_allgapsdur_corr shuff] = RA_correlate_allgapdur(batchfile,seqlen,.
 %activitythresh = for peak detection (zscore relative to shuffled activity)
 %motorwin = -40 (40 ms premotor window)
 %spk_allgapsdur_corr = [corrcoef(for other gap) pval corrcoef(target gap)]
-%singleunits = 1 or 0, restrict to single units if 1, only use
-%activitythresh for 0 
+%singleunits = 1 or 0, restrict to single units if 1, or multiunits 0 (both have to cross activity thresh) 
 
 %parameters
 config; 
@@ -160,11 +159,11 @@ for i = 1:length(ff)
             end
                 
             if singleunits==0
-                if pkactivity < activitythresh
+                if mean(pct_error)<=0.01 | pkactivity < activitythresh
                     continue
                 end
             else
-                if mean(pct_error) > 0.01
+                if mean(pct_error) > 0.01 | pkactivity < activitythresh
                     continue
                 end
             end

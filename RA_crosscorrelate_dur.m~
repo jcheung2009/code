@@ -52,14 +52,14 @@ for i = 1:length(ff)
         spktms = cell(size(seqons,1),1);%spike times for each trial relative to target gap 
         for m = 1:size(seqons,1)
             temp = zeros(1,seqst+seqend+1);
-            x = spiketimes(find(spiketimes>=(seqons(m,ceil(seqlen/2))-seqst) & ...
-                spiketimes<=(seqons(m,ceil(seqlen/2))+seqend)));
-            spktms{m} = x - seqons(m,ceil(seqlen/2)); %spike times aligned by sylloff1 
+            x = spiketimes(find(spiketimes>=(seqons(m,seqlen/2+1)-seqst) & ...
+                spiketimes<=(seqons(m,seqlen/2+1)+seqend)));
+            spktms{m} = x - seqons(m,seqlen/2+1); %spike times aligned by sylloff1 
         end
         
         %align spike times by landmarks (each onset/offset in sequence)
-        seqons_a = seqons-seqons(:,ceil(seqlen/2));%align time of each onset by gap onset
-        seqoffs_a = seqoffs-seqons(:,ceil(seqlen/2));%align time of each offset by gap onset
+        seqons_a = seqons-seqons(:,seqlen/2+1);%align time of each onset by gap onset
+        seqoffs_a = seqoffs-seqons(:,seqlen/2+1);%align time of each offset by gap onset
         landmarks = seqoffs_a(:,[1;1]*(1:size(seqoffs_a,2)));
         landmarks(:,1:2:end) = seqons_a;  
         bounds = mean(diff(landmarks,1,2));
