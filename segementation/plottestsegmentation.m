@@ -51,6 +51,7 @@ for i = 1:length(motif)
     onsvars = [onsvars [mn mn2 mn3 mn4 mn5 mn6]'];
 end
 plot(1:6,onsvars','color',[0.5 0.5 0.5],'linewidth',2);
+ylabel('cv');
 
 
 dtwoffs = arrayfun(@(x) round((x.dtwsegment(:,2)-0.01)*fs)',testmotifsegment,'un',0);
@@ -99,6 +100,94 @@ for i = 1:length(motif)
     offsvars = [offsvars [mn mn2 mn3 mn4 mn5 mn6]'];
 end
 plot(1:6,offsvars','color',[0.5 0.5 0.5],'linewidth',2);
+ylabel('cv');
+
+%% variance of syllable durations and gaps 
+dtwsylls = cell2mat(arrayfun(@(x) (x.dtwsegment(:,2)-x.dtwsegment(:,1))',testmotifsegment,'un',0)');
+
+ind = arrayfun(@(x) size(x.ampsegment,1)==4,testmotifsegment,'un',1);
+ampsylls = cell2mat(arrayfun(@(x) (x.ampsegment(:,2)-x.ampsegment(:,1))',testmotifsegment(ind),'un',0)');
+
+ind = arrayfun(@(x) size(x.pksegment,1)==4,testmotifsegment,'un',1);
+pksylls = cell2mat(arrayfun(@(x) (x.pksegment(:,2)-x.pksegment(:,1))',testmotifsegment(ind),'un',0)');
+
+ind = arrayfun(@(x) size(x.dtwpksegment,1)==4,testmotifsegment,'un',1);
+dtwpksylls = cell2mat(arrayfun(@(x) (x.dtwpksegment(:,2)-x.dtwpksegment(:,1))',testmotifsegment(ind),'un',0)');
+
+ind = arrayfun(@(x) size(x.tonalitysegment,1)==4,testmotifsegment,'un',1);
+tonsylls = cell2mat(arrayfun(@(x) (x.tonalitysegment(:,2)-x.tonalitysegment(:,1))',testmotifsegment(ind),'un',0)');
+
+dtwampsylls = cell2mat(arrayfun(@(x) (x.dtwampsegment(:,2)-x.dtwampsegment(:,1))',testmotifsegment,'un',0)');
+
+
+dtwgaps = cell2mat(arrayfun(@(x) (x.dtwsegment(2:end,1)-x.dtwsegment(1:end-1,2))',testmotifsegment,'un',0)');
+
+ind = arrayfun(@(x) size(x.ampsegment,1)==4,testmotifsegment,'un',1);
+ampgaps = cell2mat(arrayfun(@(x) (x.ampsegment(2:end,1)-x.ampsegment(1:end-1,2))',testmotifsegment(ind),'un',0)');
+
+ind = arrayfun(@(x) size(x.pksegment,1)==4,testmotifsegment,'un',1);
+pkgaps = cell2mat(arrayfun(@(x) (x.pksegment(2:end,1)-x.pksegment(1:end-1,2))',testmotifsegment(ind),'un',0)');
+
+ind = arrayfun(@(x) size(x.dtwpksegment,1)==4,testmotifsegment,'un',1);
+dtwpkgaps = cell2mat(arrayfun(@(x) (x.dtwpksegment(2:end,1)-x.dtwpksegment(1:end-1,2))',testmotifsegment(ind),'un',0)');
+
+ind = arrayfun(@(x) size(x.tonalitysegment,1)==4,testmotifsegment,'un',1);
+tongaps = cell2mat(arrayfun(@(x) (x.tonalitysegment(2:end,1)-x.tonalitysegment(1:end-1,2))',testmotifsegment(ind),'un',0)');
+
+dtwampgaps = cell2mat(arrayfun(@(x) (x.dtwampsegment(2:end,1)-x.dtwampsegment(1:end-1,2))',testmotifsegment,'un',0)');
+
+figure;hold on;
+onsvars = [];
+for i = 1:length(motif)
+    [mn hi lo] = mBootstrapCI_CV(dtwsylls(:,i));
+    plot(1,mn,'ok','markersize',8);hold on;
+    errorbar(1,mn,hi-mn,'k','linewidth',2);hold on;
+    [mn2 hi2 lo2] = mBootstrapCI_CV(ampsylls(:,i));
+    plot(2,mn2,'or','markersize',8);hold on;
+    errorbar(2,mn2,hi2-mn2,'r','linewidth',2);hold on;
+    [mn3 hi3 lo3] = mBootstrapCI_CV(pksylls(:,i));
+    plot(3,mn3,'ob','markersize',8);hold on;
+    errorbar(3,mn3,hi3-mn3,'b','linewidth',2);hold on;
+    [mn4 hi4 lo4] = mBootstrapCI_CV(dtwpksylls(:,i));
+    plot(4,mn4,'og','markersize',8);hold on;
+    errorbar(4,mn4,hi4-mn4,'g','linewidth',2);hold on;
+    [mn5 hi5 lo5] = mBootstrapCI_CV(tonsylls(:,i));
+    plot(5,mn5,'oc','markersize',8);hold on;
+    errorbar(5,mn5,hi5-mn5,'c','linewidth',2);hold on;
+    [mn6 hi6 lo6] = mBootstrapCI_CV(dtwampsylls(:,i));
+    plot(6,mn6,'oc','markersize',8);hold on;
+    errorbar(6,mn6,hi6-mn6,'m','linewidth',2);hold on;
+    onsvars = [onsvars [mn mn2 mn3 mn4 mn5 mn6]'];
+end
+plot(1:6,onsvars','color',[0.5 0.5 0.5],'linewidth',2);
+ylabel('cv');
+
+figure;hold on;
+onsvars = [];
+for i = 1:length(motif)-1
+    [mn hi lo] = mBootstrapCI_CV(dtwgaps(:,i));
+    plot(1,mn,'ok','markersize',8);hold on;
+    errorbar(1,mn,hi-mn,'k','linewidth',2);hold on;
+    [mn2 hi2 lo2] = mBootstrapCI_CV(ampgaps(:,i));
+    plot(2,mn2,'or','markersize',8);hold on;
+    errorbar(2,mn2,hi2-mn2,'r','linewidth',2);hold on;
+    [mn3 hi3 lo3] = mBootstrapCI_CV(pkgaps(:,i));
+    plot(3,mn3,'ob','markersize',8);hold on;
+    errorbar(3,mn3,hi3-mn3,'b','linewidth',2);hold on;
+    [mn4 hi4 lo4] = mBootstrapCI_CV(dtwpkgaps(:,i));
+    plot(4,mn4,'og','markersize',8);hold on;
+    errorbar(4,mn4,hi4-mn4,'g','linewidth',2);hold on;
+    [mn5 hi5 lo5] = mBootstrapCI_CV(tongaps(:,i));
+    plot(5,mn5,'oc','markersize',8);hold on;
+    errorbar(5,mn5,hi5-mn5,'c','linewidth',2);hold on;
+    [mn6 hi6 lo6] = mBootstrapCI_CV(dtwampgaps(:,i));
+    plot(6,mn6,'oc','markersize',8);hold on;
+    errorbar(6,mn6,hi6-mn6,'m','linewidth',2);hold on;
+    onsvars = [onsvars [mn mn2 mn3 mn4 mn5 mn6]'];
+end
+plot(1:6,onsvars','color',[0.5 0.5 0.5],'linewidth',2);
+ylabel('cv');
+
 %%
 alignby=1;
 figure;

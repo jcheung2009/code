@@ -51,6 +51,7 @@ for i = 1:length(motif)
     onsvars = [onsvars [mn mn2 mn3 mn4 mn5 mn6]'];
 end
 plot(1:6,onsvars','color',[0.5 0.5 0.5],'linewidth',2);
+ylabel('cv');
 
 
 dtwoffs = arrayfun(@(x) round((x.dtwsegment(:,2)-0.01)*fs)',testmotifsegment,'un',0);
@@ -98,7 +99,24 @@ for i = 1:length(motif)
     errorbar(6,mn6,hi6-mn6,'m','linewidth',2);hold on;
     offsvars = [offsvars [mn mn2 mn3 mn4 mn5 mn6]'];
 end
-plot(1:5,offsvars','color',[0.5 0.5 0.5],'linewidth',2);
+plot(1:6,offsvars','color',[0.5 0.5 0.5],'linewidth',2);
+ylabel('cv');
+
+%% variance of syllable durations and gaps 
+dtwgaps = cell2mat(arrayfun(@(x) x.dtwsegment(:,2)-x.dtwsegment(:,1)',testmotifsegment,'un',0)');
+
+ind = arrayfun(@(x) size(x.ampsegment,1)==4,testmotifsegment,'un',1);
+ampgaps = cell2mat(arrayfun(@(x) x.ampsegment(:,2)-x.ampsegment(:,1)',testmotifsegment(ind),'un',0)');
+
+ind = arrayfun(@(x) size(x.pksegment,1)==4,testmotifsegment,'un',1);
+pkgaps = cell2mat(arrayfun(@(x) x.pksegment(:,2)-x.pksegment(:,1)',testmotifsegment(ind),'un',0)');
+
+ind = arrayfun(@(x) size(x.dtwpksegment,1)==4,testmotifsegment,'un',1);
+dtwpkgaps = cell2mat(arrayfun(@(x) x.dtwpksegment(:,2)-x.dtwpksegment(:,1)',testmotifsegment(ind),'un',0)');
+
+
+
+ampgaps = 
 %%
 alignby=1;
 figure;
