@@ -1,5 +1,5 @@
-motif = 'aabb';
-fs = 32000;
+motif = 'bcd';
+fs = 44100;
 %%variance ampplitude at syllable onsets and offsets
 sm = arrayfun(@(x) log(x.sm),testmotifsegment,'un',0);
 sm = cellfun(@(x) x-min(x),sm,'un',0);
@@ -8,19 +8,19 @@ sm = cellfun(@(x) x/max(x),sm','un',0);
 dtwons = arrayfun(@(x) round((x.dtwsegment(:,1)+0.01)*fs)',testmotifsegment,'un',0);
 dtwons = cell2mat(cellfun(@(x,y) y(x)',dtwons,sm','un',0)');
 
-ind = arrayfun(@(x) size(x.ampsegment,1)==4,testmotifsegment,'un',1);
+ind = arrayfun(@(x) size(x.ampsegment,1)==length(motif),testmotifsegment,'un',1);
 ampons = arrayfun(@(x) round((x.ampsegment(:,1)+0.01)*fs),testmotifsegment(ind),'un',0);
 ampons = cell2mat(cellfun(@(x,y) y(x)',ampons,sm(ind)','un',0)');
 
-ind = arrayfun(@(x) size(x.pksegment,1)==4,testmotifsegment,'un',1);
+ind = arrayfun(@(x) size(x.pksegment,1)==length(motif),testmotifsegment,'un',1);
 pkons = arrayfun(@(x) round((x.pksegment(:,1)+0.01)*fs),testmotifsegment(ind),'un',0);
 pkons = cell2mat(cellfun(@(x,y) y(x)',pkons,sm(ind)','un',0)');
 
-ind = arrayfun(@(x) size(x.dtwpksegment,1)==4,testmotifsegment,'un',1);
+ind = arrayfun(@(x) size(x.dtwpksegment,1)==length(motif),testmotifsegment,'un',1);
 dtwpkons = arrayfun(@(x) round((x.dtwpksegment(:,1)+0.01)*fs),testmotifsegment(ind),'un',0);
 dtwpkons = cell2mat(cellfun(@(x,y) y(x)',dtwpkons,sm(ind)','un',0)');
 
-ind = arrayfun(@(x) size(x.tonalitysegment,1)==4,testmotifsegment,'un',1);
+ind = arrayfun(@(x) size(x.tonalitysegment,1)==length(motif),testmotifsegment,'un',1);
 tonons = arrayfun(@(x) round((x.tonalitysegment(:,1)+0.01)*fs),testmotifsegment(ind),'un',0);
 tonons = cell2mat(cellfun(@(x,y) y(x)',tonons,sm(ind)','un',0)');
 
@@ -57,19 +57,19 @@ ylabel('cv');
 dtwoffs = arrayfun(@(x) round((x.dtwsegment(:,2)-0.01)*fs)',testmotifsegment,'un',0);
 dtwoffs = cell2mat(cellfun(@(x,y) y(x)',dtwoffs,sm','un',0)');
 
-ind = arrayfun(@(x) size(x.ampsegment,1)==4,testmotifsegment,'un',1);
+ind = arrayfun(@(x) size(x.ampsegment,1)==length(motif),testmotifsegment,'un',1);
 ampoffs = arrayfun(@(x) round((x.ampsegment(:,2)-0.01)*fs),testmotifsegment(ind),'un',0);
 ampoffs = cell2mat(cellfun(@(x,y) y(x)',ampoffs,sm(ind)','un',0)');
 
-ind = arrayfun(@(x) size(x.pksegment,1)==4,testmotifsegment,'un',1);
+ind = arrayfun(@(x) size(x.pksegment,1)==length(motif),testmotifsegment,'un',1);
 pkoffs = arrayfun(@(x) round((x.pksegment(:,2)-0.01)*fs),testmotifsegment(ind),'un',0);
 pkoffs = cell2mat(cellfun(@(x,y) y(x)',pkoffs,sm(ind)','un',0)');
 
-ind = arrayfun(@(x) size(x.dtwpksegment,1)==4,testmotifsegment,'un',1);
+ind = arrayfun(@(x) size(x.dtwpksegment,1)==length(motif),testmotifsegment,'un',1);
 dtwpkoffs = arrayfun(@(x) round((x.dtwpksegment(:,2)-0.01)*fs),testmotifsegment(ind),'un',0);
 dtwpkoffs = cell2mat(cellfun(@(x,y) y(x)',dtwpkoffs,sm(ind)','un',0)');
 
-ind = arrayfun(@(x) size(x.tonalitysegment,1)==4,testmotifsegment,'un',1);
+ind = arrayfun(@(x) size(x.tonalitysegment,1)==length(motif),testmotifsegment,'un',1);
 tonoffs = arrayfun(@(x) round((x.tonalitysegment(:,2)-0.01)*fs),testmotifsegment(ind),'un',0);
 tonoffs = cell2mat(cellfun(@(x,y) y(x)',tonoffs,sm(ind)','un',0)');
 
@@ -105,16 +105,16 @@ ylabel('cv');
 %% variance of syllable durations and gaps 
 dtwsylls = cell2mat(arrayfun(@(x) (x.dtwsegment(:,2)-x.dtwsegment(:,1))',testmotifsegment,'un',0)');
 
-ind = arrayfun(@(x) size(x.ampsegment,1)==4,testmotifsegment,'un',1);
+ind = arrayfun(@(x) size(x.ampsegment,1)==length(motif),testmotifsegment,'un',1);
 ampsylls = cell2mat(arrayfun(@(x) (x.ampsegment(:,2)-x.ampsegment(:,1))',testmotifsegment(ind),'un',0)');
 
-ind = arrayfun(@(x) size(x.pksegment,1)==4,testmotifsegment,'un',1);
+ind = arrayfun(@(x) size(x.pksegment,1)==length(motif),testmotifsegment,'un',1);
 pksylls = cell2mat(arrayfun(@(x) (x.pksegment(:,2)-x.pksegment(:,1))',testmotifsegment(ind),'un',0)');
 
-ind = arrayfun(@(x) size(x.dtwpksegment,1)==4,testmotifsegment,'un',1);
+ind = arrayfun(@(x) size(x.dtwpksegment,1)==length(motif),testmotifsegment,'un',1);
 dtwpksylls = cell2mat(arrayfun(@(x) (x.dtwpksegment(:,2)-x.dtwpksegment(:,1))',testmotifsegment(ind),'un',0)');
 
-ind = arrayfun(@(x) size(x.tonalitysegment,1)==4,testmotifsegment,'un',1);
+ind = arrayfun(@(x) size(x.tonalitysegment,1)==length(motif),testmotifsegment,'un',1);
 tonsylls = cell2mat(arrayfun(@(x) (x.tonalitysegment(:,2)-x.tonalitysegment(:,1))',testmotifsegment(ind),'un',0)');
 
 dtwampsylls = cell2mat(arrayfun(@(x) (x.dtwampsegment(:,2)-x.dtwampsegment(:,1))',testmotifsegment,'un',0)');
@@ -122,16 +122,16 @@ dtwampsylls = cell2mat(arrayfun(@(x) (x.dtwampsegment(:,2)-x.dtwampsegment(:,1))
 
 dtwgaps = cell2mat(arrayfun(@(x) (x.dtwsegment(2:end,1)-x.dtwsegment(1:end-1,2))',testmotifsegment,'un',0)');
 
-ind = arrayfun(@(x) size(x.ampsegment,1)==4,testmotifsegment,'un',1);
+ind = arrayfun(@(x) size(x.ampsegment,1)==length(motif),testmotifsegment,'un',1);
 ampgaps = cell2mat(arrayfun(@(x) (x.ampsegment(2:end,1)-x.ampsegment(1:end-1,2))',testmotifsegment(ind),'un',0)');
 
-ind = arrayfun(@(x) size(x.pksegment,1)==4,testmotifsegment,'un',1);
+ind = arrayfun(@(x) size(x.pksegment,1)==length(motif),testmotifsegment,'un',1);
 pkgaps = cell2mat(arrayfun(@(x) (x.pksegment(2:end,1)-x.pksegment(1:end-1,2))',testmotifsegment(ind),'un',0)');
 
-ind = arrayfun(@(x) size(x.dtwpksegment,1)==4,testmotifsegment,'un',1);
+ind = arrayfun(@(x) size(x.dtwpksegment,1)==length(motif),testmotifsegment,'un',1);
 dtwpkgaps = cell2mat(arrayfun(@(x) (x.dtwpksegment(2:end,1)-x.dtwpksegment(1:end-1,2))',testmotifsegment(ind),'un',0)');
 
-ind = arrayfun(@(x) size(x.tonalitysegment,1)==4,testmotifsegment,'un',1);
+ind = arrayfun(@(x) size(x.tonalitysegment,1)==length(motif),testmotifsegment,'un',1);
 tongaps = cell2mat(arrayfun(@(x) (x.tonalitysegment(2:end,1)-x.tonalitysegment(1:end-1,2))',testmotifsegment(ind),'un',0)');
 
 dtwampgaps = cell2mat(arrayfun(@(x) (x.dtwampsegment(2:end,1)-x.dtwampsegment(1:end-1,2))',testmotifsegment,'un',0)');
@@ -188,8 +188,49 @@ end
 plot(1:6,onsvars','color',[0.5 0.5 0.5],'linewidth',2);
 ylabel('cv');
 
+%% correlate syllable/gap duration with volume 
+
+sm = arrayfun(@(x) log(x.sm),testmotifsegment,'un',0);
+for i = 1:length(motif)
+    onsoffs = arrayfun(@(x) [x.dtwsegment(i,1) x.dtwsegment(i,2)],testmotifsegment,'un',0);
+    vol = cellfun(@(x,y) mean(x(round(y(1)*fs):round(y(2)*fs))),sm,onsoffs,'un',1);
+    figure;subplot(2,1,1);hold on;
+    scatter(dtwsylls(:,i),vol);lsline;xlabel('syll duration');ylabel('volume');
+    [r p] = corrcoef(dtwsylls(:,i),vol);
+    text(0,1,{['r=',num2str(r(2))],['p=',num2str(p(2))]},'units','normalized','verticalalignment','top');
+    
+    ind = arrayfun(@(x) size(x.ampsegment,1)==length(motif),testmotifsegment,'un',1);
+    onsoffs = arrayfun(@(x) [x.ampsegment(i,1) x.ampsegment(i,2)],testmotifsegment(ind),'un',0);
+    vol = cellfun(@(x,y) mean(x(round(y(1)*fs):round(y(2)*fs))),sm(ind),onsoffs,'un',1);
+    subplot(2,1,2);hold on;
+    scatter(ampsylls(:,i),vol);lsline;xlabel('syll duration');ylabel('volume');
+    [r p] = corrcoef(ampsylls(:,i),vol);
+    text(0,1,{['r=',num2str(r(2))],['p=',num2str(p(2))]},'units','normalized','verticalalignment','top');
+end
+
+for i = 1:length(motif)-1
+    onsoffs = arrayfun(@(x) [x.dtwsegment(i,1) x.dtwsegment(i,2)],testmotifsegment,'un',0);
+    vol1 = cellfun(@(x,y) mean(x(round(y(1)*fs):round(y(2)*fs))),sm,onsoffs,'un',1);
+    onsoffs = arrayfun(@(x) [x.dtwsegment(i+1,1) x.dtwsegment(i+1,2)],testmotifsegment,'un',0);
+    vol2 = cellfun(@(x,y) mean(x(round(y(1)*fs):round(y(2)*fs))),sm,onsoffs,'un',1);
+    figure;subplot(2,1,1);hold on;
+    scatter(dtwgaps(:,i),vol);lsline;xlabel('gap duration');ylabel('volume');
+    [r p] = corrcoef(dtwgaps(:,i),vol);
+    text(0,1,{['r=',num2str(r(2))],['p=',num2str(p(2))]},'units','normalized','verticalalignment','top');
+    
+    ind = arrayfun(@(x) size(x.ampsegment,1)==length(motif),testmotifsegment,'un',1);
+    onsoffs = arrayfun(@(x) [x.ampsegment(i,1) x.ampsegment(i,2)],testmotifsegment(ind),'un',0);
+    vol1 = cellfun(@(x,y) mean(x(round(y(1)*fs):round(y(2)*fs))),sm(ind),onsoffs,'un',1);
+    onsoffs = arrayfun(@(x) [x.ampsegment(i+1,1) x.ampsegment(i+1,2)],testmotifsegment(ind),'un',0);
+    vol2 = cellfun(@(x,y) mean(x(round(y(1)*fs):round(y(2)*fs))),sm(ind),onsoffs,'un',1);
+    subplot(2,1,2);hold on;
+    scatter(ampgaps(:,i),vol);lsline;xlabel('syll duration');ylabel('volume');
+    [r p] = corrcoef(ampgaps(:,i),vol);
+    text(0,1,{['r=',num2str(r(2))],['p=',num2str(p(2))]},'units','normalized','verticalalignment','top');
+end
+
 %%
-alignby=1;
+alignby=[1 2];%[syllable-index onset/offset]
 figure;
 h1 = subplot(6,1,1);hold on;
 h2 = subplot(6,1,2);hold on;
