@@ -1,6 +1,6 @@
-function dtwtemplate=make_dtw_temp_motif(batch,params,CHANSPEC)
+function dtwtemplate=make_dtw2_temp_motif(batch,params,CHANSPEC)
 %this function makes a template to be used for dtw
-%segmentation for dtw_segment
+%segmentation in dtw2_segment
 
 if isempty(params)
     params.motif=input('target motif:','s');
@@ -82,24 +82,17 @@ while isempty(dtwtemplate.filtsong)
         
         smtemp = dat(onsamp:offsamp);%amplitude envelope of motif
         filtsong = bandpass(smtemp,fs,500,10000,'hanningffir');
-        %plot spectrogram
-        clf(h);hold on;
-        NFFT = 512;
-        overlap = NFFT-10;
-        t=-NFFT/2+1:NFFT/2;
-        sigma=(1/1000)*fs;
-        w=exp(-(t/sigma).^2);
-        [sp f tm] = spectrogram(filtsong,w,overlap,NFFT,fs);
-        indf = find(f>500 & f <10000);
-        imagesc(tm,f(indf),log(abs(sp(indf,:))));set(gca,'YDir','normal');hold on;
-        
-        sm = evsmooth(smtemp,fs,'','','',2);%smoothed amplitude envelop
+        %plot amp env
+        clf(h);hold on;  
+        sm = evsmooth(smtemp,fs,'','','',5);%smoothed amplitude envelop
         sm2=log(sm);
         sm2=sm2-min(sm2);
         sm2=sm2./max(sm2);
         [ons offs] = SegmentNotes(sm2,fs,minint,mindur,thresh);
-        plot([ons ons]',[500 10000],'r');hold on;
-        plot([offs offs]',[500 10000],'r');hold on;
+        tb = [0:length(sm2)-1]./fs;
+        plot(tb,sm2,'k');
+        plot([ons ons]',[0 1],'r');hold on;
+        plot([offs offs]',[0 1],'r');hold on;
         keep_or_nokeep = input('use as template?: ','s');
         if keep_or_nokeep == 'n'
             continue

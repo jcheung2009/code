@@ -3,9 +3,9 @@ function [sm_ons sm_offs] = peaksegment(smtemp,fs,varargin);
 %returns time in seconds into smtemp that corresponds to onsets and offsets
 
 sm = log(evsmooth(smtemp,fs,'','','',10));
-sm=sm-min(sm);sm=sm./max(sm);
-[pks,locs,w,~,wc] = findpeaks2(sm,'MinPeakDistance',0.023*fs,...
-    'MinPeakProminence',0.3,'MinPeakWidth',0.01*fs,'Annotate','extents','widthreference','halfheight');
+sm=sm-min(sm);sm=sm./
+[pks,locs,w,~,wc] = findpeaks2(sm,...
+    'MinPeakProminence',0.3,'Annotate','extents','widthreference','halfheight');
 
 if ~isempty(varargin)
     [ons offs] = dtw_segment(smtemp,varargin{1},fs);

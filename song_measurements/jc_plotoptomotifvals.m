@@ -14,7 +14,7 @@ end
 trig = [motifinfo(:).TRIG];
 catchtrig = [motifinfo(:).CATCH];
 trigind = find(trig==1 & catchtrig==0);
-catchind = find(catchtrig==1);
+catchind = find(catchtrig==1 | catchtrig==-1);
 % trigind = find(trig==1 & (catchtrig==-1 | catchtrig==0));
 % catchind = setdiff([1:length(motifinfo)],trigind);
 
@@ -68,13 +68,13 @@ subtightplot(3,1,1,0.07,0.08,0.15);hold on;
 if ~isempty(trigind)
     plot(trigmotifdur(:,1),trigmotifdur(:,2),'r.');hold on
     [hi lo mn] = mBootstrapCI(trigmotifdur(:,2));
-    plot(mean(trigmotifdur(:,1))+std(trigmotifdur(:,1)),mn,'or','markersize',8,'linewidth',4);hold on;
+    plot(mean(trigmotifdur(:,1))+std(trigmotifdur(:,1)),mn,'o','color',[0.7 0.3 0.3],'markersize',8,'linewidth',4);hold on;
     plot([mean(trigmotifdur(:,1)) mean(trigmotifdur(:,1))]+std(trigmotifdur(:,1)),[hi lo],'r','linewidth',4);
 end
 if ~isempty(catchind)
     plot(catchmotifdur(:,1),catchmotifdur(:,2),'k.');hold on;
     [hi lo mn] = mBootstrapCI(catchmotifdur(:,2));
-    plot(mean(catchmotifdur(:,1))-std(catchmotifdur(:,1)),mn,'ok','markersize',8,'linewidth',4);hold on;
+    plot(mean(catchmotifdur(:,1))-std(catchmotifdur(:,1)),mn,'o','color',[0.5 0.5 0.5],'markersize',8,'linewidth',4);hold on;
     plot([mean(catchmotifdur(:,1)) mean(catchmotifdur(:,1))]-std(catchmotifdur(:,1)),[hi lo],'k','linewidth',4);
 end
 if ~isempty(tbshift)
@@ -91,13 +91,13 @@ subtightplot(3,1,2,0.07,0.08,0.15);hold on;
 if ~isempty(trigind)
     plot(trigsylldur(:,1),trigsylldur(:,2),'r.');hold on
     [hi lo mn] = mBootstrapCI(trigsylldur(:,2));
-    plot(mean(trigsylldur(:,1))+std(trigsylldur(:,1)),mn,'or','markersize',8,'linewidth',4);hold on;
+    plot(mean(trigsylldur(:,1))+std(trigsylldur(:,1)),mn,'o','color',[0.7 0.3 0.3],'markersize',8,'linewidth',4);hold on;
     plot([mean(trigsylldur(:,1)) mean(trigsylldur(:,1))]+std(trigsylldur(:,1)),[hi lo],'r','linewidth',4);
 end
 if ~isempty(catchind)
     plot(catchsylldur(:,1),catchsylldur(:,2),'k.');hold on
     [hi lo mn] = mBootstrapCI(catchsylldur(:,2));
-    plot(mean(catchsylldur(:,1))-std(catchsylldur(:,1)),mn,'ok','markersize',8,'linewidth',4);hold on;
+    plot(mean(catchsylldur(:,1))-std(catchsylldur(:,1)),mn,'o','color',[0.5 0.5 0.5],'markersize',8,'linewidth',4);hold on;
     plot([mean(catchsylldur(:,1)) mean(catchsylldur(:,1))]-std(catchsylldur(:,1)),[hi lo],'k','linewidth',4);
 end
 if ~isempty(tbshift)
@@ -114,13 +114,13 @@ subtightplot(3,1,3,0.07,0.08,0.15);hold on;
 if ~isempty(trigind)
     plot(triggapdur(:,1),triggapdur(:,2),'r.');hold on
     [hi lo mn] = mBootstrapCI(triggapdur(:,2));
-    plot(mean(triggapdur(:,1))+std(triggapdur(:,1)),mn,'or','markersize',8,'linewidth',4);hold on;
+    plot(mean(triggapdur(:,1))+std(triggapdur(:,1)),mn,'o','color',[0.7 0.3 0.3],'markersize',8,'linewidth',4);hold on;
     plot([mean(triggapdur(:,1)) mean(triggapdur(:,1))]+std(triggapdur(:,1)),[hi lo],'r','linewidth',4);
 end
 if ~isempty(catchind)
     plot(catchgapdur(:,1),catchgapdur(:,2),'k.');hold on
     [hi lo mn] = mBootstrapCI(catchgapdur(:,2));
-    plot(mean(catchgapdur(:,1))-std(catchgapdur(:,1)),mn,'ok','markersize',8,'linewidth',4);hold on;
+    plot(mean(catchgapdur(:,1))-std(catchgapdur(:,1)),mn,'o','color',[0.5 0.5 0.5],'markersize',8,'linewidth',4);hold on;
     plot([mean(catchgapdur(:,1)) mean(catchgapdur(:,1))]-std(catchgapdur(:,1)),[hi lo],'k','linewidth',4);
 end
 if ~isempty(tbshift)
@@ -137,13 +137,13 @@ figure(fignum2);hold on;
 if ~isempty(trigind)
     plot(trigfirstpeakdistance(:,1),trigfirstpeakdistance(:,2),'r.');hold on;
     [hi lo mn] = mBootstrapCI(trigfirstpeakdistance(:,2));
-    plot(mean(trigfirstpeakdistance(:,1))+std(trigfirstpeakdistance(:,1)),mn,'or','markersize',8,'linewidth',4);hold on;
+    plot(mean(trigfirstpeakdistance(:,1))+std(trigfirstpeakdistance(:,1)),mn,'o','color',[0.7 0.3 0.3],'markersize',8,'linewidth',4);hold on;
     plot([mean(trigfirstpeakdistance(:,1)) mean(trigfirstpeakdistance(:,1))]+std(trigfirstpeakdistance(:,1)),[hi lo],'r','linewidth',4);
 end
 if ~isempty(catchind)
     plot(catchfirstpeakdistance(:,1),catchfirstpeakdistance(:,2),'k.');hold on;
     [hi lo mn] = mBootstrapCI(catchfirstpeakdistance(:,2));
-    plot(mean(catchfirstpeakdistance(:,1))-std(catchfirstpeakdistance(:,1)),mn,'ok','markersize',8,'linewidth',4);hold on;
+    plot(mean(catchfirstpeakdistance(:,1))-std(catchfirstpeakdistance(:,1)),mn,'o','color',[0.5 0.5 0.5],'markersize',8,'linewidth',4);hold on;
     plot([mean(catchfirstpeakdistance(:,1)) mean(catchfirstpeakdistance(:,1))]-std(catchfirstpeakdistance(:,1)),[hi lo],'k','linewidth',4);
 end
 if~isempty(tbshift)

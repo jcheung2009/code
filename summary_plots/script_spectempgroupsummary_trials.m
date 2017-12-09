@@ -3,7 +3,7 @@
 %% extract information from each bird's spectemp summary
 config;
 conditions = params.conditions;
-salinecomp = 'deaf saline';
+salinecomp = 'saline';
 
 batch = uigetfile;
 ff = load_batchf(batch);

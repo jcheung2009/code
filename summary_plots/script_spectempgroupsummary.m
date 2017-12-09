@@ -26,6 +26,7 @@ end
 for i = 1:length(ff)
     if ~exist(ff(i).name)
         load([params.subfolders{1},'/',ff(i).name,'/analysis/data_structures/summary_',ff(i).name]);
+        birdsummary = eval(['summary_',ff(i).name]);
     else
         try 
             load([ff(i).name,'/analysis/data_structures/summary_',ff(i).name,'_df']);

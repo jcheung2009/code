@@ -1,5 +1,5 @@
 %gap correlation analysis #2
-[corrmat case_name data] = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','n');
+[corrmat case_name data] = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'y++','n');
 corrmat_shuff = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','y');
 corrmat_shuffsu = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','ysu');
 nextcorrmat = RA_correlate_gapdur('batchfile',6,25,6,-40,0,1,'n','n');

@@ -11,7 +11,7 @@ end
 trig = [fv(:).TRIG]';
 catchtrig = [fv(:).CATCH]';
 trigind = find(trig==1 & catchtrig==0);
-catchind = find(catchtrig==1);
+catchind = find(catchtrig==1 | catchtrig==-1);
 %trigind = find(trig==1 & (catchtrig==-1 | catchtrig==0));
 %catchind = setdiff([1:length(fv)],trigind);
 
@@ -55,18 +55,18 @@ end
 
 %% pitch
 figure(fignum);hold on;
-subtightplot(3,1,1,0.07,0.08,0.15);hold on;
+subtightplot(2,1,1,0.07,0.08,0.15);hold on;
 if ~isempty(trigind)
     plot(trigpitch(:,1),trigpitch(:,2),'r.');hold on
     [hi lo mn] = mBootstrapCI(trigpitch(:,2));
-    plot(mean(trigpitch(:,1))+std(trigpitch(:,1)),mn,'or','markersize',8,'linewidth',4);hold on;
-    plot([mean(trigpitch(:,1)) mean(trigpitch(:,1))]+std(trigpitch(:,1)),[hi lo],'r','linewidth',4);
+    plot(mean(trigpitch(:,1))+std(trigpitch(:,1)),mn,'o','color',[0.7 0.3 0.3],'markersize',8,'linewidth',4);hold on;
+    plot([mean(trigpitch(:,1)) mean(trigpitch(:,1))]+std(trigpitch(:,1)),[hi lo],'color',[0.7 0.3 0.3],'linewidth',4);
 end
 if ~isempty(catchind)
     plot(catchpitch(:,1),catchpitch(:,2),'k.');hold on
     [hi lo mn] = mBootstrapCI(catchpitch(:,2));
-    plot(mean(catchpitch(:,1))-std(catchpitch(:,1)),mn,'ok','markersize',8,'linewidth',4);hold on;
-    plot([mean(catchpitch(:,1)) mean(catchpitch(:,1))]-std(catchpitch(:,1)),[hi lo],'k','linewidth',4);
+    plot(mean(catchpitch(:,1))-std(catchpitch(:,1)),mn,'o','color',[0.5 0.5 0.5],'markersize',8,'linewidth',4);hold on;
+    plot([mean(catchpitch(:,1)) mean(catchpitch(:,1))]-std(catchpitch(:,1)),[hi lo],'color',[0.5 0.5 0.5],'linewidth',4);
 end
 if ~isempty(tbshift)
     xscale_hours_to_days(gca);
@@ -78,18 +78,18 @@ ylabel('Frequency (Hz)','fontweight','bold')
 title(syllable);
 
 %% volume
-subtightplot(3,1,2,0.07,0.08,0.15);hold on;
+subtightplot(2,1,2,0.07,0.08,0.15);hold on;
 if ~isempty(trigind)
     plot(trigvol(:,1),trigvol(:,2),'r.');hold on
     [hi lo mn] = mBootstrapCI(trigvol(:,2));
-    plot(mean(trigvol(:,1))+std(trigvol(:,1)),mn,'or','markersize',8,'linewidth',4);hold on;
-    plot([mean(trigvol(:,1)) mean(trigvol(:,1))]+std(trigvol(:,1)),[hi lo],'r','linewidth',4);
+    plot(mean(trigvol(:,1))+std(trigvol(:,1)),mn,'o','color',[0.7 0.3 0.3],'markersize',8,'linewidth',4);hold on;
+    plot([mean(trigvol(:,1)) mean(trigvol(:,1))]+std(trigvol(:,1)),[hi lo],'color',[0.7 0.3 0.3],'linewidth',4);
 end
 if ~isempty(catchind)
     plot(catchvol(:,1),catchvol(:,2),'k.');hold on
     [hi lo mn] = mBootstrapCI(catchvol(:,2));
-    plot(mean(catchvol(:,1))-std(catchvol(:,1)),mn,'ok','markersize',8,'linewidth',4);hold on;
-    plot([mean(catchvol(:,1)) mean(catchvol(:,1))]-std(catchvol(:,1)),[hi lo],'k','linewidth',4);
+    plot(mean(catchvol(:,1))-std(catchvol(:,1)),mn,'o','color',[0.5 0.5 0.5],'markersize',8,'linewidth',4);hold on;
+    plot([mean(catchvol(:,1)) mean(catchvol(:,1))]-std(catchvol(:,1)),[hi lo],'color',[0.5 0.5 0.5],'linewidth',4);
 end
 if ~isempty(tbshift)
     xscale_hours_to_days(gca);
@@ -100,27 +100,27 @@ end
 ylabel('Log Amplitude','fontweight','bold')
 
 %% entropy
-subtightplot(3,1,3,0.07,0.08,0.15);hold on;
-if ~isempty(trigind)
-    plot(trigent(:,1),trigent(:,2),'r.');hold on
-    [hi lo mn] = mBootstrapCI(trigent(:,2));
-    plot(mean(trigent(:,1))+std(trigent(:,1)),mn,'or','markersize',8,'linewidth',4);hold on;
-    plot([mean(trigent(:,1)) mean(trigent(:,1))]+std(trigent(:,1)),[hi lo],'r','linewidth',4);
-end
-if ~isempty(catchind)
-    plot(catchent(:,1),catchent(:,2),'k.');hold on
-    [hi lo mn] = mBootstrapCI(catchent(:,2));
-    plot(mean(catchent(:,1))-std(catchent(:,1)),mn,'ok','markersize',8,'linewidth',4);hold on;
-    plot([mean(catchent(:,1)) mean(catchent(:,1))]-std(catchent(:,1)),[hi lo],'k','linewidth',4);
-end
-
-if ~isempty(tbshift)
-    xscale_hours_to_days(gca);
-    xlabel('Days','fontweight','bold');
-else
-    xlabel('Time','fontweight','bold');
-end
-ylabel('Entropy','fontweight','bold');
+% subtightplot(3,1,3,0.07,0.08,0.15);hold on;
+% if ~isempty(trigind)
+%     plot(trigent(:,1),trigent(:,2),'r.');hold on
+%     [hi lo mn] = mBootstrapCI(trigent(:,2));
+%     plot(mean(trigent(:,1))+std(trigent(:,1)),mn,'or','markersize',8,'linewidth',4);hold on;
+%     plot([mean(trigent(:,1)) mean(trigent(:,1))]+std(trigent(:,1)),[hi lo],'r','linewidth',4);
+% end
+% if ~isempty(catchind)
+%     plot(catchent(:,1),catchent(:,2),'k.');hold on
+%     [hi lo mn] = mBootstrapCI(catchent(:,2));
+%     plot(mean(catchent(:,1))-std(catchent(:,1)),mn,'ok','markersize',8,'linewidth',4);hold on;
+%     plot([mean(catchent(:,1)) mean(catchent(:,1))]-std(catchent(:,1)),[hi lo],'k','linewidth',4);
+% end
+% 
+% if ~isempty(tbshift)
+%     xscale_hours_to_days(gca);
+%     xlabel('Days','fontweight','bold');
+% else
+%     xlabel('Time','fontweight','bold');
+% end
+% ylabel('Entropy','fontweight','bold');
 
 %% pitch contours
 if ~isempty(trigind)
