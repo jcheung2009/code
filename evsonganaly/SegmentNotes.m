@@ -1,5 +1,4 @@
 function [onsets, offsets]=SegmentNotes(smooth, Fs, min_int, min_dur, threshold)
-% [ons,offs]=evsegment(smooth,Fs,min_int,min_dur,threshold);
 % segment takes smoothed filtered song and returns vectors of note
 % onsets and offsets values are in seconds
 

@@ -1,31 +1,147 @@
-motif = 'bcd';
-fs = 44100;
-%%variance ampplitude at syllable onsets and offsets
-sm = arrayfun(@(x) log(x.sm),testmotifsegment,'un',0);
-sm = cellfun(@(x) x-min(x),sm,'un',0);
-sm = cellfun(@(x) x/max(x),sm','un',0);
+%% params
+motif = 'aabb';
+fs = 32000;
+%% compare the amplitude envelope 20 ms around syllable onsets and offsets
+for ii = 1:length(motif)
+    figure;
+    h1 = subplot(6,2,1);h7 = subplot(6,2,2);
+    h2 = subplot(6,2,3);h8 = subplot(6,2,4);
+    h3 = subplot(6,2,5);h9 = subplot(6,2,6);
+    h4 = subplot(6,2,7);h10 = subplot(6,2,8);
+    h5 = subplot(6,2,9);h11 = subplot(6,2,10);
+    h6 = subplot(6,2,11);h12 = subplot(6,2,12);
+    for i = 1:length(testmotifsegment)
+        tb = [0:length(testmotifsegment(i).sm)-1]/fs;
+        sm = log(testmotifsegment(i).sm);
+        
+        tb1 = tb-testmotifsegment(i).dtwsegment(ii,1);%align by syll onset
+        [~,id] = min(abs(tb1));%index for syll onset
+        id2 = find(tb1>=-0.02 & tb1<=0.02);
+        sm2 = sm(id2);sm2=sm2-sm(id);sm2=sm2./abs(sm(id));%normalize by amplitude at syll onset
+        hold(h1,'on');
+        plot(h1,tb1(id2),sm2);hold on;
+        title(h1,['dtw onset ',num2str(ii)]);xlabel(h1,'seconds');ylabel(h1,'amplitude');
 
-dtwons = arrayfun(@(x) round((x.dtwsegment(:,1)+0.01)*fs)',testmotifsegment,'un',0);
-dtwons = cell2mat(cellfun(@(x,y) y(x)',dtwons,sm','un',0)');
+        tb1 = tb - testmotifsegment(i).ampsegment(ii,1);
+        [~,id] = min(abs(tb1));
+        id2 = find(tb1>=-0.02 & tb1<=0.02);
+        sm2 = sm(id2);sm2=sm2-sm(id);sm2=sm2./abs(sm(id));
+        hold(h2,'on');
+        plot(h2,tb1(id2),sm2);hold on;
+        title(h2,['amp onset ',num2str(ii)]);xlabel(h2,'seconds');ylabel(h2,'amplitude');
+    
+        tb1 = tb - testmotifsegment(i).pksegment(ii,1);
+        [~,id] = min(abs(tb1));
+        id2 = find(tb1>=-0.02 & tb1<=0.02);
+        sm2 = sm(id2);sm2=sm2-sm(id);sm2=sm2./abs(sm(id));
+        hold(h3,'on');
+        plot(h3,tb1(id2),sm2);hold on;
+        title(h3,['pk onset ',num2str(ii)]);xlabel(h3,'seconds');ylabel(h3,'amplitude');
+        
+        tb1 = tb - testmotifsegment(i).dtwpksegment(ii,1);
+        [~,id] = min(abs(tb1));
+        id2 = find(tb1>=-0.02 & tb1<=0.02);
+        sm2 = sm(id2);sm2=sm2-sm(id);sm2=sm2./abs(sm(id));
+        hold(h4,'on');
+        plot(h4,tb1(id2),sm2);hold on;
+        title(h4,['dtwpk onset ',num2str(ii)]);xlabel(h4,'seconds');ylabel(h4,'amplitude');
+        
+        tb1 = tb - testmotifsegment(i).tonalitysegment(ii,1);
+        [~,id] = min(abs(tb1));
+        id2 = find(tb1>=-0.02 & tb1<=0.02);
+        sm2 = sm(id2);sm2=sm2-sm(id);sm2=sm2./abs(sm(id));
+        hold(h5,'on');
+        plot(h5,tb1(id2),sm2);hold on;
+        title(h5,['tonality onset ',num2str(ii)]);xlabel(h5,'seconds');ylabel(h5,'amplitude');
+        
+        tb1 = tb - testmotifsegment(i).dtwampsegment(ii,1);
+        [~,id] = min(abs(tb1));
+        id2 = find(tb1>=-0.02 & tb1<=0.02);
+        sm2 = sm(id2);sm2=sm2-sm(id);sm2=sm2./abs(sm(id));
+        hold(h6,'on');
+        plot(h6,tb1(id2),sm2);hold on;
+        title(h6,['dtwamp onset ',num2str(ii)]);xlabel(h6,'seconds');ylabel(h6,'amplitude');
+        
+        tb1 = tb-testmotifsegment(i).dtwsegment(ii,2);%align by syll offset
+        [~,id] = min(abs(tb1));%index for syll offset
+        id2 = find(tb1>=-0.02 & tb1<=0.02);
+        sm2 = sm(id2);sm2=sm2-sm(id);sm2=sm2./abs(sm(id));%normalize by amplitude at syll offset
+        hold(h7,'on');
+        plot(h7,tb1(id2),sm2);hold on;
+        title(h7,['dtw offset ',num2str(ii)]);xlabel(h7,'seconds');ylabel(h7,'amplitude');
 
-ind = arrayfun(@(x) size(x.ampsegment,1)==length(motif),testmotifsegment,'un',1);
-ampons = arrayfun(@(x) round((x.ampsegment(:,1)+0.01)*fs),testmotifsegment(ind),'un',0);
-ampons = cell2mat(cellfun(@(x,y) y(x)',ampons,sm(ind)','un',0)');
+        tb1 = tb - testmotifsegment(i).ampsegment(ii,2);
+        [~,id] = min(abs(tb1));
+        id2 = find(tb1>=-0.02 & tb1<=0.02);
+        sm2 = sm(id2);sm2=sm2-sm(id);sm2=sm2./abs(sm(id));
+        hold(h8,'on');
+        plot(h8,tb1(id2),sm2);
+        title(h8,['amp offset ',num2str(ii)]);xlabel(h8,'seconds');ylabel(h8,'amplitude');
+    
+        tb1 = tb - testmotifsegment(i).pksegment(ii,2);
+        [~,id] = min(abs(tb1));
+        id2 = find(tb1>=-0.02 & tb1<=0.02);
+        sm2 = sm(id2);sm2=sm2-sm(id);sm2=sm2./abs(sm(id));
+        hold(h9,'on');
+        plot(h9,tb1(id2),sm2);hold on;
+        title(h9,['pk offset ',num2str(ii)]);xlabel(h9,'seconds');ylabel(h9,'amplitude');
+        
+        tb1 = tb - testmotifsegment(i).dtwpksegment(ii,2);
+        [~,id] = min(abs(tb1));
+        id2 = find(tb1>=-0.02 & tb1<=0.02);
+        sm2 = sm(id2);sm2=sm2-sm(id);sm2=sm2./abs(sm(id));
+        hold(h10,'on');
+        plot(h10,tb1(id2),sm2);
+        title(h10,['dtwpk offset ',num2str(ii)]);xlabel(h10,'seconds');ylabel(h10,'amplitude');
+        
+        tb1 = tb - testmotifsegment(i).tonalitysegment(ii,2);
+        [~,id] = min(abs(tb1));
+        id2 = find(tb1>=-0.02 & tb1<=0.02);
+        sm2 = sm(id2);sm2=sm2-sm(id);sm2=sm2./abs(sm(id));
+        hold(h11,'on');
+        plot(h11,tb1(id2),sm2);hold on;
+        title(h11,['tonality offset ',num2str(ii)]);xlabel(h11,'seconds');ylabel(h11,'amplitude');
+        
+        tb1 = tb - testmotifsegment(i).dtwampsegment(ii,2);
+        [~,id] = min(abs(tb1));
+        id2 = find(tb1>=-0.02 & tb1<=0.02);
+        sm2 = sm(id2);sm2=sm2-sm(id);sm2=sm2./abs(sm(id));
+        hold(h12,'on');
+        plot(h12,tb1(id2),sm2);hold on;
+        title(h12,['dtwamp offset ',num2str(ii)]);xlabel(h12,'seconds');ylabel(h12,'amplitude');
+    end
+end
+%% variance of normalized amp env 20 ms after syllable onsets and 20 ms before offsets
+sm = arrayfun(@(x) log(x.sm),testmotifsegment,'un',0);%extract amp env for each trial
+tmshft = 0.01;%20 ms;
+
+dtwons1 = arrayfun(@(x) round((x.dtwsegment(:,1))*fs)',testmotifsegment,'un',0);%onset indices
+dtwons2 = arrayfun(@(x) round((x.dtwsegment(:,1)+tmshft)*fs)',testmotifsegment,'un',0);%onset-tmshft indices
+dtwons = cell2mat(cellfun(@(x,y,z) y(z)'./abs(y(x)),dtwons1,sm,dtwons2,'un',0)');
+
+ind = arrayfun(@(x) size(x.ampsegment,1)==length(motif),testmotifsegment,'un',1);%restrict to cases when segmentation detected accurate number of sylls in motif
+ampons1 = arrayfun(@(x) round((x.ampsegment(:,1))*fs),testmotifsegment(ind),'un',0);
+ampons2 = arrayfun(@(x) round((x.ampsegment(:,1)+tmshft)*fs),testmotifsegment(ind),'un',0);
+ampons = cell2mat(cellfun(@(x,y,z) y(z)'./abs(y(x)),ampons1,sm(ind),ampons2,'un',0)');
 
 ind = arrayfun(@(x) size(x.pksegment,1)==length(motif),testmotifsegment,'un',1);
-pkons = arrayfun(@(x) round((x.pksegment(:,1)+0.01)*fs),testmotifsegment(ind),'un',0);
-pkons = cell2mat(cellfun(@(x,y) y(x)',pkons,sm(ind)','un',0)');
+pkons1 = arrayfun(@(x) round((x.pksegment(:,1))*fs),testmotifsegment(ind),'un',0);
+pkons2 = arrayfun(@(x) round((x.pksegment(:,1)+tmshft)*fs),testmotifsegment(ind),'un',0);
+pkons = cell2mat(cellfun(@(x,y,z) y(z)'./abs(y(x)),pkons1,sm(ind),pkons2,'un',0)');
 
 ind = arrayfun(@(x) size(x.dtwpksegment,1)==length(motif),testmotifsegment,'un',1);
-dtwpkons = arrayfun(@(x) round((x.dtwpksegment(:,1)+0.01)*fs),testmotifsegment(ind),'un',0);
-dtwpkons = cell2mat(cellfun(@(x,y) y(x)',dtwpkons,sm(ind)','un',0)');
+dtwpkons1 = arrayfun(@(x) round((x.dtwpksegment(:,1))*fs),testmotifsegment(ind),'un',0);
+dtwpkons2 = arrayfun(@(x) round((x.dtwpksegment(:,1)+tmshft)*fs),testmotifsegment(ind),'un',0);
+dtwpkons = cell2mat(cellfun(@(x,y,z) y(z)'./abs(y(x)),dtwpkons1,sm(ind),dtwpkons2,'un',0)');
 
 ind = arrayfun(@(x) size(x.tonalitysegment,1)==length(motif),testmotifsegment,'un',1);
-tonons = arrayfun(@(x) round((x.tonalitysegment(:,1)+0.01)*fs),testmotifsegment(ind),'un',0);
-tonons = cell2mat(cellfun(@(x,y) y(x)',tonons,sm(ind)','un',0)');
+tonons1 = arrayfun(@(x) round((x.tonalitysegment(:,1))*fs),testmotifsegment(ind),'un',0);
+tonons2 = arrayfun(@(x) round((x.tonalitysegment(:,1)+tmshft)*fs),testmotifsegment(ind),'un',0);
+tonons = cell2mat(cellfun(@(x,y,z) y(z)'./abs(y(x)),tonons1,sm(ind),tonons2,'un',0)');
 
-dtwampons = arrayfun(@(x) round((x.dtwampsegment(:,1)+0.01)*fs)',testmotifsegment,'un',0);
-dtwampons = cell2mat(cellfun(@(x,y) y(x)',dtwampons,sm','un',0)');
+dtwampons1 = arrayfun(@(x) round((x.dtwampsegment(:,1))*fs)',testmotifsegment,'un',0);
+dtwampons2 = arrayfun(@(x) round((x.dtwampsegment(:,1)+tmshft)*fs)',testmotifsegment,'un',0);
+dtwampons = cell2mat(cellfun(@(x,y,z) y(z)'./abs(y(x)),dtwampons1,sm,dtwampons2,'un',0)');
 
 figure;hold on;
 onsvars = [];
@@ -51,30 +167,35 @@ for i = 1:length(motif)
     onsvars = [onsvars [mn mn2 mn3 mn4 mn5 mn6]'];
 end
 plot(1:6,onsvars','color',[0.5 0.5 0.5],'linewidth',2);
-ylabel('cv');
+ylabel('cv');title('syllable onsets');xticklabels({'dtw','amp','pk','dtwpk','tonality','dtwamp'}); 
 
-
-dtwoffs = arrayfun(@(x) round((x.dtwsegment(:,2)-0.01)*fs)',testmotifsegment,'un',0);
-dtwoffs = cell2mat(cellfun(@(x,y) y(x)',dtwoffs,sm','un',0)');
+dtwoffs1 = arrayfun(@(x) round((x.dtwsegment(:,2))*fs)',testmotifsegment,'un',0);
+dtwoffs2 = arrayfun(@(x) round((x.dtwsegment(:,2)-tmshft)*fs)',testmotifsegment,'un',0);
+dtwoffs = cell2mat(cellfun(@(x,y,z) y(z)'./abs(y(x)),dtwoffs1,sm,dtwoffs2,'un',0)');
 
 ind = arrayfun(@(x) size(x.ampsegment,1)==length(motif),testmotifsegment,'un',1);
-ampoffs = arrayfun(@(x) round((x.ampsegment(:,2)-0.01)*fs),testmotifsegment(ind),'un',0);
-ampoffs = cell2mat(cellfun(@(x,y) y(x)',ampoffs,sm(ind)','un',0)');
+ampoffs1 = arrayfun(@(x) round((x.ampsegment(:,2))*fs),testmotifsegment(ind),'un',0);
+ampoffs2 = arrayfun(@(x) round((x.ampsegment(:,2)-tmshft)*fs),testmotifsegment(ind),'un',0);
+ampoffs = cell2mat(cellfun(@(x,y,z) y(z)'./abs(y(x)),ampoffs1,sm(ind),ampoffs2,'un',0)');
 
 ind = arrayfun(@(x) size(x.pksegment,1)==length(motif),testmotifsegment,'un',1);
-pkoffs = arrayfun(@(x) round((x.pksegment(:,2)-0.01)*fs),testmotifsegment(ind),'un',0);
-pkoffs = cell2mat(cellfun(@(x,y) y(x)',pkoffs,sm(ind)','un',0)');
+pkoffs1 = arrayfun(@(x) round((x.pksegment(:,2))*fs),testmotifsegment(ind),'un',0);
+pkoffs2 = arrayfun(@(x) round((x.pksegment(:,2)-tmshft)*fs),testmotifsegment(ind),'un',0);
+pkoffs = cell2mat(cellfun(@(x,y,z) y(z)'./abs(y(x)),pkoffs1,sm(ind),pkoffs2,'un',0)');
 
 ind = arrayfun(@(x) size(x.dtwpksegment,1)==length(motif),testmotifsegment,'un',1);
-dtwpkoffs = arrayfun(@(x) round((x.dtwpksegment(:,2)-0.01)*fs),testmotifsegment(ind),'un',0);
-dtwpkoffs = cell2mat(cellfun(@(x,y) y(x)',dtwpkoffs,sm(ind)','un',0)');
+dtwpkoffs1 = arrayfun(@(x) round((x.dtwpksegment(:,2))*fs),testmotifsegment(ind),'un',0);
+dtwpkoffs2 = arrayfun(@(x) round((x.dtwpksegment(:,2)-tmshft)*fs),testmotifsegment(ind),'un',0);
+dtwpkoffs = cell2mat(cellfun(@(x,y,z) y(z)'./abs(y(x)),dtwpkoffs1,sm(ind),dtwpkoffs2,'un',0)');
 
 ind = arrayfun(@(x) size(x.tonalitysegment,1)==length(motif),testmotifsegment,'un',1);
-tonoffs = arrayfun(@(x) round((x.tonalitysegment(:,2)-0.01)*fs),testmotifsegment(ind),'un',0);
-tonoffs = cell2mat(cellfun(@(x,y) y(x)',tonoffs,sm(ind)','un',0)');
+tonoffs1 = arrayfun(@(x) round((x.tonalitysegment(:,2))*fs),testmotifsegment(ind),'un',0);
+tonoffs2 = arrayfun(@(x) round((x.tonalitysegment(:,2)-tmshft)*fs),testmotifsegment(ind),'un',0);
+tonoffs = cell2mat(cellfun(@(x,y,z) y(z)'./abs(y(x)),tonoffs1,sm(ind),tonoffs2,'un',0)');
 
-dtwampoffs = arrayfun(@(x) round((x.dtwampsegment(:,2)-0.01)*fs)',testmotifsegment,'un',0);
-dtwampoffs = cell2mat(cellfun(@(x,y) y(x)',dtwampoffs,sm','un',0)');
+dtwampoffs1 = arrayfun(@(x) round((x.dtwampsegment(:,2))*fs)',testmotifsegment,'un',0);
+dtwampoffs2 = arrayfun(@(x) round((x.dtwampsegment(:,2)-tmshft)*fs)',testmotifsegment,'un',0);
+dtwampoffs = cell2mat(cellfun(@(x,y,z) y(z)'./abs(y(x)),dtwampoffs1,sm,dtwampoffs2,'un',0)');
 
 figure;hold on;
 offsvars = [];
@@ -100,8 +221,201 @@ for i = 1:length(motif)
     offsvars = [offsvars [mn mn2 mn3 mn4 mn5 mn6]'];
 end
 plot(1:6,offsvars','color',[0.5 0.5 0.5],'linewidth',2);
-ylabel('cv');
+ylabel('cv');title('syllable offsets');xticklabels({'dtw','amp','pk','dtwpk','tonality','dtwamp'}); 
 
+%% average pairwise distance of spectral features around syllable onsets and offsets 
+filtsong = arrayfun(@(x) bandpass(x.smtemp,fs,500,10000,'hanningffir'),testmotifsegment,'un',0);
+onid = arrayfun(@(x) round((x.dtwsegment(:,1))*fs)',testmotifsegment,'un',0);%onset indices
+win = cellfun(@(x) bsxfun(@plus, 0:128,x'),onid,'un',0);
+win = cellfun(@(x,y) x(y), filtsong,win,'un',0);
+sp = cellfun(@(x) pwelch(x',128,0,128,fs),win,'un',0);
+sp = cellfun(@(x) x./sum(x),sp,'un',0);
+sp = cell2mat(sp)';
+dtwdist = [];
+for i = 1:length(motif)
+    dtwdist = [dtwdist; pdist(sp(i:length(motif):end,:))];
+end
+
+ind = arrayfun(@(x) size(x.ampsegment,1)==length(motif),testmotifsegment,'un',1);
+onid = arrayfun(@(x) round((x.ampsegment(:,1))*fs)',testmotifsegment(ind),'un',0);%onset indices
+win = cellfun(@(x) bsxfun(@plus, 0:128,x'),onid,'un',0);
+win = cellfun(@(x,y) x(y), filtsong(ind),win,'un',0);
+sp = cellfun(@(x) pwelch(x',128,0,128,fs),win,'un',0);
+sp = cellfun(@(x) x./sum(x),sp,'un',0);
+sp = cell2mat(sp)';
+ampdist = [];
+for i = 1:length(motif)
+    ampdist = [ampdist; pdist(sp(i:length(motif):end,:))];
+end
+
+ind = arrayfun(@(x) size(x.pksegment,1)==length(motif),testmotifsegment,'un',1);
+onid = arrayfun(@(x) round((x.pksegment(:,1))*fs)',testmotifsegment(ind),'un',0);%onset indices
+win = cellfun(@(x) bsxfun(@plus, 0:128,x'),onid,'un',0);
+win = cellfun(@(x,y) x(y), filtsong(ind),win,'un',0);
+sp = cellfun(@(x) pwelch(x',128,0,128,fs),win,'un',0);
+sp = cellfun(@(x) x./sum(x),sp,'un',0);
+sp = cell2mat(sp)';
+pkdist = [];
+for i = 1:length(motif)
+    pkdist = [pkdist; pdist(sp(i:length(motif):end,:))];
+end
+
+ind = arrayfun(@(x) size(x.dtwpksegment,1)==length(motif),testmotifsegment,'un',1);
+onid = arrayfun(@(x) round((x.dtwpksegment(:,1))*fs)',testmotifsegment(ind),'un',0);%onset indices
+win = cellfun(@(x) bsxfun(@plus, 0:128,x'),onid,'un',0);
+win = cellfun(@(x,y) x(y), filtsong(ind),win,'un',0);
+sp = cellfun(@(x) pwelch(x',128,0,128,fs),win,'un',0);
+sp = cellfun(@(x) x./sum(x),sp,'un',0);
+sp = cell2mat(sp)';
+dtwpkdist = [];
+for i = 1:length(motif)
+    dtwpkdist = [dtwpkdist; pdist(sp(i:length(motif):end,:))];
+end
+
+ind = arrayfun(@(x) size(x.tonalitysegment,1)==length(motif),testmotifsegment,'un',1);
+onid = arrayfun(@(x) round((x.tonalitysegment(:,1))*fs)',testmotifsegment(ind),'un',0);%onset indices
+win = cellfun(@(x) bsxfun(@plus, 0:128,x'),onid,'un',0);
+win = cellfun(@(x,y) x(y), filtsong(ind),win,'un',0);
+sp = cellfun(@(x) pwelch(x',128,0,128,fs),win,'un',0);
+sp = cellfun(@(x) x./sum(x),sp,'un',0);
+sp = cell2mat(sp)';
+tondist = [];
+for i = 1:length(motif)
+    tondist = [tondist; pdist(sp(i:length(motif):end,:))];
+end
+
+onid = arrayfun(@(x) round((x.dtwampsegment(:,1))*fs)',testmotifsegment,'un',0);%onset indices
+win = cellfun(@(x) bsxfun(@plus, 0:128,x'),onid,'un',0);
+win = cellfun(@(x,y) x(y), filtsong,win,'un',0);
+sp = cellfun(@(x) pwelch(x',128,0,128,fs),win,'un',0);
+sp = cellfun(@(x) x./sum(x),sp,'un',0);
+sp = cell2mat(sp)';
+dtwampdist = [];
+for i = 1:length(motif)
+    dtwampdist = [dtwampdist; pdist(sp(i:length(motif):end,:))];
+end
+
+figure;hold on;
+mndist = [];
+for i = 1:length(motif)
+    [hi lo mn] = mBootstrapCI(dtwdist(i,:));
+    plot(1,mn,'ok','markersize',4);hold on;
+    errorbar(1,mn,hi-mn,'k','linewidth',2);hold on;
+    [hi2 lo2 mn2] = mBootstrapCI(ampdist(i,:));
+    plot(2,mn2,'or','markersize',4);hold on;
+    errorbar(2,mn2,hi2-mn2,'r','linewidth',2);hold on;
+    [hi3 lo3 mn3] = mBootstrapCI(pkdist(i,:));
+    plot(3,mn3,'ob','markersize',4);hold on;
+    errorbar(3,mn3,hi3-mn3,'b','linewidth',2);hold on;
+    [hi4 lo4 mn4] = mBootstrapCI(dtwpkdist(i,:));
+    plot(4,mn4,'og','markersize',4);hold on;
+    errorbar(4,mn4,hi4-mn4,'g','linewidth',2);hold on;
+    [hi5 lo5 mn5] = mBootstrapCI(tondist(i,:));
+    plot(5,mn5,'oc','markersize',4);hold on;
+    errorbar(5,mn5,hi5-mn5,'c','linewidth',2);hold on;
+    [hi6 lo6 mn6] = mBootstrapCI(dtwampdist(i,:));
+    plot(6,mn6,'oc','markersize',8);hold on;
+    errorbar(6,mn6,hi6-mn6,'m','linewidth',2);hold on;
+    mndist = [mndist [mn mn2 mn3 mn4 mn5 mn6]'];
+end
+plot(1:6,mndist','color',[0.5 0.5 0.5],'linewidth',2);
+ylabel('mean distance');title('syllable onsets');xticklabels({'dtw','amp','pk','dtwpk','tonality','dtwamp'}); 
+
+offid = arrayfun(@(x) round((x.dtwsegment(:,2))*fs)',testmotifsegment,'un',0);%onset indices
+win = cellfun(@(x) bsxfun(@plus, -128:0,x'),offid,'un',0);
+win = cellfun(@(x,y) x(y), filtsong,win,'un',0);
+sp = cellfun(@(x) pwelch(x',128,0,128,fs),win,'un',0);
+sp = cellfun(@(x) x./sum(x),sp,'un',0);
+sp = cell2mat(sp)';
+dtwdist = [];
+for i = 1:length(motif)
+    dtwdist = [dtwdist; pdist(sp(i:length(motif):end,:))];
+end
+
+ind = arrayfun(@(x) size(x.ampsegment,1)==length(motif),testmotifsegment,'un',1);
+offid = arrayfun(@(x) round((x.ampsegment(:,2))*fs)',testmotifsegment(ind),'un',0);%onset indices
+win = cellfun(@(x) bsxfun(@plus, -128:0,x'),offid,'un',0);
+win = cellfun(@(x,y) x(y), filtsong(ind),win,'un',0);
+sp = cellfun(@(x) pwelch(x',128,0,128,fs),win,'un',0);
+sp = cellfun(@(x) x./sum(x),sp,'un',0);
+sp = cell2mat(sp)';
+ampdist = [];
+for i = 1:length(motif)
+    ampdist = [ampdist; pdist(sp(i:length(motif):end,:))];
+end
+
+ind = arrayfun(@(x) size(x.pksegment,1)==length(motif),testmotifsegment,'un',1);
+offid = arrayfun(@(x) round((x.pksegment(:,2))*fs)',testmotifsegment(ind),'un',0);%onset indices
+win = cellfun(@(x) bsxfun(@plus, -128:0,x'),offid,'un',0);
+win = cellfun(@(x,y) x(y), filtsong(ind),win,'un',0);
+sp = cellfun(@(x) pwelch(x',128,0,128,fs),win,'un',0);
+sp = cellfun(@(x) x./sum(x),sp,'un',0);
+sp = cell2mat(sp)';
+pkdist = [];
+for i = 1:length(motif)
+    pkdist = [pkdist; pdist(sp(i:length(motif):end,:))];
+end
+
+ind = arrayfun(@(x) size(x.dtwpksegment,1)==length(motif),testmotifsegment,'un',1);
+offid = arrayfun(@(x) round((x.dtwpksegment(:,2))*fs)',testmotifsegment(ind),'un',0);%onset indices
+win = cellfun(@(x) bsxfun(@plus, -128:0,x'),offid,'un',0);
+win = cellfun(@(x,y) x(y), filtsong(ind),win,'un',0);
+sp = cellfun(@(x) pwelch(x',128,0,128,fs),win,'un',0);
+sp = cellfun(@(x) x./sum(x),sp,'un',0);
+sp = cell2mat(sp)';
+dtwpkdist = [];
+for i = 1:length(motif)
+    dtwpkdist = [dtwpkdist; pdist(sp(i:length(motif):end,:))];
+end
+
+ind = arrayfun(@(x) size(x.tonalitysegment,1)==length(motif),testmotifsegment,'un',1);
+offid = arrayfun(@(x) round((x.tonalitysegment(:,2))*fs)',testmotifsegment(ind),'un',0);%onset indices
+win = cellfun(@(x) bsxfun(@plus, -128:0,x'),offid,'un',0);
+win = cellfun(@(x,y) x(y), filtsong(ind),win,'un',0);
+sp = cellfun(@(x) pwelch(x',128,0,128,fs),win,'un',0);
+sp = cellfun(@(x) x./sum(x),sp,'un',0);
+sp = cell2mat(sp)';
+tondist = [];
+for i = 1:length(motif)
+    tondist = [tondist; pdist(sp(i:length(motif):end,:))];
+end
+
+offid = arrayfun(@(x) round((x.dtwampsegment(:,2))*fs)',testmotifsegment,'un',0);%onset indices
+win = cellfun(@(x) bsxfun(@plus, -128:0,x'),offid,'un',0);
+win = cellfun(@(x,y) x(y), filtsong,win,'un',0);
+sp = cellfun(@(x) pwelch(x',128,0,128,fs),win,'un',0);
+sp = cellfun(@(x) x./sum(x),sp,'un',0);
+sp = cell2mat(sp)';
+dtwampdist = [];
+for i = 1:length(motif)
+    dtwampdist = [dtwampdist; pdist(sp(i:length(motif):end,:))];
+end
+
+figure;hold on;
+mndist = [];
+for i = 1:length(motif)
+    [hi lo mn] = mBootstrapCI(dtwdist(i,:));
+    plot(1,mn,'ok','markersize',4);hold on;
+    errorbar(1,mn,hi-mn,'k','linewidth',2);hold on;
+    [hi2 lo2 mn2] = mBootstrapCI(ampdist(i,:));
+    plot(2,mn2,'or','markersize',4);hold on;
+    errorbar(2,mn2,hi2-mn2,'r','linewidth',2);hold on;
+    [hi3 lo3 mn3] = mBootstrapCI(pkdist(i,:));
+    plot(3,mn3,'ob','markersize',4);hold on;
+    errorbar(3,mn3,hi3-mn3,'b','linewidth',2);hold on;
+    [hi4 lo4 mn4] = mBootstrapCI(dtwpkdist(i,:));
+    plot(4,mn4,'og','markersize',4);hold on;
+    errorbar(4,mn4,hi4-mn4,'g','linewidth',2);hold on;
+    [hi5 lo5 mn5] = mBootstrapCI(tondist(i,:));
+    plot(5,mn5,'oc','markersize',4);hold on;
+    errorbar(5,mn5,hi5-mn5,'c','linewidth',2);hold on;
+    [hi6 lo6 mn6] = mBootstrapCI(dtwampdist(i,:));
+    plot(6,mn6,'oc','markersize',8);hold on;
+    errorbar(6,mn6,hi6-mn6,'m','linewidth',2);hold on;
+    mndist = [mndist [mn mn2 mn3 mn4 mn5 mn6]'];
+end
+plot(1:6,mndist','color',[0.5 0.5 0.5],'linewidth',2);
+ylabel('mean distance');title('syllable offsets');xticklabels({'dtw','amp','pk','dtwpk','tonality','dtwamp'}); 
 %% variance of syllable durations and gaps 
 dtwsylls = cell2mat(arrayfun(@(x) (x.dtwsegment(:,2)-x.dtwsegment(:,1))',testmotifsegment,'un',0)');
 
@@ -160,7 +474,7 @@ for i = 1:length(motif)
     onsvars = [onsvars [mn mn2 mn3 mn4 mn5 mn6]'];
 end
 plot(1:6,onsvars','color',[0.5 0.5 0.5],'linewidth',2);
-ylabel('cv');
+ylabel('cv');title('syllable durations');xticklabels({'dtw','amp','pk','dtwpk','tonality','dtwamp'}); 
 
 figure;hold on;
 onsvars = [];
@@ -186,70 +500,59 @@ for i = 1:length(motif)-1
     onsvars = [onsvars [mn mn2 mn3 mn4 mn5 mn6]'];
 end
 plot(1:6,onsvars','color',[0.5 0.5 0.5],'linewidth',2);
-ylabel('cv');
+ylabel('cv');title('gaps');xticklabels({'dtw','amp','pk','dtwpk','tonality','dtwamp'}); 
 
-%% correlate syllable/gap duration with volume 
+%% plot example spectrograms and segmentation for dtw vs amp 
+sm = arrayfun(@(x) log(x.sm),testmotifsegment,'un',0);%extract amp env for each trial
+%params for spectrogram
+NFFT = 512;
+overlap = NFFT-10;
+t=-NFFT/2+1:NFFT/2;
+sigma=(1/1000)*fs;
+w=exp(-(t/sigma).^2);
 
-sm = arrayfun(@(x) log(x.sm),testmotifsegment,'un',0);
-for i = 1:length(motif)
-    onsoffs = arrayfun(@(x) [x.dtwsegment(i,1) x.dtwsegment(i,2)],testmotifsegment,'un',0);
-    vol = cellfun(@(x,y) mean(x(round(y(1)*fs):round(y(2)*fs))),sm,onsoffs,'un',1);
-    figure;subplot(2,1,1);hold on;
-    scatter(dtwsylls(:,i),vol);lsline;xlabel('syll duration');ylabel('volume');
-    [r p] = corrcoef(dtwsylls(:,i),vol);
-    text(0,1,{['r=',num2str(r(2))],['p=',num2str(p(2))]},'units','normalized','verticalalignment','top');
+ind = find(arrayfun(@(x) size(x.ampsegment,1)~=length(motif),testmotifsegment,'un',1));%index for cases of missegmentation with amplitude
+for i = 1:length(ind)
+    figure;
+    subplot(2,1,1);hold on;
+    [sp f tm] = spectrogram(filtsong{ind(i)},w,overlap,NFFT,fs);
+    indf = find(f>500&f<10000);
+    imagesc(tm,f(indf),log(abs(sp(indf,:))));hold on;
+    plot(repmat(testmotifsegment(ind(i)).ampsegment(:,1),1,2)',[500 10000],'r');hold on;
+    plot(repmat(testmotifsegment(ind(i)).ampsegment(:,2),1,2)',[500 10000],'r');hold on;
+    title('amplitude');
     
-    ind = arrayfun(@(x) size(x.ampsegment,1)==length(motif),testmotifsegment,'un',1);
-    onsoffs = arrayfun(@(x) [x.ampsegment(i,1) x.ampsegment(i,2)],testmotifsegment(ind),'un',0);
-    vol = cellfun(@(x,y) mean(x(round(y(1)*fs):round(y(2)*fs))),sm(ind),onsoffs,'un',1);
     subplot(2,1,2);hold on;
-    scatter(ampsylls(:,i),vol);lsline;xlabel('syll duration');ylabel('volume');
-    [r p] = corrcoef(ampsylls(:,i),vol);
-    text(0,1,{['r=',num2str(r(2))],['p=',num2str(p(2))]},'units','normalized','verticalalignment','top');
+    [sp f tm] = spectrogram(filtsong{ind(i)},w,overlap,NFFT,fs);
+    indf = find(f>500&f<10000);
+    imagesc(tm,f(indf),log(abs(sp(indf,:))));hold on;
+    plot(repmat(testmotifsegment(ind(i)).dtwsegment(:,1),1,2)',[500 10000],'r');hold on;
+    plot(repmat(testmotifsegment(ind(i)).dtwsegment(:,2),1,2)',[500 10000],'r');hold on;
+    filtsong = arrayfun(@(x) bandpass(x.smtemp,fs,500,10000,'hanningffir'),testmotifsegment,'un',0);
+    title('dtw');
 end
 
-for i = 1:length(motif)-1
-    onsoffs = arrayfun(@(x) [x.dtwsegment(i,1) x.dtwsegment(i,2)],testmotifsegment,'un',0);
-    vol1 = cellfun(@(x,y) mean(x(round(y(1)*fs):round(y(2)*fs))),sm,onsoffs,'un',1);
-    onsoffs = arrayfun(@(x) [x.dtwsegment(i+1,1) x.dtwsegment(i+1,2)],testmotifsegment,'un',0);
-    vol2 = cellfun(@(x,y) mean(x(round(y(1)*fs):round(y(2)*fs))),sm,onsoffs,'un',1);
-    figure;subplot(2,1,1);hold on;
-    scatter(dtwgaps(:,i),vol);lsline;xlabel('gap duration');ylabel('volume');
-    [r p] = corrcoef(dtwgaps(:,i),vol);
-    text(0,1,{['r=',num2str(r(2))],['p=',num2str(p(2))]},'units','normalized','verticalalignment','top');
+
+mnvol = cellfun(@mean,sm,'un',1);
+[~,ind] = sort(mnvol);
+ind = [ind(1:5) ind(end-5:end)];%take the quietest 5 renditions and loudest 5 renditions
+for i = 1:length(ind)
+    figure;
+    subplot(2,1,1);hold on;
+    [sp f tm] = spectrogram(filtsong{ind(i)},w,overlap,NFFT,fs);
+    indf = find(f>500&f<10000);
+    imagesc(tm,f(indf),log(abs(sp(indf,:))));hold on;
+    plot(repmat(testmotifsegment(ind(i)).ampsegment(:,1),1,2)',[500 10000],'r');hold on;
+    plot(repmat(testmotifsegment(ind(i)).ampsegment(:,2),1,2)',[500 10000],'r');hold on;
+    title('amplitude');
     
-    ind = arrayfun(@(x) size(x.ampsegment,1)==length(motif),testmotifsegment,'un',1);
-    onsoffs = arrayfun(@(x) [x.ampsegment(i,1) x.ampsegment(i,2)],testmotifsegment(ind),'un',0);
-    vol1 = cellfun(@(x,y) mean(x(round(y(1)*fs):round(y(2)*fs))),sm(ind),onsoffs,'un',1);
-    onsoffs = arrayfun(@(x) [x.ampsegment(i+1,1) x.ampsegment(i+1,2)],testmotifsegment(ind),'un',0);
-    vol2 = cellfun(@(x,y) mean(x(round(y(1)*fs):round(y(2)*fs))),sm(ind),onsoffs,'un',1);
     subplot(2,1,2);hold on;
-    scatter(ampgaps(:,i),vol);lsline;xlabel('syll duration');ylabel('volume');
-    [r p] = corrcoef(ampgaps(:,i),vol);
-    text(0,1,{['r=',num2str(r(2))],['p=',num2str(p(2))]},'units','normalized','verticalalignment','top');
+    [sp f tm] = spectrogram(filtsong{ind(i)},w,overlap,NFFT,fs);
+    indf = find(f>500&f<10000);
+    imagesc(tm,f(indf),log(abs(sp(indf,:))));hold on;
+    plot(repmat(testmotifsegment(ind(i)).dtwsegment(:,1),1,2)',[500 10000],'r');hold on;
+    plot(repmat(testmotifsegment(ind(i)).dtwsegment(:,2),1,2)',[500 10000],'r');hold on;
+    filtsong = arrayfun(@(x) bandpass(x.smtemp,fs,500,10000,'hanningffir'),testmotifsegment,'un',0);
+    title('dtw');
 end
 
-%%
-alignby=[1 2];%[syllable-index onset/offset]
-figure;
-h1 = subplot(6,1,1);hold on;
-h2 = subplot(6,1,2);hold on;
-h3 = subplot(6,1,3);hold on;
-h4 = subplot(6,1,4);hold on;
-h5 = subplot(6,1,5);hold on;
-h6 = subplot(6,1,6);hold on;
-for i = 1:50
-    tb = [0:length(testmotifsegment(i).sm)-1]/32000;
-    tb1 = tb - testmotifsegment(i).dtwsegment(1,2);
-     plot(h1,tb1,log(testmotifsegment(i).sm));
-    tb1 = tb - testmotifsegment(i).ampsegment(1,2);
-    plot(h2,tb1,log(testmotifsegment(i).sm));
-    tb1 = tb - testmotifsegment(i).pksegment(1,2);
-    plot(h3,tb1,log(testmotifsegment(i).sm));
-    tb1 = tb - testmotifsegment(i).dtwpksegment(1,2);
-    plot(h4,tb1,log(testmotifsegment(i).sm));
-    tb1 = tb - testmotifsegment(i).tonalitysegment(1,2);
-    plot(h5,tb1,log(testmotifsegment(i).sm));
-    tb1 = tb - testmotifsegment(i).dtwampsegment(1,2);
-    plot(h6,tb1,log(testmotifsegment(i).sm));
-end

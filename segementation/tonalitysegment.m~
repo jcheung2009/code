@@ -1,20 +1,18 @@
-function [tonons tonoffs] = tonalitysegment(smtemp,fs,varargin);
+function [tonons tonoffs] = tonalitysegment(smtemp,fs);
 %segments based on tonality 
 %tonality is when power in the psd becomes less spread out (less like white
 %noise) and more tonal (harmonic, concentrated in discrete frequency bands) 
 %tonality is measured as the magnitude of the highest peak in the
 %autocorrelation of the filtered amplitude waveform 
-%tonality measure highly sensitive to bandpass frequency and will depend on
-%each bird's song; for bengalese, 1-4 kHz seems to work ok
-%still requires either peak or"amplitude" algorithm to segment the tonality
-%waveform (findpeaks2/SegmentNotes)
+%tonality measure highly sensitive to bandpass frequency us
 
-if isempty(varargin)
-    freq = [1000 4000];
-else
-    freq = varargin{1};
-end
-filtsong = bandpass(smtemp,fs,freq(1),freq(2),'hanningffir'); 
+%spectrogram params
+NFFT=512;
+t=-NFFT/2+1:NFFT/2;
+sigma=(1/1000)*fs;
+w=exp(-(t/sigma).^2);
+
+filtsong = bandpass(smtemp,fs,1000,4000,'hanningffir'); %highly sensitive to bandpass frequency, depends on 
 
 startind = 1;
 tonality = []; startind = 1;
@@ -42,6 +40,6 @@ end
 tonality=log(tonality);
 tonality=tonality-min(tonality);tonality=tonality/max(tonality);
 [pks,locs,w,~,wc] = findpeaks2(tonality,'MinPeakDistance',0.023*fs/downsamp,...
-    'MinPeakProminence',0.3,'MinPeakWidth',0.02*fs/downsamp,'Annotate','extents','widthreference','halfheight');%segment the tonality waveform
+    'MinPeakProminence',0.3,'MinPeakWidth',0.02*fs/downsamp,'Annotate','extents','widthreference','halfheight');
 tonons = wc(:,1)./(fs/downsamp);
 tonoffs = wc(:,2)./(fs/downsamp);

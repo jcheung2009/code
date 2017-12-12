@@ -1,6 +1,23 @@
-function motifsegment = testsegmentation(batch,motif,dtwtemplate,dtwtemplate2,CHANSPEC,fs);
+function motifsegment = testsegmentation(batch,motif,dtwtemplate,dtwtemplate2,minint,mindur,thresh,CHANSPEC,fs);
 %this function extracts the onset/offset of syllables within target motif
 %based on different segmentation methods 
+%dtwtemplate = spectral exemplar template from make_dtw_temp
+%dtwtemplate2 = amplitude env exemplar template make_dtw2_temp_motif
+%fs = sampling rate
+%CHANSPEC = 'obs0' for cbin files from evtaf of 'w' for wav files 
+%minint: min gap length for amp segmentation (ms)
+%mindur: min syll length
+%thresh: 0-1, amp threshold for segmenting normalized amp waveform
+%six differeng segmentation methods:
+%amplitude: based on fixed threshold on smoothed amp waveform,
+%min-max normalized
+%dtw: based on spectral features, compare to exemplar motif
+%peak: based on halfwidth locations of detected peaks, think of as adaptive
+%amplitude threshold
+%dtwpeak: mix of dtw spectral features and peak segmentation
+%tonality: based on when spectrum becomes more tonal (less like white
+%noise)
+%dtwamp: dtw on the amplitude envelope
 
 nbuffer = floor(0.016*fs);%buffer by 16 ms
 
@@ -10,6 +27,12 @@ overlap = NFFT-10;
 t=-NFFT/2+1:NFFT/2;
 sigma=(1/1000)*fs;
 w=exp(-(t/sigma).^2);
+
+[pxx freq] = pwelch(dtwtemplate.filtsong,NFFT,overlap,NFFT,fs);
+pxx = pxx./sum(pxx);
+prc = cumsum(pxx);
+id = find(prc>=0.25 & prc<=0.75);
+freq = [freq(id(1)) freq(id(end))];%frequency range for tonality measure
 
 ff = load_batchf(batch);
 motif_cnt = 0;
@@ -65,7 +88,7 @@ for i = 1:length(ff)
         
         %amplitude segmentation
         sm2 = log(sm);sm2=sm2-min(sm2);sm2=sm2/max(sm2);
-        [ampons ampoffs] = SegmentNotes(sm2,fs,5,20,0.3);
+        [ampons ampoffs] = SegmentNotes(sm2,fs,minint,mindur,thresh);
         
         %dtw segmentation on spectrogram
         [dtwons dtwoffs] = dtw_segment(smtemp,dtwtemplate,fs);
@@ -77,12 +100,12 @@ for i = 1:length(ff)
         [dtwpkons dtwpkoffs] = peaksegment(smtemp,fs,dtwtemplate);
         
         %tonality segmentation
-        [tonons tonoffs] = tonalitysegment(smtemp,fs);
+        [tonons tonoffs] = tonalitysegment(smtemp,fs,freq);
         
         %dtw segmentation on amplitude envelope
         [dtwons2 dtwoffs2] = dtw2_segment(sm2,dtwtemplate2,fs);
        
-          %extract datenum from rec file, add syllable ton in seconds
+       %extract datenum from rec file, add syllable ton in seconds
        if (strcmp(CHANSPEC,'obs0'))
              if isfield(rd,'header')
                 key = 'created:';
@@ -120,7 +143,7 @@ for i = 1:length(ff)
 
     end
     
-    if motif_cnt >= 50
+    if motif_cnt >= 50 %only sample 50 motifs because of time
          return
     end
 end

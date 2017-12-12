@@ -1,6 +1,15 @@
 function dtwtemplate=make_dtw_temp_motif(batch,params,CHANSPEC)
-%this function makes a template to be used for dtw
-%segmentation for dtw_segment
+%this function makes a template to be used for dtw segmentation in dtw_segment
+%batch = list of song files 
+%params can be left empty 
+%CHANSPEC = 'obs0' or 'w' 
+%allows you to visually select an exemplar motif 
+%when prompted, give it string for motif: (ex:'aabb')
+%when prompted, give it amplitude segmentation parameters in a cell: {min interval
+%length (ms), min duration length (ms), threshold (from 0 to 1)} (ex:
+%{5,20,0.3}) or leave empty = '' 
+%when prompted, tell it to accept current motif rendition as exemplar 'y'
+%or 'n'
 
 if isempty(params)
     params.motif=input('target motif:','s');
@@ -82,6 +91,7 @@ while isempty(dtwtemplate.filtsong)
         
         smtemp = dat(onsamp:offsamp);%amplitude envelope of motif
         filtsong = bandpass(smtemp,fs,500,10000,'hanningffir');
+        
         %plot spectrogram
         clf(h);hold on;
         NFFT = 512;
@@ -100,7 +110,7 @@ while isempty(dtwtemplate.filtsong)
         [ons offs] = SegmentNotes(sm2,fs,minint,mindur,thresh);
         plot([ons ons]',[500 10000],'r');hold on;
         plot([offs offs]',[500 10000],'r');hold on;
-        keep_or_nokeep = input('use as template?: ','s');
+        keep_or_nokeep = input('use as template? (y/n): ','s');
         if keep_or_nokeep == 'n'
             continue
         end

@@ -2,9 +2,6 @@ function [sm_ons sm_offs tm2 sp2 f2] = dtw_segment(smtemp,dtwtemplate,fs);
 %performs spectrogram dtw using template and exemplar (smtemp). returns
 %time in seconds into smtemp that corresponds to onsets and offsets of
 %template
-%the template has defined syll onsets/offsets; dtw will compare the spectral 
-%feature at each time point in the template with the spectral feature in the
-%exemplar. therefore, you can find the corresponding syll onsets/offsets in the exemplar 
 
 %spectrogram params
 NFFT = 512;

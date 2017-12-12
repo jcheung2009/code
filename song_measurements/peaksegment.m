@@ -1,6 +1,12 @@
 function [sm_ons sm_offs] = peaksegment(smtemp,fs,varargin);
-%performs segmentation using halfwidth of findpeaks
+%performs segmentation using halfwidth of detected peaks using findpeaks2 
+%the idea is that for each rise/fall of syllable, the halfway point
+%between the trough/peak will be used as syll onset/offset 
 %returns time in seconds into smtemp that corresponds to onsets and offsets
+%varargin{1} = dtw template (spectral) for first using dtw to define syll
+%ons/offs and then using that to choose the closest halfwidth points; this
+%may be useful when poor signal to noise conditions where amplitude envelop
+%contains a lot of peaks/troughs that don't all correspond to sylls/gaps
 
 sm = log(evsmooth(smtemp,fs,'','','',10));
 sm=sm-min(sm);sm=sm./max(sm);

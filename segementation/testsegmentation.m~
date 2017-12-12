@@ -1,6 +1,10 @@
-function motifsegment = testsegmentation(batch,motif,dtwtemplate,CHANSPEC,fs);
+function motifsegment = testsegmentation(batch,motif,dtwtemplate,dtwtemplate2,CHANSPEC,fs);
 %this function extracts the onset/offset of syllables within target motif
 %based on different segmentation methods 
+%dtwtemplate = spectral exemplar template from make_dtw_temp
+%dtwtemplate2 = amplitude env exemplar template make_dtw2_temp_motif
+%fs = sampling rate
+%CHANSPEC = 'obs0' for cbin files from evtaf of 'w' for wav files 
 
 nbuffer = floor(0.016*fs);%buffer by 16 ms
 
@@ -64,9 +68,10 @@ for i = 1:length(ff)
         sm = evsmooth(smtemp,fs,'','','',5);%smoothed amplitude envelop
         
         %amplitude segmentation
-        [ampons ampoffs] = SegmentNotes(sm,fs,5,20,0.3);
+        sm2 = log(sm);sm2=sm2-min(sm2);sm2=sm2/max(sm2);
+        [ampons ampoffs] = SegmentNotes(sm2,fs,5,20,0.5);
         
-        %dtw segmentation
+        %dtw segmentation on spectrogram
         [dtwons dtwoffs] = dtw_segment(smtemp,dtwtemplate,fs);
         
         %peak segmentation
@@ -76,30 +81,34 @@ for i = 1:length(ff)
         [dtwpkons dtwpkoffs] = peaksegment(smtemp,fs,dtwtemplate);
         
         %tonality segmentation
+        [pxx freq] = pwelch(smtemp,NFFT,overlap,NFFT,fs);
         [tonons tonoffs] = tonalitysegment(smtemp,fs);
+        
+        %dtw segmentation on amplitude envelope
+        [dtwons2 dtwoffs2] = dtw2_segment(sm2,dtwtemplate2,fs);
        
-          %extract datenum from rec file, add syllable ton in seconds
+       %extract datenum from rec file, add syllable ton in seconds
        if (strcmp(CHANSPEC,'obs0'))
-         if isfield(rd,'header')
-            key = 'created:';
-            ind = strfind(rd.header{1},key);
-            tmstamp = rd.header{1}(ind+length(key):end);
-            try
-                tmstamp = datenum(tmstamp,'ddd, mmm dd, yyyy, HH:MM:SS');%time file was closed
-                ind2 = strfind(rd.header{5},'=');
-                filelength = sscanf(rd.header{5}(ind2 + 1:end),'%g');%duration of file
+             if isfield(rd,'header')
+                key = 'created:';
+                ind = strfind(rd.header{1},key);
+                tmstamp = rd.header{1}(ind+length(key):end);
+                try
+                    tmstamp = datenum(tmstamp,'ddd, mmm dd, yyyy, HH:MM:SS');%time file was closed
+                    ind2 = strfind(rd.header{5},'=');
+                    filelength = sscanf(rd.header{5}(ind2 + 1:end),'%g');%duration of file
 
-                tm_st = addtodate(tmstamp,-(filelength),'millisecond');%time at start of filefiltsong
-                datenm = addtodate(tm_st, round(ton), 'millisecond');%add time to onset of syllable
-                [yr mon dy hr minutes sec] = datevec(datenm);     
-            catch
-                datenm = fn2datenum(fn);
-            end
-         else 
-             datenm = fn2datenum(fn);
-         end
+                    tm_st = addtodate(tmstamp,-(filelength),'millisecond');%time at start of filefiltsong
+                    datenm = addtodate(tm_st, round(ton), 'millisecond');%add time to onset of syllable
+                    [yr mon dy hr minutes sec] = datevec(datenm);     
+                catch
+                    datenm = fn2datenum(fn);
+                end
+             else 
+                 datenm = fn2datenum(fn);
+             end
       elseif strcmp(CHANSPEC,'w')
-         datenm = wavefn2datenum(fn);
+            datenm = wavefn2datenum(fn);
       end
      
      motif_cnt = motif_cnt+1;
@@ -111,9 +120,14 @@ for i = 1:length(ff)
      motifsegment(motif_cnt).dtwsegment = [dtwons dtwoffs];
      motifsegment(motif_cnt).pksegment = [pkons pkoffs];
      motifsegment(motif_cnt).dtwpksegment = [dtwpkons dtwpkoffs];
-     motifsegment(motif_cnt).tonalitysegment = [tons tonoffs];
+     motifsegment(motif_cnt).tonalitysegment = [tonons tonoffs];
+     motifsegment(motif_cnt).dtwampsegment = [dtwons2 dtwoffs2];
+
     end
     
+    if motif_cnt >= 50 %only sample 50 motifs because of time
+         return
+    end
 end
         
         

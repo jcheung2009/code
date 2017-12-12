@@ -1,5 +1,6 @@
 function [sm_ons sm_offs]  = dtw2_segment(sm,dtwtemplate,fs);
-%performs dtw on the amplitude envelope with a exemplar 
+%performs dtw on the amplitude envelope with an exemplar (dtwtemplate) 
+%dtwtemplate made with make_dtw2_temp_motif
 %returns time in seconds into sm that corresponds to onsets and offsets of
 %template
 

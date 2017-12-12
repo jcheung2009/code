@@ -1,6 +1,6 @@
 function dtwtemplate=make_dtw2_temp_motif(batch,params,CHANSPEC)
 %this function makes a template to be used for dtw
-%segmentation in dtw2_segment
+%segmentation based on the amplitude envelope in dtw2_segment
 
 if isempty(params)
     params.motif=input('target motif:','s');
