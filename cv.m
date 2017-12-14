@@ -1,6 +1,10 @@
-function cv = cv(invect,dim)
-%
+function cv = cv(invect,varargin)
 % returns coefficient of variation of invect
-%
 
-  cv = sqrt(var(invect,'omitnan')) / nanmean(invect);
+if isempty(varargin)
+    dim = 1;
+else 
+    dim = varargin{1};
+end
+
+  cv = sqrt(var(invect,'',dim,'omitnan'))./nanmean(invect,dim);

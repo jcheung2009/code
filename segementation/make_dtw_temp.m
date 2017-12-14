@@ -111,17 +111,22 @@ while isempty(dtwtemplate.filtsong)
         plot([ons ons]',[500 10000],'r');hold on;
         plot([offs offs]',[500 10000],'r');hold on;
         keep_or_nokeep = input('use as template? (y/n): ','s');
-        if keep_or_nokeep == 'n'
+        if strcmp(keep_or_nokeep,'n')
             continue
         end
        
         if length(ons) ~= length(motif)
-             continue
-        else
-            dtwtemplate.filtsong=filtsong;
-            dtwtemplate.sm=sm;
-            dtwtemplate.ons = ons;
-            dtwtemplate.offs=offs;
+             keep_or_nokeep = input('are you sure? number of syllables does not match motif (y/n): ','s');
+             if strcmp(keep_or_nokeep,'n')
+                 continue
+             end
+        end
+
+        dtwtemplate.filtsong=filtsong;
+        dtwtemplate.sm=sm;
+        dtwtemplate.ons = ons;
+        dtwtemplate.offs=offs;
+
         end
     end
     i=i+1;

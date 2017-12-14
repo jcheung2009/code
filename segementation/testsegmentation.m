@@ -1,4 +1,4 @@
-function motifsegment = testsegmentation(batch,motif,dtwtemplate,dtwtemplate2,minint,mindur,thresh,CHANSPEC,fs);
+function motifsegment = testsegmentation(path,batch,motif,dtwtemplate,dtwtemplate2,minint,mindur,thresh,CHANSPEC,fs);
 %this function extracts the onset/offset of syllables within target motif
 %based on different segmentation methods 
 %dtwtemplate = spectral exemplar template from make_dtw_temp
@@ -28,18 +28,19 @@ t=-NFFT/2+1:NFFT/2;
 sigma=(1/1000)*fs;
 w=exp(-(t/sigma).^2);
 
+%frequency range for tonality measure
 [pxx freq] = pwelch(dtwtemplate.filtsong,NFFT,overlap,NFFT,fs);
 pxx = pxx./sum(pxx);
 prc = cumsum(pxx);
 id = find(prc>=0.25 & prc<=0.75);
-freq = [freq(id(1)) freq(id(end))];%frequency range for tonality measure
+freq = [freq(id(1)) freq(id(end))];
 
-ff = load_batchf(batch);
+ff = load_batchf([path batch]);
 motif_cnt = 0;
 motifsegment = struct();
 for i = 1:length(ff)
     %load song data
-    fn = ff(i).name;
+    fn = [path ff(i).name];
     fnn=[fn,'.not.mat'];
     if (~exist(fnn,'file'))
         continue;
@@ -100,7 +101,7 @@ for i = 1:length(ff)
         [dtwpkons dtwpkoffs] = peaksegment(smtemp,fs,dtwtemplate);
         
         %tonality segmentation
-        [tonons tonoffs] = tonalitysegment(smtemp,fs,freq);
+%         [tonons tonoffs] = tonalitysegment(smtemp,fs,freq);
         
         %dtw segmentation on amplitude envelope
         [dtwons2 dtwoffs2] = dtw2_segment(sm2,dtwtemplate2,fs);
@@ -138,7 +139,7 @@ for i = 1:length(ff)
      motifsegment(motif_cnt).dtwsegment = [dtwons dtwoffs];
      motifsegment(motif_cnt).pksegment = [pkons pkoffs];
      motifsegment(motif_cnt).dtwpksegment = [dtwpkons dtwpkoffs];
-     motifsegment(motif_cnt).tonalitysegment = [tonons tonoffs];
+%      motifsegment(motif_cnt).tonalitysegment = [tonons tonoffs];
      motifsegment(motif_cnt).dtwampsegment = [dtwons2 dtwoffs2];
 
     end

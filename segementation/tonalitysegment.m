@@ -41,7 +41,14 @@ while length(filtsong)-startind>=512
 end
 tonality=log(tonality);
 tonality=tonality-min(tonality);tonality=tonality/max(tonality);
-[pks,locs,w,~,wc] = findpeaks2(tonality,'MinPeakDistance',0.023*fs/downsamp,...
-    'MinPeakProminence',0.3,'MinPeakWidth',0.02*fs/downsamp,'Annotate','extents','widthreference','halfheight');%segment the tonality waveform
-tonons = wc(:,1)./(fs/downsamp);
-tonoffs = wc(:,2)./(fs/downsamp);
+% [pks,locs,w,~,wc] = findpeaks2(tonality,'MinPeakDistance',0.023*fs/downsamp,...
+%     'MinPeakProminence',0.3,'MinPeakWidth',0.02*fs/downsamp,'Annotate','extents','widthreference','halfheight');%segment the tonality waveform
+% tonons = wc(:,1)./(fs/downsamp);
+% tonoffs = wc(:,2)./(fs/downsamp);
+[tonons tonoffs] = SegmentNotes(tonality,fs/downsamp,5,20,0.3);
+
+%plot tonality waveform
+if nargout < 1 
+    tb = [0:length(tonality)-1]./(fs/downsamp);
+    plot(tb,tonality,'k');
+end
