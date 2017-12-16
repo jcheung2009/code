@@ -1325,5 +1325,37 @@ p_sigdiff = length(find(abs(sig)>=abs(sigcorr_gap-sigcorr_dur)))/1000
 p_negdiff = length(find(abs(neg)>=abs(negcorr_gap-negcorr_dur)))/1000
 p_posdiff = length(find(abs(pos)>=abs(poscorr_gap-poscorr_dur)))/1000
 
-    
+%% comparing sample sizes for single units that are negative vs positively correlated
+negsampsize = corrmat(singleiind(corrmat(singleiind,1)<0),7);
+possampsize = corrmat(singleiind(corrmat(singleiind,1)>0),7);
+maxsize = max([negsampsize;possampsize]);
+figure;hold on;
+[n b] = hist(negsampsize,[25:10:maxsize+5]);
+stairs(b,n/sum(n),'b','linewidth',2);hold on;
+[n b] = hist(possampsize,[25:10:maxsize+5]);
+stairs(b,n/sum(n),'r','linewidth',2);hold on;
+xlabel('sample size');ylabel('counts');
+legend({'negative','positive'});
+y = get(gca,'ylim');
+plot(median(negsampsize),y(1),'b^');hold on;
+plot(median(possampsize),y(1),'r^');hold on;
+p = ranksum(negsampsize,possampsize);
+text(0,1,{['p=',num2str(p)]},'units','normalized');
+
+%% %% power analysis for negative vs positively correlated single units
+sampsize = [25:5:500];
+corrvals = regressionpower(0.05,0.2,sampsize);
+figure;
+plot(corrmat(singleiind(corrmat(singleiind,1)<0),7),...
+    abs(corrmat(singleiind(corrmat(singleiind,1)<0),1)),'ob');hold on;
+plot(corrmat(singleiind(corrmat(singleiind,1)>0),7),...
+    abs(corrmat(singleiind(corrmat(singleiind,1)>0),1)),'or');hold on;
+plot(corrmat(negcorr_su,7),abs(corrmat(negcorr_su,1)),'b.','markersize',10);hold on;
+plot(corrmat(poscorr_su,7),abs(corrmat(poscorr_su,1)),'r.','markersize',10);hold on;
+plot(sampsize,corrvals,'color',[0.5 0.5 0.5],'linewidth',2);hold on;
+xlabel('sample size');ylabel('correlation');
+legend({'negative','positive'});
+set(gca,'fontweight','bold');
+
+
     
