@@ -1,4 +1,4 @@
-function [out] = contactsheet(optional_batch)
+function [out] = contactsheet(optional_batch,varargin)
 %quick scan through song spectrograms in batch list
 out = 0;
 
@@ -6,17 +6,15 @@ disp_size = 9; % number of cbins / wavs to preview at once
 scrsz = get(0,'ScreenSize');
 
 
-if nargin==1
-    path='';
-    batch=optional_batch;
+
+batch=optional_batch;
+if ~isempty(varargin)
+    startid = varargin{1};
 else
-    [batch,path] = uigetfile('*','Select Batch file');
-    pause(.1);
+    startid = 1;
 end
 ff = load_batchf(batch);
-
-% fin=fopen([path,batch]); % batch file ID
-% file = fscanf(fin,'%s',1);
+ff = ff(startid:end);
 
 fighandle = figure('Position',[1 scrsz(4)/2 scrsz(3)/2 scrsz(4)/2]);
 set(fighandle,'Color','white');
