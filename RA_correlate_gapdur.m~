@@ -66,6 +66,21 @@ for i = 1:length(ff)
         seqst = ceil(max(anchor-seqons(:,1)));%start border for sequence activity relative to target gap (sylloff1)
         seqend = ceil(max(seqoffs(:,end)-anchor));%end border 
         [PSTH_mn tb smooth_spiketrains spktms] = smoothtrain(spiketimes,seqst,seqend,anchor,win);
+%         seqst = ceil(max(seqoffs(:,seqlen/2+targetgapactivity)-seqons(:,1)));%boundaries for sequence activity relative to target gap (sylloff1)
+%         seqend = ceil(max(seqoffs(:,end)-seqoffs(:,seqlen/2+targetgapactivity)));
+%         spktms = cell(size(seqons,1),1);%spike times for each trial relative to target gap 
+%         smooth_spiketrains = zeros(length(gapdur_id),seqst+seqend+1);
+%         for m = 1:size(seqons,1)
+%             temp = zeros(1,seqst+seqend+1);
+%             x = spiketimes(find(spiketimes>=(seqoffs(m,seqlen/2+targetgapactivity)-seqst) & ...
+%                 spiketimes<=(seqoffs(m,seqlen/2+targetgapactivity)+seqend)));
+%             spktms{m} = x - seqoffs(m,seqlen/2+targetgapactivity); %spike times aligned by sylloff1 
+%             spktimes = round(spktms{m})+seqst+1;
+%             temp(spktimes) = 1;
+%             smooth_spiketrains(m,:) = conv(temp,win,'same');
+%         end
+%         tb = [-seqst:seqend];
+%         PSTH_mn = mean(smooth_spiketrains,1).*1000;
 
         %find peaks/bursts in PSTH in premotor window
         [pks, locs,w,~,wc] = findpeaks2(PSTH_mn,'MinPeakProminence',10,...
@@ -95,6 +110,18 @@ for i = 1:length(ff)
         for ixx = 1:length(pkid)
             %define peak borders
             [burstst burstend] = peakborder(wc,pkid(ixx),locs,tb);
+%             burstend = wc(pkid(ixx),2)+(wc(pkid(ixx),2)-locs(pkid(ixx)));
+%             burstst = wc(pkid(ixx),1)-(locs(pkid(ixx))-(wc(pkid(ixx),1)));
+%             if pkid(ixx)<size(wc,1)
+%                 if burstend > wc(pkid(ixx)+1,1)
+%                     burstend = ceil((wc(pkid(ixx),2)+wc(pkid(ixx)+1,1))/2);
+%                 end
+%             end
+%             if pkid(ixx) ~= 1
+%                 if burstst < wc(pkid(ixx)-1,2)
+%                     burstst = floor((wc(pkid(ixx),1)+wc(pkid(ixx)-1,2))/2);
+%                 end
+%             end
             
             %average pairwise correlation of spike trains 
             r = xcorr(smooth_spiketrains(:,burstst:burstend)',0,'coeff');
@@ -107,6 +134,20 @@ for i = 1:length(ff)
             seqst2 = ceil(max(anchor-seqons(:,1)));%boundaries for sequence activity relative to target gap (sylloff1)
             seqend2 = ceil(max(seqoffs(:,end)-anchor));
             [PSTH_mn_on2 tb2 smooth_spiketrains_on2 spktms_on2] = smoothtrain(spiketimes,seqst2,seqend2,anchor,win);
+%             seqons_alignedoff1 = seqons-seqoffs(:,seqlen/2+targetgapactivity);
+%             anchor=seqons_alignedoff1(:,seqlen/2+targetgapactivity+1);
+%             spktms_on2 = arrayfun(@(x) spktms{x}-anchor(x),1:length(spktms),'un',0);%realign spike times in each trial by on2
+%             seqst2 = ceil(abs(min([spktms_on2{:}])));
+%             seqend2 = ceil(abs(max([spktms_on2{:}])));
+%             smooth_spiketrains_on2 = zeros(length(gapdur_id),seqst2+seqend2+1);
+%             for m = 1:length(gapdur_id)
+%                 temp = zeros(1,seqst2+seqend2+1);
+%                 spktimes = round(spktms_on2{m})+seqst2+1;
+%                 temp(spktimes) = 1;
+%                 smooth_spiketrains_on2(m,:) = conv(temp,win,'same');
+%             end  
+%             tb2 = [-seqst2:seqend2];
+%             PSTH_mn_on2 = mean(smooth_spiketrains_on2,1).*1000;
             
             %find peak aligned to secondary anchor that corresponds to
             %target burst
@@ -117,12 +158,24 @@ for i = 1:length(ff)
                 ix = find(tb2(locs2)>=motorwin-mean(gapdur_id) & tb2(locs2)<=-mean(gapdur_id));
                 if isempty(ix)
                      alignby=1;%off1
-                     wth = w(pkid(ixx));anchor = seqoffs(:,seqlen/2+targetgapactivity);
+                     wth = w(pkid(ixx));
                      pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
                      npks_burst = cellfun(@(x) length(find(x>=tb(burstst)&x<tb(burstend))),spktms);%extract nspks in each trial
                 else
-                    [xy,ix] = min(abs(tb2(locs2)-(tb(locs(pkid(ixx)))-mean(anchor-seqoffs(:,seqlen/2+targetgapactivity)))));
+                    [xy,ix] = min(abs(tb2(locs2)-(tb(locs(pkid(ixx)))-mean(anchor))));
                     [burstst2 burstend2] = peakborder(wc2,ix,locs2,tb2);
+%                     burstend2 = wc2(ix,2)+(wc2(ix,2)-locs2(ix));%find burst border
+%                     burstst2 = wc2(ix,1)-(locs2(ix)-wc2(ix,1));
+%                     if ix < size(wc2,1) 
+%                         if burstend2 > wc2(ix+1,1)
+%                             burstend2 = ceil((wc2(ix,2)+wc2(ix+1,1))/2);
+%                         end
+%                     end
+%                     if ix ~= 1
+%                         if burstst2 < wc2(ix-1,2)
+%                             burstst2 = floor((wc2(ix,1)+wc2(ix-1,2))/2);
+%                         end
+%                     end
 
                     %use average pairwise correlation comparison to choose
                     %alignment
@@ -145,7 +198,7 @@ for i = 1:length(ff)
                 end
             else
                  alignby=1;%off1
-                 wth = w(pkid(ixx));anchor = seqoffs(:,seqlen/2+targetgapactivity);
+                 wth = w(pkid(ixx));
                  pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
                  npks_burst = cellfun(@(x) length(find(x>=tb(burstst)&x<tb(burstend))),spktms);%extract nspks in each trial
             end
@@ -213,6 +266,58 @@ for i = 1:length(ff)
                         seqst2,seqend2,anchor,ff(i).name,pct_error,gapids{n},r(2));
                 end
                 
+                thr1 = quantile(gapdur_id,0.25);%threshold for small gaps
+                smallgaps_id = find(gapdur_id <= thr1);
+                thr2 = quantile(gapdur_id,0.75);%threshold for large gaps
+                largegaps_id = find(gapdur_id >= thr2);
+                if alignby==2
+                    spktms_on2_inburst = cellfun(@(x) x(find(x>=tb2(burstst2)&x<tb2(burstend2))),spktms_on2,'un',0);
+                elseif alignby==1
+                    spktms_inburst = cellfun(@(x) x(find(x>=tb(burstst)&x<tb(burstend))),spktms,'un',0);
+                end
+                figure;subplot(3,1,1);hold on;cnt=0;
+                for m = 1:length(gapdur_id)
+                    if alignby==1
+                        if ~isempty(spktms{m})
+                            plot(repmat(spktms{m},2,1),[cnt cnt+1],'k');hold on;
+                        end
+                        if ~isempty(spktms_inburst{m})
+                            plot(repmat(spktms_inburst{m},2,1),[cnt cnt+1],'g');hold on;
+                        end
+                        for syll=1:seqlen
+                            patch([seqons(m,syll) seqoffs(m,syll) seqoffs(m,syll) seqons(m,syll)]-seqoffs(m,seqlen/2+targetgapactivity),...
+                                 [cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
+                        end
+                    elseif alignby==2
+                        if ~isempty(spktms_on2{m})
+                            plot(repmat(spktms_on2{m},2,1),[cnt cnt+1],'k');hold on;
+                        end
+                        if ~isempty(spktms_on2_inburst{m})
+                            plot(repmat(spktms_on2_inburst{m},2,1),[cnt cnt+1],'g');hold on;
+                        end
+                        for syll=1:seqlen
+                            patch([seqons(m,syll) seqoffs(m,syll) seqoffs(m,syll) seqons(m,syll)]-seqons(m,seqlen/2+targetgapactivity+1),...
+                                 [cnt cnt cnt+1 cnt+1],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.3);hold on;
+                        end
+                    end
+                    cnt=cnt+1;
+                end
+                [~,stid] = regexp(ff(i).name,'data_');
+                enid = regexp(ff(i).name,'_TH');
+                unitid = ff(i).name(stid+1:enid-1);
+                singleunit = mean(pct_error)<=0.01;
+                title([unitid,' ',gapids{n},' r=',num2str(r(2)),' unit=',num2str(singleunit)],'interpreter','none');
+                xlabel('time (ms)');ylabel('trial');set(gca,'fontweight','bold');
+                if alignby==1
+                    xlim([-seqst seqend]);ylim([0 cnt]);
+                    plot(-seqst,min(smallgaps_id),'r>','markersize',4,'linewidth',2);hold on;
+                    plot(-seqst,max(largegaps_id),'b>','markersize',4,'linewidth',2);hold on;
+                elseif alignby==2
+                    xlim([-seqst2 seqend2]);ylim([0 cnt]);
+                    plot(-seqst2,min(smallgaps_id),'r>','markersize',4,'linewidth',2);hold on;
+                    plot(-seqst2,max(largegaps_id),'b>','markersize',4,'linewidth',2);hold on;
+                end   
+                
                 subplot(3,1,2);hold on;
                 if alignby==1
                     plotPSTH(seqst,seqend,smooth_spiketrains,gapdur_id,tb,burstst,burstend);
@@ -220,8 +325,51 @@ for i = 1:length(ff)
                     plotPSTH(seqst2,seqend2,smooth_spiketrains_on2,gapdur_id,tb2,burstst2,burstend2);
                 end
                 
+                subplot(3,1,2);hold on;
+                if alignby==1
+                    patch([-seqst:seqend fliplr(-seqst:seqend)],([mean(smooth_spiketrains(smallgaps_id,:),1)-...
+                        stderr(smooth_spiketrains(smallgaps_id,:),1)...
+                        fliplr(mean(smooth_spiketrains(smallgaps_id,:),1)+...
+                        stderr(smooth_spiketrains(smallgaps_id,:),1))])*1000,[0.7 0.3 0.3],'edgecolor','none','facealpha',0.7);
+                    patch([-seqst:seqend fliplr(-seqst:seqend)],([mean(smooth_spiketrains(largegaps_id,:),1)-...
+                        stderr(smooth_spiketrains(largegaps_id,:),1)...
+                        fliplr(mean(smooth_spiketrains(largegaps_id,:),1)+...
+                        stderr(smooth_spiketrains(largegaps_id,:),1))])*1000,[0.3 0.3 0.7],'edgecolor','none','facealpha',0.7);
+                    patch([-seqst:seqend fliplr(-seqst:seqend)],([mean(smooth_spiketrains,1)-...
+                        stderr(smooth_spiketrains,1)...
+                        fliplr(mean(smooth_spiketrains,1)+...
+                        stderr(smooth_spiketrains,1))])*1000,[0.8 0.8 0.8],'edgecolor','none','facealpha',0.7);
+                    yl = get(gca,'ylim');
+                    plot(repmat([tb(burstst) tb(burstend)],2,1),yl,'g','linewidth',2);hold on;
+                    xlim([-seqst seqend]);
+                elseif alignby==2
+                    patch([-seqst2:seqend2 fliplr(-seqst2:seqend2)],([mean(smooth_spiketrains_on2(smallgaps_id,:),1)-...
+                        stderr(smooth_spiketrains_on2(smallgaps_id,:),1)...
+                        fliplr(mean(smooth_spiketrains_on2(smallgaps_id,:),1)+...
+                        stderr(smooth_spiketrains_on2(smallgaps_id,:),1))])*1000,[0.7 0.3 0.3],'edgecolor','none','facealpha',0.7);
+                    patch([-seqst2:seqend2 fliplr(-seqst2:seqend2)],([mean(smooth_spiketrains_on2(largegaps_id,:),1)-...
+                        stderr(smooth_spiketrains_on2(largegaps_id,:),1)...
+                        fliplr(mean(smooth_spiketrains_on2(largegaps_id,:),1)+...
+                        stderr(smooth_spiketrains_on2(largegaps_id,:),1))])*1000,[0.3 0.3 0.7],'edgecolor','none','facealpha',0.7);
+                    patch([-seqst2:seqend2 fliplr(-seqst2:seqend2)],([mean(smooth_spiketrains_on2,1)-...
+                        stderr(smooth_spiketrains_on2,1)...
+                        fliplr(mean(smooth_spiketrains_on2,1)+...
+                        stderr(smooth_spiketrains_on2,1))])*1000,[0.8 0.8 0.8],'edgecolor','none','facealpha',0.7);
+                    yl = get(gca,'ylim');
+                    plot(repmat([tb2(burstst2) tb2(burstend2)],2,1),yl,'g','linewidth',2);hold on;
+                    xlim([-seqst2 seqend2]);
+                end
+                xlabel('time (ms)');ylabel('Hz');set(gca,'fontweight','bold');
+                
                 subplot(3,1,3);hold on;
                 plotCORR(npks_burst,gapdur_id_corr);
+                
+                subplot(3,1,3);hold on;
+                scatter(npks_burst,gapdur_id_corr,'k.');hold on;
+                xlim([min(npks_burst)-1 max(npks_burst)+1]);lsline
+                xlabel('number of spikes');ylabel('gap duration (ms)');
+                set(gca,'fontweight','bold');
+
             end
         end
     end
@@ -262,7 +410,7 @@ function [burstst burstend] = peakborder(wc,id,locs,tb);
     end
 
 function [r p] = shuffle(npks_burst,gapdur_id_corr,shufftrials);
-    npks_burst_shuff = repmat(npks_burst',shufftrials,1);
+    npks_burst_shuff = repmat(npks_burst,shufftrials,1);
     npks_burst_shuff = permute_rowel(npks_burst_shuff);
     [r p] = corrcoef([npks_burst_shuff',gapdur_id_corr]);
     r = r(1:end-1,end);

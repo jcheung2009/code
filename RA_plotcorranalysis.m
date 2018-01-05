@@ -1,6 +1,6 @@
 
 %params and input
-load('gap_correlation_analysis1.mat');
+load('gap_correlation_analysis_test.mat');
 activitythresh = 6;%zscore from shuffled
 
 %indices for multi units with detected activity above activitythresh that have
