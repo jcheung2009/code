@@ -138,9 +138,6 @@ for i = 1:length(ff)
                 PSTH_mn_rand = mean(smooth_spiketrains_rand,1).*1000;
                 
                 tbid = find(tb>=lags(lagind)-landmarks_aligned(pt) & tb <lags(lagind)+motorwin-landmarks_aligned(pt));
-                if length(tbid) < motorwin
-                    continue
-                end
                 mnfr = mean(PSTH_mn(tbid));
                 if mnfr >= 25
                     pkactivity = (mean(PSTH_mn(tbid))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
@@ -164,7 +161,7 @@ for i = 1:length(ff)
                     if plotfig==1
                         figure;subplot(2,1,1);hold on;
                         plotraster(spktms,tb,tbid(1),tbid(end),seqons,seqoffs,...
-                            seqst2,seqend2,anchorpt)
+                            seqst2,seqend2,anchor)
 
                         subplot(2,1,2);hold on;
                         plotPSTH(seqst2,seqend2,smooth_spiketrains,tb,tbid(1),tbid(end));
