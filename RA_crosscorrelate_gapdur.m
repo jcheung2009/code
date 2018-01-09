@@ -24,7 +24,6 @@ c = cell(length(lags),1);
 shuffc = cell(length(lags),1);
 
 ff = load_batchf('batchfile');
-birdid = arrayfun(@(x) x.birdname,params,'unif',0);
 for i = 1:length(ff)
     load(ff(i).name);
     spiketimes = spiketimes*1000;%ms
@@ -51,7 +50,6 @@ for i = 1:length(ff)
         if length(gapdur_id)<25
             continue
         end
-        
         
         anchor = seqoffs(:,seqlen/2);%gap onset
         
@@ -143,7 +141,7 @@ for i = 1:length(ff)
                 end
                 mnfr = mean(PSTH_mn(tbid));
                 if mnfr >= 25
-                    pkactivity = (mean(PSTH_mn(tbid))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
+                    pkactivity = (max(PSTH_mn(tbid))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
 
                     if singleunits==0
                         if mean(pct_error)<=0.01 | pkactivity < activitythresh
@@ -164,7 +162,7 @@ for i = 1:length(ff)
                     if plotfig==1
                         figure;subplot(2,1,1);hold on;
                         plotraster(spktms,tb,tbid(1),tbid(end),seqons,seqoffs,...
-                            seqst2,seqend2,anchorpt)
+                            seqst2,seqend2,anchorpt,ff(i).name,gapids{n})
 
                         subplot(2,1,2);hold on;
                         plotPSTH(seqst2,seqend2,smooth_spiketrains,tb,tbid(1),tbid(end));
@@ -220,7 +218,7 @@ function [r p] = shuffle(npks_burst,gapdur_id_corr,shufftrials);
     p = p(1:end-1,end);  
     
 function plotraster(spktms,tb,burstst,burstend,seqons,seqoffs,...
-    seqst,seqend,anchor)
+    seqst,seqend,anchor,name,seqid)
     spktms_inburst = cellfun(@(x) x(find(x>=tb(burstst)&x<tb(burstend))),spktms,'un',0);
     cnt=0;
     for m = 1:length(spktms)
@@ -236,8 +234,12 @@ function plotraster(spktms,tb,burstst,burstend,seqons,seqoffs,...
         end
         cnt=cnt+1;
     end
+    [~,stid] = regexp(name,'data_');
+    enid = regexp(name,'_TH');
+    unitid = name(stid+1:enid-1);
     xlabel('time (ms)');ylabel('trial');set(gca,'fontweight','bold');
     xlim([-seqst seqend]);ylim([0 cnt]);
+    title([unitid,' ',seqid],'interpreter','none')
     
 function plotPSTH(seqst,seqend,smooth_spiketrains,tb,burstst,burstend);
     patch([-seqst:seqend fliplr(-seqst:seqend)],([mean(smooth_spiketrains,1)-...

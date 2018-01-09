@@ -184,10 +184,14 @@ for i = 1:length(ff)
                     [r2 p2] = corrcoef(npks_burst,dur2_id);
 
                     %measure latency between burst and next syllable onset 
-                    if alignby==1
-                        durmotorwin = tb(locs(pkid(ixx)))-mean(seqons(:,seqlen/2+1)-seqoffs(:,seqlen/2));
-                    elseif alignby == 2
-                        durmotorwin = tb2(locs2(ix));
+                    if targetgapactivity == 0 & targetgapdur == 0
+                        if alignby==1
+                            durmotorwin = tb(locs(pkid(ixx)))-mean(seqons(:,seqlen/2+1)-seqoffs(:,seqlen/2));
+                        elseif alignby == 2
+                            durmotorwin = tb2(locs2(ix));
+                        end
+                    else
+                        durmotorwin = NaN;
                     end
 
                     spk_gapdur_corr = [spk_gapdur_corr; r(2) p(2) alignby pkactivity...
@@ -247,12 +251,12 @@ for i = 1:length(ff)
                 if varfr < varfr2
                     alignby=2;%on2
                     anchor = seqons(:,seqlen/2+targetgapactivity+1);
-                    pkactivity = (mean(PSTH_mn_on2(tb2id))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
+                    pkactivity = (max(PSTH_mn_on2(tb2id))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
                     npks_burst = cellfun(@(x) length(find(x>=tb2(tb2id(1))&x<tb2(tb2id(end)))),spktms_on2);%extract nspks in each trial
                 else
                     alignby=1;%off1
                     anchor = seqoffs(:,seqlen/2+targetgapactivity);
-                    pkactivity = (mean(PSTH_mn(tbid))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
+                    pkactivity = (max(PSTH_mn(tbid))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
                     npks_burst = cellfun(@(x) length(find(x>=tb(tbid(1))&x<tb(tbid(end)))),spktms);%extract nspks in each trial
                 end
                
