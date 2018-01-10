@@ -1,5 +1,5 @@
 function [spk_gapdur_corr case_name dattable] = RA_correlate_gapdur(batchfile,seqlen,...
-    minsampsize,activitythresh,motorwin,targetgapactivity,targetgapdur,plotcasecondition,shuff,mode)
+    minsampsize,activitythresh,motorwin,targetgapactivity,targetgapdur,plotcasecondition,shuff,mode,ifr)
 %correlate premotor spikes with gapdur 
 %seqlen = length of syllable sequence (use 6)
 %minsampsize = minimum number of trials 
@@ -16,6 +16,8 @@ function [spk_gapdur_corr case_name dattable] = RA_correlate_gapdur(batchfile,se
 %alignby=1 or 2 (off1 or on2)
 %mode = 'burst' for restricting analysis to bursts and detectinb burst borders,'spikes' for counting
 %any spikes in a set 40 ms window
+%ifr = 1 use mean instantaneous FR or 0 use spike count, outputs NaN on
+%trials with only one spike in analysis window
 
 %parameters
 config; 
@@ -127,7 +129,7 @@ for i = 1:length(ff)
                          alignby=1;%off1
                          wth = w(pkid(ixx));anchor = seqoffs(:,seqlen/2+targetgapactivity);
                          pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
-                         npks_burst = cellfun(@(x) length(find(x>=tb(burstst)&x<tb(burstend))),spktms);%extract nspks in each trial
+                         npks_burst = countspks(spktms,tb(burstst),tb(burstend),ifr);
                     else
                         [xy,ix] = min(abs(tb2(locs2)-(tb(locs(pkid(ixx)))-mean(anchor-seqoffs(:,seqlen/2+targetgapactivity)))));
                         [burstst2 burstend2] = peakborder(wc2,ix,locs2,tb2);
@@ -143,21 +145,25 @@ for i = 1:length(ff)
                             alignby=2;%on2
                             wth = w2(ix);anchor = seqons(:,seqlen/2+targetgapactivity+1);
                             pkactivity = (pks2(ix)-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
-                            npks_burst = cellfun(@(x) length(find(x>=tb2(burstst2)&x<tb2(burstend2))),spktms_on2);%extract nspks in each trial
+                            npks_burst = countspks(spktms_on2,tb2(burstst2),tb2(burstend2),ifr);%extract nspks in each trial
                         else
                             alignby=1;%off1
                             wth = w(pkid(ixx));anchor = seqoffs(:,seqlen/2+targetgapactivity);
                             pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
-                            npks_burst = cellfun(@(x) length(find(x>=tb(burstst)&x<tb(burstend))),spktms);%extract nspks in each trial
+                            npks_burst = countspks(spktms,tb(burstst),tb(burstend),ifr);%extract nspks in each trial
                         end
                     end
                 else
                      alignby=1;%off1
                      wth = w(pkid(ixx));anchor = seqoffs(:,seqlen/2+targetgapactivity);
                      pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
-                     npks_burst = cellfun(@(x) length(find(x>=tb(burstst)&x<tb(burstend))),spktms);%extract nspks in each trial
+                     npks_burst = countspks(spktms,tb(burstst),tb(burstend),ifr);%extract nspks in each trial
                 end
-
+                
+                if sum(~isnan(npks_burst)) < 25
+                    continue
+                end
+                
                 %shuffle analysis
                 if ~isempty(strfind(shuff,'y'))
                     shufftrials = 1000;
@@ -177,7 +183,7 @@ for i = 1:length(ff)
                         end
                     end
                 else
-                    [r p] = corrcoef(npks_burst,gapdur_id_corr);
+                    [r p] = corrcoef(npks_burst,gapdur_id_corr,'rows','complete');
                     dur1_id = seqoffs(:,seqlen/2+targetgapdur)-seqons(:,seqlen/2+targetgapdur);
                     dur2_id = seqoffs(:,seqlen/2+targetgapdur+1)-seqons(:,seqlen/2+targetgapdur+1);
                     [r1 p1] = corrcoef(npks_burst,dur1_id);
@@ -195,7 +201,7 @@ for i = 1:length(ff)
                     end
 
                     spk_gapdur_corr = [spk_gapdur_corr; r(2) p(2) alignby pkactivity...
-                        wth mean(pct_error) length(gapdur_id) r1(2) p1(2) r2(2) p2(2) durmotorwin];
+                        wth mean(pct_error) sum(~isnan(npks_burst)) r1(2) p1(2) r2(2) p2(2) durmotorwin];
 
                     %variables for multilevel regression table
                     T = maketable(ff(i).name,gapids(n),gapdur_id_corr,npks_burst,pct_error,pkactivity,p(2));
@@ -252,14 +258,18 @@ for i = 1:length(ff)
                     alignby=2;%on2
                     anchor = seqons(:,seqlen/2+targetgapactivity+1);
                     pkactivity = (max(PSTH_mn_on2(tb2id))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
-                    npks_burst = cellfun(@(x) length(find(x>=tb2(tb2id(1))&x<tb2(tb2id(end)))),spktms_on2);%extract nspks in each trial
+                    npks_burst = countspks(spktms_on2,tb2(tb2id(1)),tb2(tb2id(end)),ifr);%extract nspks in each trial
                 else
                     alignby=1;%off1
                     anchor = seqoffs(:,seqlen/2+targetgapactivity);
                     pkactivity = (max(PSTH_mn(tbid))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
-                    npks_burst = cellfun(@(x) length(find(x>=tb(tbid(1))&x<tb(tbid(end)))),spktms);%extract nspks in each trial
+                    npks_burst = countspks(spktms,tb(tbid(1)),tb(tbid(end)),ifr);%extract nspks in each trial
                 end
                
+                if sum(~isnan(npks_burst)) < 25
+                    continue
+                end
+                
                 %shuffle analysis
                 if ~isempty(strfind(shuff,'y'))
                     shufftrials = 1000;
@@ -286,7 +296,7 @@ for i = 1:length(ff)
                     [r2 p2] = corrcoef(npks_burst,dur2_id);
 
                     spk_gapdur_corr = [spk_gapdur_corr; r(2) p(2) alignby pkactivity...
-                        NaN mean(pct_error) length(gapdur_id) r1(2) p1(2) r2(2) p2(2) NaN];
+                        NaN mean(pct_error) sum(~isnan(npks_burst)) r1(2) p1(2) r2(2) p2(2) NaN];
                     
                     %variables for multilevel regression table
                     T = maketable(ff(i).name,gapids(n),gapdur_id_corr,npks_burst,pct_error,pkactivity,p(2));
@@ -354,7 +364,15 @@ function [burstst burstend] = peakborder(wc,id,locs,tb);
     if burstend > length(tb)
         burstend = length(tb);
     end
-
+    
+function npks = countspks(spktms,tm1,tm2,ifr);
+    if ifr == 0
+        npks = cellfun(@(x) length(find(x>=tm1 & x<tm2)),spktms);%extract nspks in each trial
+    elseif ifr == 1
+        npks = cellfun(@(x) mean(diff(x(x>=tm1 & x<tm2))),spktms);%average ifr in each trial
+        npks = 1000*(1./npks);
+    end
+    
 function [r p] = shuffle(npks_burst,gapdur_id_corr,shufftrials);
     npks_burst_shuff = repmat(npks_burst',shufftrials,1);
     npks_burst_shuff = permute_rowel(npks_burst_shuff);

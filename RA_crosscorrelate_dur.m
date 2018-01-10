@@ -13,7 +13,6 @@ function [c lags shuffc] = RA_crosscorrelate_dur(batchfile,seqlen,minsampsize,..
 %any spikes in a set 40 ms window
 
 %parameters
-config;
 win = gausswin(20);%for smoothing spike trains
 win = win./sum(win);
 shift = 20;%ms
@@ -28,11 +27,22 @@ for i = 1:length(ff)
     load(ff(i).name);
     spiketimes = spiketimes*1000;%ms
     
+    if singleunits==0
+        if mean(pct_error)<=0.01
+            continue
+        end
+    else
+        if mean(pct_error) > 0.01
+            continue
+        end
+    end
+    
     %unique gap id
     gapids = find_uniquelbls(labels,seqlen,minsampsize);
     
     %for each unique sequence found  
     durs_all = offsets-onsets;
+    
     for n = 1:length(gapids)
         
         %remove outliers
@@ -84,14 +94,8 @@ for i = 1:length(ff)
                 for ixx = 1:length(pkid)
                     pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
 
-                    if singleunits==0
-                        if mean(pct_error)<=0.01 | pkactivity < activitythresh
-                            continue
-                        end
-                    else
-                        if mean(pct_error) > 0.01 | pkactivity < activitythresh
-                            continue
-                        end
+                    if pkactivity < activitythresh
+                        continue
                     end
                         
                     [burstst burstend] = peakborder(wc,pkid(ixx),locs,tb);
@@ -123,34 +127,54 @@ for i = 1:length(ff)
             landmarks(:,1:2:end) = seqons;  
             landmarks_aligned = mean(landmarks-anchor);
             for lagind = 1:length(lags)
-                [~,pt] = min(abs(lags(lagind)+motorwin-landmarks_aligned));
-                anchorpt = landmarks(:,pt);
-                seqst2 = ceil(max(anchorpt-seqons(:,1)));
-                seqend2 = ceil(max(seqoffs(:,end)-anchorpt));
+                pt1 = max(find((lags(lagind)+(motorwin/2)-landmarks_aligned)>0));
+                pt2 = min(find((lags(lagind)+(motorwin/2)-landmarks_aligned)<0));
+                
+                if isempty(pt1) | isempty(pt2)
+                    continue
+                end
+                
+                anchorpt = landmarks(:,pt1);
+                seqst = ceil(max(anchorpt-seqons(:,1)));
+                seqend = ceil(max(seqoffs(:,end)-anchorpt));
                 [PSTH_mn tb smooth_spiketrains spktms] = smoothtrain(spiketimes,...
-                    seqst2,seqend2,anchorpt,win);
+                    seqst,seqend,anchorpt,win);
+
+                tbid = find(tb>=lags(lagind)-landmarks_aligned(pt1) & tb <lags(lagind)+motorwin-landmarks_aligned(pt1));
+                r = xcorr(smooth_spiketrains(:,tbid)',0,'coeff');
+                r = reshape(r,[size(smooth_spiketrains,1) size(smooth_spiketrains,1)]);
+                r = r(find(triu(r,1)));
+                varfr = nanmean(r);
+                
+                anchorpt2 = landmarks(:,pt2);
+                seqst2 = ceil(max(anchorpt2-seqons(:,1)));
+                seqend2 = ceil(max(seqoffs(:,end)-anchorpt2));
+                [PSTH_mn2 tb2 smooth_spiketrains2 spktms2] = smoothtrain(spiketimes,...
+                    seqst2,seqend2,anchorpt2,win);
+                
+                tb2id = find(tb2>=lags(lagind)-landmarks_aligned(pt2) & tb2 <lags(lagind)+motorwin-landmarks_aligned(pt2));
+                r = xcorr(smooth_spiketrains2(:,tb2id)',0,'coeff');
+                r = reshape(r,[size(smooth_spiketrains2,1) size(smooth_spiketrains2,1)]);
+                r = r(find(triu(r,1)));
+                varfr2 = nanmean(r);
+%               
+                if varfr < varfr2
+                    PSTH_mn = PSTH_mn2;tb = tb2; smooth_spiketrains = smooth_spiketrains2;
+                    spktms = spktms2; tbid = tb2id; anchorpt = anchorpt2;
+                    seqst = seqst2; seqend = seqend2;
+                end
                 
                 %shuffled spike train to detect peaks that are significantly
                 %above shuffled activity
                 smooth_spiketrains_rand = permute_rowel(smooth_spiketrains);
                 PSTH_mn_rand = mean(smooth_spiketrains_rand,1).*1000;
                 
-                tbid = find(tb>=lags(lagind)-landmarks_aligned(pt) & tb <lags(lagind)+motorwin-landmarks_aligned(pt));
-                if length(tbid) < motorwin
-                    continue
-                end
                 mnfr = mean(PSTH_mn(tbid));
                 if mnfr >= 25
                     pkactivity = (max(PSTH_mn(tbid))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
 
-                    if singleunits==0
-                        if mean(pct_error)<=0.01 | pkactivity < activitythresh
-                            continue
-                        end
-                    else
-                        if mean(pct_error) > 0.01 | pkactivity < activitythresh
-                            continue
-                        end
+                    if pkactivity < activitythresh
+                        continue
                     end
                     
                     npks_burst = cellfun(@(x) length(find(x>=tb(tbid(1))&x<tb(tbid(end)))),spktms);%extract nspks in each trial
