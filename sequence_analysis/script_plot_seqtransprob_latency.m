@@ -1,16 +1,16 @@
 %plots running average of sequence transition probability 
 
-batchname = 'batchdcs';
+batchname = 'batch';
 ff = load_batchf(batchname);
-load('analysis/data_structures/apvpitchcvlatency.mat');
-load('analysis/data_structures/apvnaspmlatency.mat')
-load('analysis/data_structures/naspmpitchcvlatency.mat');
-load('analysis/data_structures/naspmapvlatency.mat');
-load('analysis/data_structures/dcslatency.mat');
-motifs = {'ab','gb'};
+% load('analysis/data_structures/apvpitchcvlatency.mat');
+% load('analysis/data_structures/apvnaspmlatency.mat')
+% load('analysis/data_structures/naspmpitchcvlatency.mat');
+% load('analysis/data_structures/naspmapvlatency.mat');
+% load('analysis/data_structures/dcslatency.mat');
+motifs = {'we','wa','ww'};
 [~,modified_motifs] = db_con_or_div(motifs);
 if isempty(strfind(batchname,'sal'))
-    for i =  1:3:length(ff)
+    for i =  1:length(ff)
 
         figure;hold on;
         ax = gca;
