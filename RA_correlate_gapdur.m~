@@ -16,8 +16,7 @@ function [spk_gapdur_corr case_name dattable] = RA_correlate_gapdur(batchfile,se
 %alignby=1 or 2 (off1 vs on1: gap; on1 vs prevoff: syll)
 %mode = 'burst' for restricting analysis to bursts and detectinb burst borders,'spikes' for counting
 %any spikes in a set 40 ms window
-%ifr = 1 use mean instantaneous FR or 0 use spike count, outputs NaN on
-%trials with only one spike in analysis window
+%ifr = 1 use mean instantaneous FR or 0 use spike count
 %gap_or_syll = 'gap' or 'syll'
 
 %parameters
@@ -56,7 +55,7 @@ for i = 1:length(ff)
         seqoffs = offsets(bsxfun(@plus,idx',(0:seqlen-1)));
         if strcmp(gap_or_syll,'gap')
             dur_id = jc_removeoutliers(gapdurs_all(idx+seqlen/2-1),3);%remove trials with outliers in gap length
-        else
+        elseif strcmp(gap_or_syll,'syll')
             dur_id = jc_removeoutliers(durs_all(idx+ceil(seqlen/2)-1),3);
         end
         dur_id = jc_removeoutliers(dur_id,3);
@@ -98,7 +97,7 @@ for i = 1:length(ff)
         smooth_spiketrains_rand = permute_rowel(smooth_spiketrains);
         PSTH_mn_rand = mean(smooth_spiketrains_rand,1).*1000;
 
-        %offsets of alignment
+        %offsets for alignment
         durseq = seqoffs-seqons;
         gapseq = seqons(:,2:end)-seqoffs(:,1:end-1);
         if strcmp(gap_or_syll,'gap')
@@ -106,7 +105,7 @@ for i = 1:length(ff)
             offset = [offset+motorwin, offset];
         elseif strcmp(gap_or_syll,'syll')
             offset = gapseq(:,ceil(seqlen/2)-1+targetactivity);
-            offset = [gapoffset+motorwin, gapoffset];
+            offset = [offset+motorwin, offset];
         end
 
         %target dur for correlation 
@@ -185,6 +184,8 @@ for i = 1:length(ff)
                 
                 if sum(~isnan(npks_burst)) < 25
                     continue
+                else
+                    npks_burst(find(isnan(npks_burst))) = 0;
                 end
                 
                 %shuffle analysis
@@ -203,7 +204,7 @@ for i = 1:length(ff)
                     spk_gapdur_corr = [spk_gapdur_corr r p];
                 else
                     %correlation with target and adjacent elements
-                    [r p] = corrcoef(npks_burst,dur_id_corr,'rows','complete');
+                    [r p] = corrcoef(npks_burst,dur_id_corr);
                     if strcmp(gap_or_syll,'gap')
                         dur1_id = seqoffs(:,seqlen/2+targetdur)-seqons(:,seqlen/2+targetdur);%previous syll
                         dur2_id = seqoffs(:,seqlen/2+targetdur+1)-seqons(:,seqlen/2+targetdur+1);%next syll
@@ -303,6 +304,8 @@ for i = 1:length(ff)
                
                 if sum(~isnan(npks_burst)) < 25
                     continue
+                else
+                    npks_burst(find(isnan(npks_burst))) = 0;
                 end
                 
                 if ~isempty(strfind(shuff,'y'))%shuffle analysis
@@ -409,14 +412,18 @@ if length(tm1) == 1
     if ifr == 0
         npks = cellfun(@(x) length(find(x>=tm1 & x<tm2)),spktms);%extract nspks in each trial
     elseif ifr == 1
-        npks = cellfun(@(x) mean(diff(x(x>=tm1 & x<tm2))),spktms);%average ifr in each trial
+        id = cellfun(@(x) find(x(1:end-1)>=tm1&x(1:end-1)<tm2),spktms,'un',0);
+        spktms_diff = cellfun(@(x) diff(x),spktms,'un',0);
+        npks = cellfun(@(x,y) mean(x(y)),spktms_diff,id);%average ifr in each trial
         npks = 1000*(1./npks);
     end
 else
     if ifr == 0
         npks = cellfun(@(x,y,z) length(find(x>=y & x<z)),spktms,tm1,tm2);%extract nspks in each trial
     elseif ifr == 1
-        npks = cellfun(@(x,y,z) mean(diff(x(x>=y & x<z))),spktms,tm1,tm2);%average ISI in each trial
+        id = cellfun(@(x,y,z) find(x(1:end->=y & x< z),spktms,tm1,tm2,'un',0);
+        spktms_diff = cellfun(@(x) diff(x),spktms,'un',0);
+        npks = cellfun(@(x,y) mean(x(y)),spktms_diff,id);
         npks = 1000*(1./npks);
     end
 end

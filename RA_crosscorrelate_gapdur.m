@@ -56,7 +56,7 @@ for i = 1:length(ff)
         if strcmp(gap_or_syll,'gap')
             dur_id = jc_removeoutliers(gapdurs_all(idx+seqlen/2-1),3);
         elseif strcmp(gap_or_syll,'syll')
-            dur_id = jc_removeoutliers(durs_all(idx+seqlen/2-1),3);
+            dur_id = jc_removeoutliers(durs_all(idx+ceil(seqlen/2)-1),3);
         end
         dur_id = jc_removeoutliers(dur_id,3);
         id = find(isnan(dur_id));dur_id(id) = [];seqons(id,:) = [];seqoffs(id,:) = [];
@@ -154,12 +154,8 @@ for i = 1:length(ff)
 
                     [burstst burstend] = peakborder(wc,pkid(ixx),locs,tb);
                     npks_burst = countspks(spktms,tb(burstst),tb(burstend),ifr);
-                    
-                    if sum(~isnan(npks_burst)) < 25
-                        continue
-                    else
-                        npks_burst(find(isnan(npks_burst))) = 0;
-                    end
+                    npks_burst(find(isnan(npks_burst))) = 0;
+
                     [r p] = corrcoef(npks_burst,dur_id,'rows','complete');
                     [r2 p2] = shuffle(npks_burst,dur_id,shufftrials);
                     c{lagind} = [c{lagind}; r(2) p(2)];
@@ -272,14 +268,18 @@ if length(tm1) == 1
     if ifr == 0
         npks = cellfun(@(x) length(find(x>=tm1 & x<tm2)),spktms);%extract nspks in each trial
     elseif ifr == 1
-        npks = cellfun(@(x) mean(diff(x(x>=tm1 & x<tm2))),spktms);%average ifr in each trial
+        id = cellfun(@(x) find(x(1:end-1)>=tm1&x(1:end-1)<tm2),spktms,'un',0);
+        spktms_diff = cellfun(@(x) diff(x),spktms,'un',0);
+        npks = cellfun(@(x,y) mean(x(y)),spktms_diff,id);%average ifr in each trial
         npks = 1000*(1./npks);
     end
 else
     if ifr == 0
         npks = cellfun(@(x,y,z) length(find(x>=y & x<z)),spktms,tm1,tm2);%extract nspks in each trial
     elseif ifr == 1
-        npks = cellfun(@(x,y,z) mean(diff(x(x>=y & x<z))),spktms,tm1,tm2);%average ISI in each trial
+        id = cellfun(@(x,y,z) find(x(1:end-1)>=y & x(1:end-1)< z),spktms,tm1,tm2,'un',0);
+        spktms_diff = cellfun(@(x) diff(x),spktms,'un',0);
+        npks = cellfun(@(x,y) mean(x(y)),spktms_diff,id);
         npks = 1000*(1./npks);
     end
 end

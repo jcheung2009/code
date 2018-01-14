@@ -97,7 +97,7 @@ for i = 1:length(ff)
         smooth_spiketrains_rand = permute_rowel(smooth_spiketrains);
         PSTH_mn_rand = mean(smooth_spiketrains_rand,1).*1000;
 
-        %offsets of alignment
+        %offsets for alignment
         durseq = seqoffs-seqons;
         gapseq = seqons(:,2:end)-seqoffs(:,1:end-1);
         if strcmp(gap_or_syll,'gap')
@@ -301,12 +301,7 @@ for i = 1:length(ff)
                     pkactivity = (max(PSTH_mn(tbid))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
                     npks_burst = countspks(spktms,tb(tbid(1)),tb(tbid(end)),ifr);%extract nspks in each trial
                 end
-               
-                if sum(~isnan(npks_burst)) < 25
-                    continue
-                else
-                    npks_burst(find(isnan(npks_burst))) = 0;
-                end
+                npks_burst(find(isnan(npks_burst))) = 0;
                 
                 if ~isempty(strfind(shuff,'y'))%shuffle analysis
                     if isempty(strfind(shuff,'su')) %for multi unit shuff
@@ -412,14 +407,18 @@ if length(tm1) == 1
     if ifr == 0
         npks = cellfun(@(x) length(find(x>=tm1 & x<tm2)),spktms);%extract nspks in each trial
     elseif ifr == 1
-        npks = cellfun(@(x) mean(diff(x(x>=tm1 & x<tm2))),spktms);%average ifr in each trial
+        id = cellfun(@(x) find(x(1:end-1)>=tm1&x(1:end-1)<tm2),spktms,'un',0);
+        spktms_diff = cellfun(@(x) diff(x),spktms,'un',0);
+        npks = cellfun(@(x,y) mean(x(y)),spktms_diff,id);%average ifr in each trial
         npks = 1000*(1./npks);
     end
 else
     if ifr == 0
         npks = cellfun(@(x,y,z) length(find(x>=y & x<z)),spktms,tm1,tm2);%extract nspks in each trial
     elseif ifr == 1
-        npks = cellfun(@(x,y,z) mean(diff(x(x>=y & x<z))),spktms,tm1,tm2);%average ISI in each trial
+        id = cellfun(@(x,y,z) find(x(1:end-1)>=y & x(1:end-1)< z),spktms,tm1,tm2,'un',0);
+        spktms_diff = cellfun(@(x) diff(x),spktms,'un',0);
+        npks = cellfun(@(x,y) mean(x(y)),spktms_diff,id);
         npks = 1000*(1./npks);
     end
 end
