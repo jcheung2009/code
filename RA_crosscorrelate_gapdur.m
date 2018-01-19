@@ -131,7 +131,7 @@ for i = 1:length(ff)
             
             if strcmp(mode,'burst')
                 %find peaks/bursts in PSTH
-                [pks, locs, w,~,wc] = findpeaks2(PSTH_mn,'MinPeakProminence',10,...
+                [pks, locs, w,~,wc] = findpeaks2(PSTH_mn,'MinPeakProminence',5,...
                     'MinPeakWidth',10,'Annotate','extents','WidthReference','halfheight');
                 wc = round(wc);
                 pkid = find(tb(locs)>=lags(lagind)-mean(landmarks_aligned(:,pt)) & ...
@@ -153,21 +153,31 @@ for i = 1:length(ff)
                     end
 
                     [burstst burstend] = peakborder(wc,pkid(ixx),locs,tb);
-                    npks_burst = countspks(spktms,tb(burstst),tb(burstend),ifr);
-                    npks_burst(find(isnan(npks_burst))) = 0;
+                    if ifr == 1
+                        npks_burst = mean(smooth_spiketrains(:,burstst:burstend),2).*1000;
+                    else
+                        npks_burst = countspks(spktms,tb(burstst),tb(burstend),ifr);
+                    end
+                    
+                    if sum(~isnan(npks_burst)) < minsampsize
+                        continue
+                    else
+                        keepid = find(~isnan(npks_burst));
+                        npks_burst = npks_burst(keepid);
+                    end
 
-                    [r p] = corrcoef(npks_burst,dur_id,'rows','complete');
-                    [r2 p2] = shuffle(npks_burst,dur_id,shufftrials);
+                    [r p] = corrcoef(npks_burst,dur_id(keepid),'rows','complete');
+                    [r2 p2] = shuffle(npks_burst,dur_id(keepid),shufftrials);
                     c{lagind} = [c{lagind}; r(2) p(2)];
                     shuffc{lagind} = [shuffc{lagind} r2 p2];
 
                     if plotfig==1
                         figure;subplot(2,1,1);hold on;
-                        plotraster(spktms,tb(burstst),tb(burstend),seqons,seqoffs,...
-                            seqst,seqend,anchorpt,ff(i).name,gapids{n})
+                        plotraster(spktms(keepid),tb(burstst),tb(burstend),seqons(keepid,:),seqoffs(keepid,:),...
+                            seqst,seqend,anchorpt(keepid),ff(i).name,gapids{n})
 
                         subplot(2,1,2);hold on;
-                        plotPSTH(seqst,seqend,smooth_spiketrains,tb(burstst),tb(burstend));
+                        plotPSTH(seqst,seqend,smooth_spiketrains(keepid,:),tb(burstst),tb(burstend));
                         pause
                     end  
                 end    
@@ -192,29 +202,35 @@ for i = 1:length(ff)
                     [row col] = find(tbtrind);
                     [~,ix] = sort(row);
                     row=row(ix);col=col(ix);
-                    [~,ix] = unique(row);
-                    st = num2cell(tb(col(ix)))';
-                    [~,ix] = unique(row,'last');
-                    ed = num2cell(tb(col(ix)))';
+                    [~,ix1] = unique(row);
+                    st = num2cell(tb(col(ix1)))';
+                    [~,ix2] = unique(row,'last');
+                    ed = num2cell(tb(col(ix2)))';
                     
-                    npks_burst = countspks(spktms,st,ed,ifr);
+                    if ifr == 1
+                        npks_burst = mean(smooth_spiketrains(:,col(ix1):col(ix2)),2).*1000;
+                    else
+                        npks_burst = countspks(spktms,st,ed,ifr);
+                    end
+                    
                     if sum(~isnan(npks_burst)) < 25
                         continue
                     else
-                        npks_burst(find(isnan(npks_burst))) = 0;
+                        keepid = find(~isnan(npks_burst));
+                        npks_burst = npks_burst(keepid);
                     end
-                    [r p] = corrcoef(npks_burst,dur_id);
-                    [r2 p2] = shuffle(npks_burst,dur_id,shufftrials);
+                    [r p] = corrcoef(npks_burst,dur_id(keepid));
+                    [r2 p2] = shuffle(npks_burst,dur_id(keepid),shufftrials);
                     c{lagind} = [c{lagind}; r(2) p(2)];
                     shuffc{lagind} = [shuffc{lagind} r2 p2];
 
                     if plotfig==1
                         figure;subplot(2,1,1);hold on;
-                        plotraster(spktms,st,ed,seqons,seqoffs,...
-                            seqst,seqend,anchorpt,ff(i).name,gapids{n})
+                        plotraster(spktms(keepid),st,ed,seqons(keepid,:),seqoffs(keepid,:),...
+                            seqst,seqend,anchorpt(keepid),ff(i).name,gapids{n})
 
                         subplot(2,1,2);hold on;
-                        plotPSTH(seqst,seqend,smooth_spiketrains,tb(tbid(1)),tb(tbid(end)));
+                        plotPSTH(seqst,seqend,smooth_spiketrains(keepid,:),tb(tbid(1)),tb(tbid(end)));
                         
                     end  
                 else
@@ -270,7 +286,7 @@ if length(tm1) == 1
     elseif ifr == 1
         id = cellfun(@(x) find(x(1:end-1)>=tm1&x(1:end-1)<tm2),spktms,'un',0);
         spktms_diff = cellfun(@(x) diff(x),spktms,'un',0);
-        npks = cellfun(@(x,y) mean(x(y)),spktms_diff,id);%average ifr in each trial
+        npks = cellfun(@(x,y) median(x(y)),spktms_diff,id);%average ifr in each trial
         npks = 1000*(1./npks);
     end
 else
@@ -279,7 +295,7 @@ else
     elseif ifr == 1
         id = cellfun(@(x,y,z) find(x(1:end-1)>=y & x(1:end-1)< z),spktms,tm1,tm2,'un',0);
         spktms_diff = cellfun(@(x) diff(x),spktms,'un',0);
-        npks = cellfun(@(x,y) mean(x(y)),spktms_diff,id);
+        npks = cellfun(@(x,y) median(x(y)),spktms_diff,id);
         npks = 1000*(1./npks);
     end
 end

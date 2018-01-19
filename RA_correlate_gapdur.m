@@ -65,7 +65,7 @@ for i = 1:length(ff)
             id = find(seqoffs(:,end)-seqons(:,1)>=1000);%remove trials where sequence length > 1 sec
             seqons(id,:) = [];seqoffs(id,:) = [];dur_id(id) = [];
         end
-        if length(dur_id)<25
+        if length(dur_id)<minsampsize
             continue
         end
         %order trials by gapdur
@@ -121,7 +121,7 @@ for i = 1:length(ff)
         
         if strcmp(mode,'burst')
             %find peaks/bursts in PSTH in premotor window
-            [pks, locs,w,~,wc] = findpeaks2(PSTH_mn,'MinPeakProminence',10,...
+            [pks, locs,w,~,wc] = findpeaks2(PSTH_mn,'MinPeakProminence',5,...
                 'MinPeakWidth',10,'Annotate','extents','WidthReference','halfheight');
             pkid = find(tb(locs)>=motorwin & tb(locs)<=0);
             wc = round(wc);
@@ -143,15 +143,19 @@ for i = 1:length(ff)
                 %find peak aligned to secondary anchor that corresponds to
                 %target burst
                 [pks2, locs2,w2,~,wc2] = findpeaks2(PSTH_mn_on2,'MinPeakProminence',...
-                    10,'MinPeakWidth',10,'Annotate','extents','WidthReference','halfheight');
+                    5,'MinPeakWidth',10,'Annotate','extents','WidthReference','halfheight');
                 if ~isempty(locs2)
                     wc2 = round(wc2);
                     ix = find(tb2(locs2)>=mean(offset(:,1)) & tb2(locs2)<=mean(offset(:,2)));
                     if isempty(ix)
                          alignby=1;%off1 for gap, on1 for syll
-                         wth = w(pkid(ixx));
+                         wth = tb(burstend)-tb(burstst);gaplatency = (tb(burstst)+tb(burstend))/2;
                          pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
-                         npks_burst = countspks(spktms,tb(burstst),tb(burstend),ifr);
+                         if ifr == 1
+                            npks_burst = mean(smooth_spiketrains(:,burstst:burstend),2).*1000;
+                         else
+                            npks_burst = countspks(spktms,tb(burstst),tb(burstend),ifr);
+                         end
                     else
                         [xy,ix] = min(abs(tb2(locs2)-(tb(locs(pkid(ixx)))-mean(anchor2-anchor))));
                         [burstst2 burstend2] = peakborder(wc2,ix,locs2,tb2);
@@ -165,27 +169,40 @@ for i = 1:length(ff)
 
                         if varburst1 < varburst2
                             alignby=2;%on1 for gap, prevoff for syll
-                            wth = w2(ix);
+                            wth = tb2(burstend2)-tb2(burstst2);gaplatency = ((tb2(burstst2)+tb2(burstend2))/2)-mean(offset(:,2));
                             pkactivity = (pks2(ix)-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
-                            npks_burst = countspks(spktms_on2,tb2(burstst2),tb2(burstend2),ifr);%extract nspks in each trial
+                            if ifr == 1
+                                npks_burst = mean(smooth_spiketrains_on2(:,burstst2:burstend2),2).*1000;
+                            else
+                                npks_burst = countspks(spktms_on2,tb2(burstst2),tb2(burstend2),ifr);%extract nspks in each trial
+                            end
                         else
                             alignby=1;%off1 for gap, on1 for syll1
-                            wth = w(pkid(ixx));
+                            wth = tb(burstend)-tb(burstst);gaplatency = (tb(burstst)+tb(burstend))/2;
                             pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
-                            npks_burst = countspks(spktms,tb(burstst),tb(burstend),ifr);%extract nspks in each trial
+                            if ifr == 1
+                                npks_burst = mean(smooth_spiketrains(:,burstst:burstend),2).*1000;
+                            else
+                                npks_burst = countspks(spktms,tb(burstst),tb(burstend),ifr);
+                            end
                         end
                     end
                 else
                      alignby=1;%off1 for gap, on1 for syll1
-                     wth = w(pkid(ixx));
+                     wth = tb(burstend)-tb(burstst);gaplatency = (tb(burstst)+tb(burstend))/2;
                      pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
-                     npks_burst = countspks(spktms,tb(burstst),tb(burstend),ifr);%extract nspks in each trial
+                     if ifr == 1
+                         npks_burst = mean(smooth_spiketrains(:,burstst:burstend),2).*1000;
+                     else
+                        npks_burst = countspks(spktms,tb(burstst),tb(burstend),ifr);
+                     end
                 end
                 
-                if sum(~isnan(npks_burst)) < 25
+                if sum(~isnan(npks_burst)) < minsampsize
                     continue
                 else
-                    npks_burst(find(isnan(npks_burst))) = 0;
+                    keepid = find(~isnan(npks_burst));%remove trials where no spikes occurred in burst window (in IFR mode) 
+                    npks_burst = npks_burst(keepid);
                 end
                 
                 %shuffle analysis
@@ -200,35 +217,35 @@ for i = 1:length(ff)
                             continue
                         end
                     end
-                    [r p] = shuffle(npks_burst,dur_id_corr,shufftrials);
+                    [r p] = shuffle(npks_burst,dur_id_corr(keepid),shufftrials);
                     spk_gapdur_corr = [spk_gapdur_corr r p];
                 else
                     %correlation with target and adjacent elements
-                    [r p] = corrcoef(npks_burst,dur_id_corr);
+                    [r p] = corrcoef(npks_burst,dur_id_corr(keepid));
                     if strcmp(gap_or_syll,'gap')
-                        dur1_id = seqoffs(:,seqlen/2+targetdur)-seqons(:,seqlen/2+targetdur);%previous syll
-                        dur2_id = seqoffs(:,seqlen/2+targetdur+1)-seqons(:,seqlen/2+targetdur+1);%next syll
+                        dur1_id = seqoffs(keepid,seqlen/2+targetdur)-seqons(keepid,seqlen/2+targetdur);%previous syll
+                        dur2_id = seqoffs(keepid,seqlen/2+targetdur+1)-seqons(keepid,seqlen/2+targetdur+1);%next syll
                     elseif strcmp(gap_or_syll,'syll')
-                        dur1_id = seqons(:,ceil(seqlen/2)+targetdur)-seqoffs(:,ceil(seqlen/2)+targetdur-1);
-                        dur2_id = seqons(:,ceil(seqlen/2)+targetdur+1)-seqoffs(:,ceil(seqlen/2)+targetdur);
+                        dur1_id = seqons(keepid,ceil(seqlen/2)+targetdur)-seqoffs(keepid,ceil(seqlen/2)+targetdur-1);
+                        dur2_id = seqons(keepid,ceil(seqlen/2)+targetdur+1)-seqoffs(keepid,ceil(seqlen/2)+targetdur);
                     end
-                    [r1 p1] = corrcoef(npks_burst,dur1_id,'rows','complete');
-                    [r2 p2] = corrcoef(npks_burst,dur2_id,'rows','complete');
+                    [r1 p1] = corrcoef(npks_burst,dur1_id);
+                    [r2 p2] = corrcoef(npks_burst,dur2_id);
 
                     %measure latency between burst and next syllable/gap onset 
                     if targetactivity == 0 & targetdur == 0
                         if alignby==1
                             if strcmp(gap_or_syll,'gap')
-                                durmotorwin = tb(locs(pkid(ixx)))-mean(gapseq(:,seqlen/2));
+                                durmotorwin = tb(locs(pkid(ixx)))-mean(gapseq(keepid,seqlen/2));
                             else
-                                durmotorwin = tb(locs(pkid(ixx)))-mean(durseq(:,ceil(seqlen/2)));
+                                durmotorwin = tb(locs(pkid(ixx)))-mean(durseq(keepid,ceil(seqlen/2)));
                             end
                         elseif alignby == 2
                             if strcmp(gap_or_syll,'gap')
-                                durmotorwin = tb2(locs2(ix))-mean(durseq(:,seqlen/2))-mean(gapseq(:,seqlen/2));
+                                durmotorwin = tb2(locs2(ix))-mean(durseq(keepid,seqlen/2))-mean(gapseq(keepid,seqlen/2));
                             elseif strcmp(gap_or_syll,'syll')
-                                durmotorwin = tb2(locs2(ix))-mean(gapseq(:,ceil(seqlen/2)-1))-...
-                                    mean(durseq(:,ceil(seqlen/2)));
+                                durmotorwin = tb2(locs2(ix))-mean(gapseq(keepid,ceil(seqlen/2)-1))-...
+                                    mean(durseq(keepid,ceil(seqlen/2)));
                             end
                         end
                     else
@@ -237,8 +254,8 @@ for i = 1:length(ff)
                     
                     %save measurements and variables
                     spk_gapdur_corr = [spk_gapdur_corr; r(2) p(2) alignby pkactivity...
-                        wth mean(pct_error) sum(~isnan(npks_burst)) r1(2) p1(2) r2(2) p2(2) durmotorwin];
-                    T = maketable(ff(i).name,gapids(n),dur_id_corr,npks_burst,pct_error,pkactivity,p(2));
+                        wth mean(pct_error) sum(~isnan(npks_burst)) r1(2) p1(2) r2(2) p2(2) durmotorwin gaplatency];
+                    T = maketable(ff(i).name,gapids(n),dur_id_corr(keepid),npks_burst,pct_error,pkactivity,p(2));
                     dattable=[dattable;T];
                     case_name = [case_name,{T.unitid{1},T.seqid{1}}];
                 end
@@ -246,22 +263,22 @@ for i = 1:length(ff)
                 if eval(plotcasecondition)
                     figure;subplot(3,1,1);hold on
                     if alignby==1
-                        plotraster(dur_id,spktms,tb(burstst),tb(burstend),seqons,seqoffs,...
-                            seqst,seqend,anchor,ff(i).name,pct_error,gapids{n},r(2));
+                        plotraster(dur_id_corr(keepid),spktms(keepid),tb(burstst),tb(burstend),seqons(keepid,:),seqoffs(keepid,:),...
+                            seqst,seqend,anchor(keepid),ff(i).name,pct_error,gapids{n},r(2));
                     elseif alignby==2
-                        plotraster(dur_id,spktms_on2,tb2(burstst2),tb2(burstend2),seqons,seqoffs,...
-                            seqst2,seqend2,anchor2,ff(i).name,pct_error,gapids{n},r(2));
+                        plotraster(dur_id_corr(keepid),spktms_on2(keepid),tb2(burstst2),tb2(burstend2),seqons(keepid,:),seqoffs(keepid,:),...
+                            seqst2,seqend2,anchor2(keepid),ff(i).name,pct_error,gapids{n},r(2));
                     end
-
+                    
                     subplot(3,1,2);hold on;
                     if alignby==1
-                        plotPSTH(seqst,seqend,smooth_spiketrains,dur_id,tb(burstst),tb(burstend));
+                        plotPSTH(seqst,seqend,smooth_spiketrains(keepid,:),dur_id_corr(keepid),tb(burstst),tb(burstend));
                     elseif alignby==2
-                        plotPSTH(seqst2,seqend2,smooth_spiketrains_on2,dur_id,tb2(burstst2),tb2(burstend2));
+                        plotPSTH(seqst2,seqend2,smooth_spiketrains_on2(keepid,:),dur_id_corr(keepid),tb2(burstst2),tb2(burstend2));
                     end
 
                     subplot(3,1,3);hold on;
-                    plotCORR(npks_burst,dur_id_corr,ifr);
+                    plotCORR(npks_burst,dur_id_corr(keepid),ifr);
                 end
             end
         elseif strcmp(mode,'spikes')
@@ -291,17 +308,31 @@ for i = 1:length(ff)
                     [row col] = find(tb2 >= offset(:,1) & tb2 < offset(:,2));
                     [~,ix] = sort(row);
                     row=row(ix);col=col(ix);
-                    [~,ix] = unique(row);
-                    st = num2cell(tb2(col(ix)))';
-                    [~,ix] = unique(row,'last');
-                    ed = num2cell(tb2(col(ix)))';
-                    npks_burst = countspks(spktms_on2,st,ed,ifr);
+                    [~,ix1] = unique(row);
+                    st = num2cell(tb2(col(ix1)))';
+                    [~,ix2] = unique(row,'last');
+                    ed = num2cell(tb2(col(ix2)))';
+                    if ifr == 1
+                        npks_burst = mean(smooth_spiketrains_on2(:,col(ix1):col(ix2)),2).*1000;
+                    else
+                        npks_burst = countspks(spktms_on2,st,ed,ifr);
+                    end
                 else
                     alignby=1;%off1 for gap, on1 for syll1
                     pkactivity = (max(PSTH_mn(tbid))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
-                    npks_burst = countspks(spktms,tb(tbid(1)),tb(tbid(end)),ifr);%extract nspks in each trial
+                    if ifr == 1
+                        npks_burst = mean(smooth_spiketrains(:,tbid(1):tbid(end)),2).*1000;
+                    else
+                        npks_burst = countspks(spktms,tb(tbid(1)),tb(tbid(end)),ifr);
+                    end
                 end
-                npks_burst(find(isnan(npks_burst))) = 0;
+                
+                if sum(~isnan(npks_burst)) < minsampsize
+                    continue
+                else
+                    keepid = find(~isnan(npks_burst));
+                    npks_burst = npks_burst(keepid);
+                end
                 
                 if ~isempty(strfind(shuff,'y'))%shuffle analysis
                     if isempty(strfind(shuff,'su')) %for multi unit shuff
@@ -314,25 +345,25 @@ for i = 1:length(ff)
                         end
                     end
                     shufftrials = 1000;
-                    [r p] = shuffle(npks_burst,dur_id_corr,shufftrials);
+                    [r p] = shuffle(npks_burst,dur_id_corr(keepid),shufftrials);
                     spk_gapdur_corr = [spk_gapdur_corr r p];
                 else
                     %correlation with target and adjacent elements
-                    [r p] = corrcoef(npks_burst,dur_id_corr,'rows','complete');
+                    [r p] = corrcoef(npks_burst,dur_id_corr(keepid),'rows','complete');
                     if strcmp(gap_or_syll,'gap')
-                        dur1_id = seqoffs(:,seqlen/2+targetdur)-seqons(:,seqlen/2+targetdur);%previous syll
-                        dur2_id = seqoffs(:,seqlen/2+targetdur+1)-seqons(:,seqlen/2+targetdur+1);%next syll
+                        dur1_id = seqoffs(keepid,seqlen/2+targetdur)-seqons(keepid,seqlen/2+targetdur);%previous syll
+                        dur2_id = seqoffs(keepid,seqlen/2+targetdur+1)-seqons(keepid,seqlen/2+targetdur+1);%next syll
                     elseif strcmp(gap_or_syll,'syll')
-                        dur1_id = seqons(:,ceil(seqlen/2)+targetdur)-seqoffs(:,ceil(seqlen/2)+targetdur-1);
-                        dur2_id = seqons(:,ceil(seqlen/2)+targetdur+1)-seqoffs(:,ceil(seqlen/2)+targetdur);
+                        dur1_id = seqons(keepid,ceil(seqlen/2)+targetdur)-seqoffs(keepid,ceil(seqlen/2)+targetdur-1);
+                        dur2_id = seqons(keepid,ceil(seqlen/2)+targetdur+1)-seqoffs(keepid,ceil(seqlen/2)+targetdur);
                     end
                     [r1 p1] = corrcoef(npks_burst,dur1_id,'rows','complete');
                     [r2 p2] = corrcoef(npks_burst,dur2_id,'rows','complete');
                     
                     %save measurements and variables
                     spk_gapdur_corr = [spk_gapdur_corr; r(2) p(2) alignby pkactivity...
-                        NaN mean(pct_error) sum(~isnan(npks_burst)) r1(2) p1(2) r2(2) p2(2) NaN];
-                    T = maketable(ff(i).name,gapids(n),dur_id_corr,npks_burst,pct_error,pkactivity,p(2));
+                        NaN mean(pct_error) length(npks_burst) r1(2) p1(2) r2(2) p2(2) NaN NaN];
+                    T = maketable(ff(i).name,gapids(n),dur_id_corr(keepid),npks_burst,pct_error,pkactivity,p(2));
                     dattable=[dattable;T];
                     case_name = [case_name,{T.unitid{1},T.seqid{1}}];
                 end
@@ -340,22 +371,22 @@ for i = 1:length(ff)
                 if eval(plotcasecondition)
                     figure;subplot(3,1,1);hold on
                     if alignby==1
-                        plotraster(dur_id,spktms,tb(tbid(1)),tb(tbid(end)),seqons,seqoffs,...
-                            seqst,seqend,anchor,ff(i).name,pct_error,gapids{n},r(2));
+                        plotraster(dur_id_corr(keepid),spktms(keepid),tb(tbid(1)),tb(tbid(end)),seqons(keepid,:),seqoffs(keepid,:),...
+                            seqst,seqend,anchor(keepid),ff(i).name,pct_error,gapids{n},r(2));
                     elseif alignby==2
-                        plotraster(dur_id,spktms_on2,st,ed,seqons,seqoffs,...
-                            seqst2,seqend2,anchor,ff(i).name,pct_error,gapids{n},r(2));
+                        plotraster(dur_id_corr(keepid),spktms_on2(keepid),st,ed,seqons(keepid,:),seqoffs(keepid,:),...
+                            seqst2,seqend2,anchor(keepid),ff(i).name,pct_error,gapids{n},r(2));
                     end
 
                     subplot(3,1,2);hold on;
                     if alignby==1
-                        plotPSTH(seqst,seqend,smooth_spiketrains,dur_id,tb(tbid(1)),tb(tbid(end)));
+                        plotPSTH(seqst,seqend,smooth_spiketrains(keepid,:),dur_id_corr(keepid),tb(tbid(1)),tb(tbid(end)));
                     elseif alignby==2
-                        plotPSTH(seqst2,seqend2,smooth_spiketrains_on2,dur_id,tb2(tb2id(1)),tb2(tb2id(end)));
+                        plotPSTH(seqst2,seqend2,smooth_spiketrains_on2(keepid,:),dur_id_corr(keepid),tb2(tb2id(1)),tb2(tb2id(end)));
                     end
 
                     subplot(3,1,3);hold on;
-                    plotCORR(npks_burst,dur_id_corr,ifr);
+                    plotCORR(npks_burst,dur_id_corr(keepid),ifr);
                 end    
             else
                 continue
@@ -409,7 +440,7 @@ if length(tm1) == 1
     elseif ifr == 1
         id = cellfun(@(x) find(x(1:end-1)>=tm1&x(1:end-1)<tm2),spktms,'un',0);
         spktms_diff = cellfun(@(x) diff(x),spktms,'un',0);
-        npks = cellfun(@(x,y) mean(x(y)),spktms_diff,id);%average ifr in each trial
+        npks = cellfun(@(x,y) median(x(y)),spktms_diff,id);%average ifr in each trial
         npks = 1000*(1./npks);
     end
 else
@@ -418,7 +449,7 @@ else
     elseif ifr == 1
         id = cellfun(@(x,y,z) find(x(1:end-1)>=y & x(1:end-1)< z),spktms,tm1,tm2,'un',0);
         spktms_diff = cellfun(@(x) diff(x),spktms,'un',0);
-        npks = cellfun(@(x,y) mean(x(y)),spktms_diff,id);
+        npks = cellfun(@(x,y) median(x(y)),spktms_diff,id);
         npks = 1000*(1./npks);
     end
 end
@@ -463,7 +494,7 @@ function plotraster(dur_id,spktms,tm1,tm2,seqons,seqoffs,...
             plot(repmat(spktms{m},2,1),[cnt cnt+1],'k');hold on;
         end
         if ~isempty(spktms_inburst{m})
-            plot(repmat(spktms_inburst{m},2,1),[cnt cnt+1],'g');hold on;
+            plot(repmat(spktms_inburst{m},2,1),[cnt cnt+1],'b');hold on;
         end
         for syll=1:size(seqons,2)
             patch([seqons(m,syll) seqoffs(m,syll) seqoffs(m,syll) seqons(m,syll)]-anchor(m),...
