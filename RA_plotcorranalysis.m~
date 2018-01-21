@@ -1,6 +1,6 @@
 
 %params and input
-load('gap_correlation_analysis1a.mat');
+load('gap_correlation_analysis1.mat');
 activitythresh = 6;%zscore from shuffled
 
 %indices for multi units with detected activity above activitythresh that have
@@ -1424,35 +1424,28 @@ legend({'single units','multi units'});
 set(gca,'fontweight','bold');
     
 %% lagged trial correlation
-singletrialcorr = trialcorr;
-[maxlen id] = max(cellfun(@(x) size(x,1),singletrialcorr));
+singletrialcorr = trialcorr(sigcorr_su);
+[maxlen id] = max(cellfun(@length,singletrialcorr));
 lag = singletrialcorr{id}(:,2);
 singletrialcorr = cellfun(@(x) [NaN(x(1,2)-lag(1),size(x,2));x;NaN(lag(end)-x(end,2),size(x,2))],...
     singletrialcorr,'un',0);
 
 figure;hold on;
 for i = 1:length(singletrialcorr)
-   plot(singletrialcorr{i}(:,2),abs(singletrialcorr{i}(:,1)),'color',[1 0.8 0.8]);hold on;
-   %  plot(singletrialcorr{i}(:,2),abs(singletrialcorr{i}(:,3:end)),'b');hold on;
+    plot(singletrialcorr{i}(:,3),abs(singletrialcorr{i}(:,1)),'color',[0.8 0.8 0.8]);hold on;
+%     plot(singletrialcorr{i}(:,3),abs(singletrialcorr{i}(:,2)),'b');hold on;
 end
 
 singletrialcorr_sum = cell2mat(cellfun(@(x) abs(x(:,1)'),singletrialcorr,'un',0));
 patch([lag' fliplr(lag')],[nanmean(singletrialcorr_sum)+nanstderr(singletrialcorr_sum) ...
-    fliplr(nanmean(singletrialcorr_sum)-nanstderr(singletrialcorr_sum))],'r',...
+    fliplr(nanmean(singletrialcorr_sum)-nanstderr(singletrialcorr_sum))],[0.7 0.3 0.3],...
     'edgecolor','none','facealpha',0.7);hold on;
 
 singletrialcorrshuff = cell2mat(cellfun(@(x) abs(x(:,3:end)'),singletrialcorr,'un',0));
-hi = NaN(1,length(lag));lo = NaN(1,length(lag));
-for i = 1:size(singletrialcorrshuff,2)
-    id = find(~isnan(singletrialcorrshuff(:,i)));
-    x = sort(singletrialcorrshuff(id,i));
-    hi(i) = x(fix(length(x)*0.95));
-    lo(i) = x(fix(length(x)*0.05));
-end
-patch([lag' fliplr(lag')],[lo fliplr(hi)],[0.2 0.2 0.2],...
+cellfun(@(x) sort(x,1),singletrialcorr,'un',0)
+
+singletrialcorrshuff = nanmean(singletrialcorrshuff);
+[hi lo] = mBootstrapCI(singletrialcorrshuff');
+patch([lag' fliplr(lag')],[repmat(hi,size(lag')) fliplr(repmat(lo,size(lag')))],[0.3 0.3 0.3],...
     'edgecolor','none','facealpha',0.7);hold on;
-xlabel('trial lag');
-ylabel('abs correlation');
-title('single units')
-set(gca,'fontweight','bold');xlim([-100 100]);
 

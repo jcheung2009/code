@@ -201,12 +201,14 @@ for i = 1:length(ff)
                 end
                 
                 if strcmp(lagtrialcorr,'y')
-                    [r p] = corrcoef(npks_burst,dur_id_corr);
-                    if mean(pct_error)<=0.01 & pkactivity >= activitythresh & p(2) <=0.05
-                        [trcorr lag] = xcov(npks_burst,dur_id_corr,'coeff');
-                        [shuffcorrtrial lag] = shuffletrialcorr(npks_burst,dur_id_corr,1000);
-                        corrtrial = [corrtrial; [trcorr lag' shuffcorrtrial]];
+                    [trcorr lag] = xcov(npks_burst,dur_id_corr,'coeff');
+                    [shuffcorrtrial lag] = shuffletrialcorr(npks_burst,dur_id_corr,1000);
+                    shufftrials = 1000;shuffcorrtrial = NaN(shufftrials,length(lag));
+                    for shuffrep = 1:shufftrials
+                        shuffdat = npks_burst(randperm(length(npks_burst),length(npks_burst)));
+                        shuffcorrtrial = xcov(shuffdat,dur_id_corr,'coeff');
                     end
+                    corrtrial = [corrtrial; [trcorr shuffcorrtrial lag']];
                     continue
                 end
                 
@@ -477,7 +479,7 @@ function [r l] = shuffletrialcorr(npks_burst,dur_id_corr,shufftrials);
     npks_burst_shuff = repmat(npks_burst',shufftrials,1);
     npks_burst_shuff = permute_rowel(npks_burst_shuff);
     [r l] = xcov([npks_burst_shuff',dur_id_corr],'coeff');
-    r =r(:,shufftrials+1:shufftrials+1:end-shufftrials+1);
+    r =r(:,1001:1001:end-1001);
     
 function T = maketable(name,seqid,dur_id_corr,npks_burst,pct_error,pkactivity,corrpval);
     [~,stid] = regexp(name,'data_');

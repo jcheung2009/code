@@ -1,11 +1,13 @@
 %% gap correlation analysis #1 (IFR within burst)
-[corrmat case_name data] = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'y+su','n','burst',1,'gap');
+[corrmat case_name data] = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','n','burst',1,'gap');
 corrmat_shuff = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','y','burst',1,'gap');
 corrmat_shuffsu = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','ysu','burst',1,'gap');
 nextcorrmat = RA_correlate_gapdur('batchfile',6,25,6,-40,0,1,'n','n','burst',1,'gap');
 prevcorrmat = RA_correlate_gapdur('batchfile',6,25,6,-40,0,-1,'n','n','burst',1,'gap');
 nextactivity_corrmat = RA_correlate_gapdur('batchfile',6,25,6,-40,1,0,'n','n','burst',1,'gap');
 prevactivity_corrmat = RA_correlate_gapdur('batchfile',6,25,6,-40,-1,0,'n','n','burst',1,'gap');
+[corrmat case_name data] = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','n','burst',1,'gap');
+
 save('gap_correlation_analysis1','corrmat','case_name','data','corrmat_shuff','corrmat_shuffsu',...
     'nextcorrmat','prevcorrmat','nextactivity_corrmat','prevactivity_corrmat');
 
@@ -148,13 +150,13 @@ save('dur_correlation_analysis2a','crosscorr_su','crosscorr_lags',...
 
 
 %% repeat analysis 1 (IFR)
-[spk_rep_corr case_name repdata] = RA_correlate_rep('batchfile',25,6,'n','n',1);
+[spk_rep_corr case_name repdata] = RA_correlate_rep('batchfile',25,6,'ysu','n',1);
 [spk_rep_corr_shuff] = RA_correlate_rep('batchfile',25,6,'n','y',1);
 [spk_rep_corr_shuffsu] = RA_correlate_rep('batchfile',25,6,'n','ysu',1);
 save('rep_correlation1','spk_rep_corr','case_name','repdata','spk_rep_corr_shuff','spk_rep_corr_shuffsu');
 
 %% repeat analysis 1a (spike count)
-[spk_rep_corr case_name repdata] = RA_correlate_rep('batchfile',25,6,'n','n',0);
+[spk_rep_corr case_name repdata] = RA_correlate_rep('batchfile',25,6,'ysu','n',0);
 [spk_rep_corr_shuff] = RA_correlate_rep('batchfile',25,6,'n','y',0);
 [spk_rep_corr_shuffsu] = RA_correlate_rep('batchfile',25,6,'n','ysu',0);
 save('rep_correlation1a','spk_rep_corr','case_name','repdata','spk_rep_corr_shuff','spk_rep_corr_shuffsu');

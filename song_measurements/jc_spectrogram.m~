@@ -1,4 +1,4 @@
-function [sp f tm pxx] = jc_spectrogram(filtsong,fs,varargin);
+function [jc_spectrogram(filtsong,fs,varargin);
 if ~isempty(varargin)
     ax = varargin{1};
 else
