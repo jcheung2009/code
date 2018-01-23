@@ -1,47 +1,48 @@
 
 %params and input
-load('gap_correlation_analysis1a.mat');
+load('gap_correlation_analysis1.mat');
 activitythresh = 6;%zscore from shuffled
+overlap = 0.02;%percent overlap threshold for single vs multi unit 
 
 %indices for multi units with detected activity above activitythresh that have
 %significant correlations
-numcases = length(find(corrmat(:,4)>=activitythresh & corrmat(:,6) > 0.01));
-numsignificant = length(find(corrmat(:,4)>=activitythresh & corrmat(:,2)<=0.05 & corrmat(:,6) > 0.01));
-negcorr = find(corrmat(:,4)>=activitythresh & corrmat(:,6) > 0.01 & corrmat(:,2)<= 0.05 & corrmat(:,1)<0);
-poscorr = find(corrmat(:,4)>=activitythresh & corrmat(:,6) > 0.01 & corrmat(:,2)<= 0.05 & corrmat(:,1)>0);
-sigcorr = find(corrmat(:,4)>=activitythresh & corrmat(:,6) > 0.01 & corrmat(:,2)<= 0.05);
-notsigcorr = find(corrmat(:,4)>=activitythresh & corrmat(:,6) > 0.01 & corrmat(:,2)> 0.05);
+numcases = length(find(corrmat(:,4)>=activitythresh & corrmat(:,6) > overlap));
+numsignificant = length(find(corrmat(:,4)>=activitythresh & corrmat(:,2)<=0.05 & corrmat(:,6) > overlap));
+negcorr = find(corrmat(:,4)>=activitythresh & corrmat(:,6) > overlap & corrmat(:,2)<= 0.05 & corrmat(:,1)<0);
+poscorr = find(corrmat(:,4)>=activitythresh & corrmat(:,6) > overlap & corrmat(:,2)<= 0.05 & corrmat(:,1)>0);
+sigcorr = find(corrmat(:,4)>=activitythresh & corrmat(:,6) > overlap & corrmat(:,2)<= 0.05);
+notsigcorr = find(corrmat(:,4)>=activitythresh & corrmat(:,6) > overlap & corrmat(:,2)> 0.05);
 try
     durcorr_neg = length(find(corrmat(negcorr,9)<=0.05 | corrmat(negcorr,11)<=0.05));
     durcorr_pos = length(find(corrmat(poscorr,9)<=0.05 | corrmat(poscorr,11)<=0.05));   
 end
 
-%indices for single units based on pct_error<=0.01 and above activitythresh that have significant
+%indices for single units based on pct_error<=overlap and above activitythresh that have significant
 %correlations
-numcases_su = length(find(corrmat(:,6)<=0.01 & corrmat(:,4) >= activitythresh));
-numsignificant_su = length(find(corrmat(:,6)<=0.01 & corrmat(:,2)<=0.05 & corrmat(:,4) >= activitythresh));
-negcorr_su = find(corrmat(:,6)<=0.01 & corrmat(:,4) >= activitythresh & corrmat(:,2)<= 0.05 & corrmat(:,1)<0);
-poscorr_su = find(corrmat(:,6)<=0.01 & corrmat(:,4) >= activitythresh & corrmat(:,2)<= 0.05 & corrmat(:,1)>0);
-sigcorr_su = find(corrmat(:,6)<=0.01 & corrmat(:,4) >= activitythresh & corrmat(:,2)<= 0.05);
-notsigcorr_su = find(corrmat(:,6)<=0.01 & corrmat(:,4) >= activitythresh & corrmat(:,2)> 0.05);
+numcases_su = length(find(corrmat(:,6)<=overlap & corrmat(:,4) >= activitythresh));
+numsignificant_su = length(find(corrmat(:,6)<=overlap & corrmat(:,2)<=0.05 & corrmat(:,4) >= activitythresh));
+negcorr_su = find(corrmat(:,6)<=overlap & corrmat(:,4) >= activitythresh & corrmat(:,2)<= 0.05 & corrmat(:,1)<0);
+poscorr_su = find(corrmat(:,6)<=overlap & corrmat(:,4) >= activitythresh & corrmat(:,2)<= 0.05 & corrmat(:,1)>0);
+sigcorr_su = find(corrmat(:,6)<=overlap & corrmat(:,4) >= activitythresh & corrmat(:,2)<= 0.05);
+notsigcorr_su = find(corrmat(:,6)<=overlap & corrmat(:,4) >= activitythresh & corrmat(:,2)> 0.05);
 try
     durcorr_neg_su = length(find(corrmat(negcorr_su,9)<=0.05 | corrmat(negcorr_su,11)<=0.05));
     durcorr_pos_su = length(find(corrmat(poscorr_su,9)<=0.05 | corrmat(poscorr_su,11)<=0.05));
 end
 
 %indices for multiunits above activity threshold
-prevmultiind = find(prevactivity_corrmat(:,4)>=activitythresh & prevactivity_corrmat(:,6) > 0.01);
-nextmultiind = find(nextactivity_corrmat(:,4)>=activitythresh & nextactivity_corrmat(:,6) > 0.01);
-prevgapmultiind = find(prevcorrmat(:,4)>=activitythresh & prevcorrmat(:,6) > 0.01);
-nextgapmultiind = find(nextcorrmat(:,4)>=activitythresh & nextcorrmat(:,6) > 0.01);
-multiind = find(corrmat(:,4)>=activitythresh & corrmat(:,6) > 0.01);
+prevmultiind = find(prevactivity_corrmat(:,4)>=activitythresh & prevactivity_corrmat(:,6) > overlap);
+nextmultiind = find(nextactivity_corrmat(:,4)>=activitythresh & nextactivity_corrmat(:,6) > overlap);
+prevgapmultiind = find(prevcorrmat(:,4)>=activitythresh & prevcorrmat(:,6) > overlap);
+nextgapmultiind = find(nextcorrmat(:,4)>=activitythresh & nextcorrmat(:,6) > overlap);
+multiind = find(corrmat(:,4)>=activitythresh & corrmat(:,6) > overlap);
 
 %indices for singleunits above activitythresh
-prevsingleiind = find(prevactivity_corrmat(:,6)<=0.01 & prevactivity_corrmat(:,4) >= activitythresh);
-nextsingleiind = find(nextactivity_corrmat(:,6)<=0.01 & nextactivity_corrmat(:,4) >= activitythresh);
-prevgapsingleiind = find(prevcorrmat(:,6)<=0.01 & prevcorrmat(:,4)>=activitythresh);
-nextgapsingleiind = find(nextcorrmat(:,6)<=0.01 & nextcorrmat(:,4)>=activitythresh);
-singleiind = find(corrmat(:,6)<=0.01 & corrmat(:,4) >= activitythresh);
+prevsingleiind = find(prevactivity_corrmat(:,6)<=overlap & prevactivity_corrmat(:,4) >= activitythresh);
+nextsingleiind = find(nextactivity_corrmat(:,6)<=overlap & nextactivity_corrmat(:,4) >= activitythresh);
+prevgapsingleiind = find(prevcorrmat(:,6)<=overlap & prevcorrmat(:,4)>=activitythresh);
+nextgapsingleiind = find(nextcorrmat(:,6)<=overlap & nextcorrmat(:,4)>=activitythresh);
+singleiind = find(corrmat(:,6)<=overlap & corrmat(:,4) >= activitythresh);
 
 %indices for significant multi units in correlation of bursts with other
 %gaps in motif 
@@ -1455,4 +1456,5 @@ xlabel('trial lag');
 ylabel('abs correlation');
 title('single units')
 set(gca,'fontweight','bold');xlim([-100 100]);
+
 

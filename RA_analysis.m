@@ -1,7 +1,7 @@
 %% gap correlation analysis #1 (IFR within burst)
-[corrmat case_name data] = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','n','burst',1,'gap');
-corrmat_shuff = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','y','burst',1,'gap');
-corrmat_shuffsu = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','ysu','burst',1,'gap');
+[corrmat case_name data] = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'y+su','n','burst',1,'gap','n');
+corrmat_shuff = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','y','burst',1,'gap','n');
+corrmat_shuffsu = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','ysu','burst',1,'gap','n');
 nextcorrmat = RA_correlate_gapdur('batchfile',6,25,6,-40,0,1,'n','n','burst',1,'gap');
 prevcorrmat = RA_correlate_gapdur('batchfile',6,25,6,-40,0,-1,'n','n','burst',1,'gap');
 nextactivity_corrmat = RA_correlate_gapdur('batchfile',6,25,6,-40,1,0,'n','n','burst',1,'gap');
@@ -38,9 +38,9 @@ save('dur_correlation_analysis1','crosscorr_su','crosscorr_lags','crosscorr_shuf
 
 
 %% gap correlation analysis #1a (spikes within burst)
-[corrmat case_name data] = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'y+su','n','burst',0,'gap');
-corrmat_shuff = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','y','burst',0,'gap');
-corrmat_shuffsu = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','ysu','burst',0,'gap');
+[corrmat case_name data] = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','n','burst',0,'gap','n');
+corrmat_shuff = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','y','burst',0,'gap','n');
+corrmat_shuffsu = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','ysu','burst',0,'gap','n');
 nextcorrmat = RA_correlate_gapdur('batchfile',6,25,6,-40,0,1,'n','n','burst',0,'gap');
 prevcorrmat = RA_correlate_gapdur('batchfile',6,25,6,-40,0,-1,'n','n','burst',0,'gap');
 nextactivity_corrmat = RA_correlate_gapdur('batchfile',6,25,6,-40,1,0,'n','n','burst',0,'gap');
