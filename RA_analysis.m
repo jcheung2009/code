@@ -1,5 +1,5 @@
 %% gap correlation analysis #1 (IFR within burst)
-[corrmat case_name data] = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'y+su','n','burst',1,'gap','n');
+[corrmat case_name data] = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','n','burst',1,'gap','n');
 corrmat_shuff = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','y','burst',1,'gap','n');
 corrmat_shuffsu = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','ysu','burst',1,'gap','n');
 nextcorrmat = RA_correlate_gapdur('batchfile',6,25,6,-40,0,1,'n','n','burst',1,'gap');
@@ -47,6 +47,7 @@ nextactivity_corrmat = RA_correlate_gapdur('batchfile',6,25,6,-40,1,0,'n','n','b
 prevactivity_corrmat = RA_correlate_gapdur('batchfile',6,25,6,-40,-1,0,'n','n','burst',0,'gap');
 save('gap_correlation_analysis1a','corrmat','case_name','data','corrmat_shuff','corrmat_shuffsu',...
     'nextcorrmat','prevcorrmat','nextactivity_corrmat','prevactivity_corrmat');
+
 
 [crosscorr_su,crosscorr_lags, crosscorr_shuff_su] = RA_crosscorrelate_gapdur('batchfile',...
     6,25,6,[-300 300],0,1,'burst','gap',0);
@@ -160,3 +161,29 @@ save('rep_correlation1','spk_rep_corr','case_name','repdata','spk_rep_corr_shuff
 [spk_rep_corr_shuff] = RA_correlate_rep('batchfile',25,6,'n','y',0);
 [spk_rep_corr_shuffsu] = RA_correlate_rep('batchfile',25,6,'n','ysu',0);
 save('rep_correlation1a','spk_rep_corr','case_name','repdata','spk_rep_corr_shuff','spk_rep_corr_shuffsu');
+
+%% correlate with volume for bursts before target gap or syllable (IFR) for single units (correlation coefficients)
+[corrmat case_name data] = RA_correlate_vol('singleunits',6,25,6,-40,'n','n','burst',1,'gap');
+corrmat_shuff = RA_correlate_vol('singleunits',6,25,6,-40,'n','y','burst',1,'gap');
+save('vol_correlation1','corrmat','case_name','corrmat_shuff');
+
+%% correlate volume1, volume2, and duration to IFR for single units (IFR) (betas)
+[corrmat case_name data] = RA_correlate_gapvol('singleunits',6,25,6,-40,'n','n','burst',1,'gap',{'volume1','volume2','dur'});
+corrmat_shuff = RA_correlate_gapvol('singleunits',6,25,6,-40,'n','y','burst',1,'gap',{'volume1','volume2','dur'});
+save('vol1regression','corrmat','case_name','data','corrmat_shuff');
+save('gapvolmultipleregression','corrmat','case_name','data','corrmat_shuff');
+
+%% correlate volume1 with IFR for single units (IFR) (betas) (betas)
+[corrmat case_name data] = RA_correlate_gapvol('singleunits',6,25,6,-40,'n','n','burst',1,'gap',{'volume1'});
+corrmat_shuff = RA_correlate_gapvol('singleunits',6,25,6,-40,'n','y','burst',1,'gap',{'volume1'});
+save('vol1regression','corrmat','case_name','data','corrmat_shuff');
+
+%% correlate volume2 with IFR for single units (IFR) (betas) (betas)
+[corrmat case_name data] = RA_correlate_gapvol('singleunits',6,25,6,-40,'n','n','burst',1,'gap',{'volume2'});
+corrmat_shuff = RA_correlate_gapvol('singleunits',6,25,6,-40,'n','y','burst',1,'gap',{'volume2'});
+save('vol2regression','corrmat','case_name','data','corrmat_shuff');
+
+%% correlate gapdur with IFR for single units (IFR) (betas) (betas)
+[corrmat case_name data] = RA_correlate_gapvol('singleunits',6,25,6,-40,'n','n','burst',1,'gap',{'dur'});
+corrmat_shuff = RA_correlate_gapvol('singleunits',6,25,6,-40,'n','y','burst',1,'gap',{'dur'});
+save('gapdurregression','corrmat','case_name','data','corrmat_shuff');

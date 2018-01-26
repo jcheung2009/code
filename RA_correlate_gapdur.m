@@ -33,7 +33,7 @@ elseif strcmp(plotcasecondition,'y+')
 elseif strcmp(plotcasecondition,'y++')
     plotcasecondition = ['p(2)<=0.05 & abs(r(2)) >= 0.3 & pkactivity >=',num2str(activitythresh)];
 elseif strcmp(plotcasecondition,'y+su')
-     plotcasecondition = ['p(2)<=0.05 & mean(pct_error)<=0.01 & pkactivity >=',num2str(activitythresh)];
+     plotcasecondition = ['p(2)<=0.05 & mean(pct_error)<=0.02 & pkactivity >=',num2str(activitythresh)];
 end
 
 spk_gapdur_corr = [];case_name = {};corrtrial = {};
@@ -215,7 +215,7 @@ for i = 1:length(ff)
                 
                 if strcmp(lagtrialcorr,'y')
                     [r p] = corrcoef(npks_burst,dur_id_corr);
-                    if mean(pct_error)<=0.01 & pkactivity >= activitythresh & p(2) <=0.05
+                    if mean(pct_error)<=0.02 & pkactivity >= activitythresh & p(2) <=0.05
                         [trcorr lag] = xcov(npks_burst,dur_id_corr,'coeff');
                         [shuffcorrtrial lag] = shuffletrialcorr(npks_burst,dur_id_corr,1000);
                         corrtrial = [corrtrial; [trcorr lag' shuffcorrtrial]];
@@ -234,11 +234,11 @@ for i = 1:length(ff)
                 if ~isempty(strfind(shuff,'y'))
                     shufftrials = 1000;
                     if isempty(strfind(shuff,'su')) %for multi unit shuff
-                        if mean(pct_error)<=0.01 | pkactivity < activitythresh
+                        if mean(pct_error)<=0.02 | pkactivity < activitythresh
                             continue
                         end
                     else
-                        if mean(pct_error) > 0.01 | pkactivity < activitythresh
+                        if mean(pct_error) > 0.02 | pkactivity < activitythresh
                             continue
                         end
                     end
@@ -277,9 +277,21 @@ for i = 1:length(ff)
                         durmotorwin = NaN;
                     end
                     
+                    if exist('song') & length_song == length(song)
+                        vol1 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
+                            seqons(:,ceil(seqlen/2)),seqoffs(:,ceil(seqlen/2)),'un',1);
+                        vol2 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
+                            seqons(:,ceil(seqlen/2)+1),seqoffs(:,ceil(seqlen/2)+1),'un',1);
+                        [rvol1 pvol1] = corrcoef(npks_burst,vol1);rvol1 = rvol1(2); pvol1 = pvol1(2);
+                        [rvol2 pvol2] = corrcoef(npks_burst,vol2);rvol2 = rvol2(2); pvol2 = pvol2(2);
+                    else
+                        rvol1 = NaN; pvol1 = NaN;
+                        rvol2 = NaN; pvol2 = NaN;
+                    end
                     %save measurements and variables
                     spk_gapdur_corr = [spk_gapdur_corr; r(2) p(2) alignby pkactivity...
-                        wth mean(pct_error) sum(~isnan(npks_burst)) r1(2) p1(2) r2(2) p2(2) durmotorwin gaplatency outburstactivity];
+                        wth mean(pct_error) sum(~isnan(npks_burst)) r1(2) p1(2) r2(2) p2(2)...
+                        durmotorwin gaplatency outburstactivity max([varburst1 varburst2]) rvol1 pvol1 rvol2 pvol2];
                     T = maketable(ff(i).name,gapids(n),dur_id_corr(keepid),npks_burst,pct_error,pkactivity,p(2));
                     dattable=[dattable;T];
                     case_name = [case_name,{T.unitid{1},T.seqid{1}}];
@@ -305,7 +317,7 @@ for i = 1:length(ff)
                     subplot(3,1,3);hold on;
                     plotCORR(npks_burst,dur_id_corr(keepid),ifr);
                     
-                    if exist('song')
+                    if exist('song') & length_song == length(song)
                         figure;hold on;
                         plotampenv(dur_id_corr,song,seqons,seqoffs,anchor,fs);
                     end
@@ -513,12 +525,11 @@ function T = maketable(name,seqid,dur_id_corr,npks_burst,pct_error,pkactivity,co
     birdid = repmat({unitid(1:regexp(unitid,'_')-1)},length(dur_id_corr),1);
     unitid = repmat({unitid},length(dur_id_corr),1);
     seqid = repmat(seqid,length(dur_id_corr),1);
-    dur_id_corrn = (dur_id_corr-nanmean(dur_id_corr))/nanstd(dur_id_corr);
-    npks_burstn = (npks_burst-mean(npks_burst))/std(npks_burst);
+    npks_burstn = (npks_burst-nanmean(npks_burst))./nanstd(npks_burst);
     unittype = repmat(mean(pct_error),length(dur_id_corr),1);
     activitylevel = repmat(pkactivity,length(dur_id_corr),1);
     corrpval = repmat(corrpval,length(dur_id_corr),1);
-    T = table(dur_id_corrn,npks_burstn,unittype,activitylevel,birdid,unitid,seqid,corrpval,'VariableNames',...
+    T = table(dur_id_corr,npks_burstn,unittype,activitylevel,birdid,unitid,seqid,corrpval,'VariableNames',...
         {'dur','spikes','unittype','activity','birdid','unitid','seqid','corrpval'});
                  
 function plotraster(dur_id,spktms,tm1,tm2,seqons,seqoffs,...
@@ -549,7 +560,7 @@ function plotraster(dur_id,spktms,tm1,tm2,seqons,seqoffs,...
     [~,stid] = regexp(name,'data_');
     enid = regexp(name,'_TH');
     unitid = name(stid+1:enid-1);
-    singleunit = mean(pct_error)<=0.01;
+    singleunit = mean(pct_error)<=0.02;
     title([unitid,' ',seqid,' r=',num2str(corrval),' unit=',num2str(singleunit)],'interpreter','none');
     xlabel('time (ms)');ylabel('trial');set(gca,'fontweight','bold');
     xlim([-seqst seqend]);ylim([0 cnt]);
@@ -600,11 +611,14 @@ function plotampenv(dur_id_corr,song,seqons,seqoffs,anchor,fs);
     maxed = max(cellfun(@(x) x(end),tb));
     smallgaps_ampenv = cell2mat(cellfun(@(x,y) [NaN(1,x(1)-minst) log(y) NaN(1,maxed-x(end))],tb(smallgaps_id),sm(smallgaps_id),'un',0));
     largegaps_ampenv = cell2mat(cellfun(@(x,y) [NaN(1,x(1)-minst) log(y) NaN(1,maxed-x(end))],tb(largegaps_id),sm(largegaps_id),'un',0));
-    patch([minst:maxed fliplr([minst:maxed])]./fs,[nanmean(smallgaps_ampenv,1)-...
-        nanstderr(smallgaps_ampenv,1) fliplr(nanmean(smallgaps_ampenv,1)+...
-        nanstderr(smallgaps_ampenv,1))],[0.7 0.3 0.3],'edgecolor','r','facealpha',0.7);
-    patch([minst:maxed fliplr([minst:maxed])]./fs,[nanmean(largegaps_ampenv,1)+...
-        nanstderr(largegaps_ampenv,1) fliplr(nanmean(largegaps_ampenv,1)-...
-        nanstderr(largegaps_ampenv,1))],[0.3 0.3 0.7],'edgecolor','b','facealpha',0.7);
+    timebase = minst:maxed;
+    notnan = ~isnan(nanmean(smallgaps_ampenv,1));
+    patch([timebase(notnan) fliplr(timebase(notnan))]./fs,[nanmean(smallgaps_ampenv(:,notnan),1)-...
+        nanstderr(smallgaps_ampenv(:,notnan),1) fliplr(nanmean(smallgaps_ampenv(:,notnan),1)+...
+        nanstderr(smallgaps_ampenv(:,notnan),1))],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.7);
+    notnan = ~isnan(nanmean(largegaps_ampenv,1));
+    patch([timebase(notnan) fliplr(timebase(notnan))]./fs,[nanmean(largegaps_ampenv(:,notnan),1)+...
+        nanstderr(largegaps_ampenv(:,notnan),1) fliplr(nanmean(largegaps_ampenv(:,notnan),1)-...
+        nanstderr(largegaps_ampenv(:,notnan),1))],[0.3 0.3 0.7],'edgecolor','none','facealpha',0.7);
     xlim([-0.3 0.3]);
     ylabel('amplitude');xlabel('seconds');legend({'small gaps','large gaps'});

@@ -1457,4 +1457,163 @@ ylabel('abs correlation');
 title('single units')
 set(gca,'fontweight','bold');xlim([-100 100]);
 
+%% plot distribution of percent error
+ff = load_batchf('batchfile');
+errs = [];
+for i = 1:length(ff)
+    load(ff(i).name);
+    errs = [errs; mean(pct_error)];
+end
+[n b] = hist(errs,[0:0.005:max(errs)]);
+figure;hold on;
+stairs(b,n,'k');hold on;
+xlabel('percent error');ylabel('counts');
+mdl = fitgmdist(errs,2);
+classes = cluster(mdl,errs);
+[n b] = hist(errs(classes==1),[0:0.005:max(errs)]);
+stairs(b,n,'r');
+[n b] = hist(errs(classes==2),[0:0.005:max(errs)]);
+stairs(b,n,'b');
 
+%% measures of single vs multi unit 
+ff = load_batchf('batchfile');
+win = gausswin(20);%for smoothing spike trains, 20 ms
+win = win./sum(win);
+fs= 32000;%sampling rate
+fr = [];
+for i = 1:length(ff)
+    load(ff(i).name);
+    spiketimes = spiketimes.*1000;
+    spikevector = zeros(1,1e3*ceil(length_song/fs));
+    spktms = round(spiketimes);
+    spktms = spktms(find(spktms ~=0));
+    spikevector(round(spktms)) = 1;
+    smooth_spiketrains = conv(spikevector,win,'same');
+    PSTH = smooth_spiketrains.*1000;
+    [pks locs w] = findpeaks2(PSTH,'minpeakprominence',5,'minpeakwidth',10,...
+        'widthreference','halfheight');
+    
+    %spontaneous firing rate
+    bg = find((onsets(2:end)-offsets(1:end-1) >=2000));
+    bgtime = 0;bgspikes = [];
+    for m = 1:length(bg)
+        bgspikes = [bgspikes;length(find(spiketimes>=offsets(bg(m)) & ...
+            spiketimes<=onsets(bg(m)+1)))];
+        bgtime = bgtime+(1e-3*(onsets(bg(m)+1)-offsets(bg(m))));
+    end
+    
+    %mean burst firing rate and number of bursts during song
+    songfr = [];
+    songon = [1;bg+1];songoff = [bg;length(offsets)];numpks = [];songtimes = 0;
+    burstwidth = [];
+    for m = 1:length(songon)
+        songfr = [songfr max(pks(find(locs>=onsets(songon(m)) & locs <=offsets(songoff(m)))))];
+        burstwidth = [burstwidth w(find(locs>=onsets(songon(m)) & locs <=offsets(songoff(m))))];
+        numpks = [numpks length(find(locs>=onsets(songon(m)) & locs <=offsets(songoff(m))))];
+        songtimes = songtimes + (songoff(m)-songon(m));
+    end
+    
+    fr = [fr; mean(pct_error) sum(bgspikes)/bgtime mean(songfr) mean(numpks)/songtimes mean(burstwidth)];
+end
+
+%plot distribution of spontaneous fr
+mdl = fitgmdist(fr(:,1),2);
+classes = cluster(mdl,fr(:,1));
+figure;hold on;
+[n b] = hist(fr(classes==1,2),[min(fr(:,2)):4:max(fr(:,2))]);
+stairs(b,n,'r');hold on;
+[n b] = hist(fr(classes==2,2),[min(fr(:,2)):4:max(fr(:,2))]);
+stairs(b,n,'b');hold on;
+xlabel('spontaneous firing rate');ylabel('counts');
+legend({'single unit','multi unit'});
+
+%plot distribution of mean burst firing during song
+figure;hold on;
+[n b] = hist(fr(classes==1,3),[min(fr(:,3)):20:max(fr(:,3))]);
+stairs(b,n,'r');hold on;
+[n b] = hist(fr(classes==2,3),[min(fr(:,3)):20:max(fr(:,3))]);
+stairs(b,n,'b');hold on;
+xlabel('burst firing rate');ylabel('counts');
+legend({'single unit','multi unit'});
+
+%plot distribution of mean burst firing:spontaneous fr
+figure;hold on;
+[n b] = hist(fr(classes==1,3)./fr(classes==1,2),[min(fr(:,3)./fr(:,2)):2:max(fr(:,3)./fr(:,2))]);
+stairs(b,n,'r');hold on;
+[n b] = hist(fr(classes==2,3)./fr(classes==2,2),[min(fr(:,3)./fr(:,2)):2:max(fr(:,3)./fr(:,2))]);
+stairs(b,n,'b');hold on;
+xlabel('burst fr:spontaneous fr');ylabel('counts');
+legend({'single unit','multi unit'});
+
+% plot distribution of mean number of bursts/song time 
+figure;hold on;
+[n b] = hist(fr(classes==1,4),[min(fr(:,4)):0.02:max(fr(:,4))]);
+stairs(b,n,'r');hold on;
+[n b] = hist(fr(classes==2,4),[min(fr(:,4)):0.02:max(fr(:,4))]);
+stairs(b,n,'b');hold on;
+xlabel('number of bursts/time in song');ylabel('counts');
+legend({'single unit','multi unit'});
+
+%plot distribution of burst width
+figure;hold on;
+[n b] = hist(fr(classes==1,5),[min(fr(:,5)):0.2:max(fr(:,5))]);
+stairs(b,n,'r');hold on;
+[n b] = hist(fr(classes==2,5),[min(fr(:,5)):0.2:max(fr(:,5))]);
+stairs(b,n,'b');hold on;
+xlabel('burst width (ms)');ylabel('counts');
+legend({'single unit','multi unit'});
+
+%plot distribution of ISI errors 
+ff = load_batchf('batchfile');
+ISIerr = [];
+for i = 1:length(ff)
+    load(ff(i).name);
+    ISIerr = [ISIerr; mean(pct_error) pct_ISIs_leq_1ms(end)];
+end
+figure;hold on;
+[n b] = hist(ISIerr(classes==1,2),[min(ISIerr(:,2)):0.005:0.2]);
+stairs(b,n,'r');hold on;
+[n b] = hist(ISIerr(classes==2,2),[min(ISIerr(:,2)):0.005:0.2]);
+stairs(b,n,'b');hold on;
+xlabel('ISI error');ylabel('counts');
+legend({'single unit','multi unit'});
+
+%plot distribution of average pairwise trial correlation
+singleunit = corrmat(:,6)<=0.02;
+multiunit = corrmat(:,6) > 0.02;
+figure;hold on;
+[n b] = hist(corrmat(singleunit,15),[min(corrmat(:,15)):0.01:max(corrmat(:,15))]);
+stairs(b,n,'r');hold on;
+[n b] = hist(corrmat(multiunit,15),[min(corrmat(:,15)):0.01:max(corrmat(:,15))]);
+stairs(b,n,'b');hold on;
+xlabel('correlation');ylabel('counts');
+legend({'single unit','multi unit'});
+
+%plot distribution of (peak burst activity - activity outside bursts)/random
+figure;hold on;
+[n b] = hist(corrmat(singleunit,14),[min(corrmat(:,14)):1:max(corrmat(:,14))]);
+stairs(b,n,'r');hold on;
+[n b] = hist(corrmat(multiunit,14),[min(corrmat(:,14)):1:max(corrmat(:,14))]);
+stairs(b,n,'b');hold on;
+xlabel('burst activity - activity not in bursts');ylabel('counts');
+legend({'single unit','multi unit'});
+
+%plot distribution of (peak burst activity)/random
+figure;hold on;
+[n b] = hist(corrmat(singleunit,4),[min(corrmat(:,4)):1:max(corrmat(:,4))]);
+stairs(b,n,'r');hold on;
+[n b] = hist(corrmat(multiunit,4),[min(corrmat(:,4)):1:max(corrmat(:,4))]);
+stairs(b,n,'b');hold on;
+xlabel('peak burst activity/random');ylabel('counts');
+legend({'single unit','multi unit'});
+
+%% 
+data_active = data(data.activity>=6,:);
+formula = 'dur ~ spikes + (1|unitid:seqid) + (spikes-1|unitid:seqid)';
+mdl = fitlme(data_active,formula)
+
+formula = 'volume1 ~ spikes + (1|unitid:seqid) + (spikes-1|unitid:seqid)';
+mdl = fitlme(data_active,formula)
+
+formula = 'volume2 ~ spikes + (1|unitid:seqid) + (spikes-1|unitid:seqid)';
+mdl = fitlme(data_active,formula)
