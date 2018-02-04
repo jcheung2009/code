@@ -151,16 +151,8 @@ save('dur_correlation_analysis2a','crosscorr_su','crosscorr_lags',...
 
 
 %% repeat analysis 1 (IFR)
-[spk_rep_corr case_name repdata] = RA_correlate_rep('batchfile',25,6,'ysu','n',1);
-[spk_rep_corr_shuff] = RA_correlate_rep('batchfile',25,6,'n','y',1);
-[spk_rep_corr_shuffsu] = RA_correlate_rep('batchfile',25,6,'n','ysu',1);
-save('rep_correlation1','spk_rep_corr','case_name','repdata','spk_rep_corr_shuff','spk_rep_corr_shuffsu');
-
-%% repeat analysis 1a (spike count)
-[spk_rep_corr case_name repdata] = RA_correlate_rep('batchfile',25,6,'ysu','n',0);
-[spk_rep_corr_shuff] = RA_correlate_rep('batchfile',25,6,'n','y',0);
-[spk_rep_corr_shuffsu] = RA_correlate_rep('batchfile',25,6,'n','ysu',0);
-save('rep_correlation1a','spk_rep_corr','case_name','repdata','spk_rep_corr_shuff','spk_rep_corr_shuffsu');
+[bursttable mmtable] = RA_correlate_rep('singleunits',6,20,'y',1);
+save('rep_correlation1','bursttable','mmtable');
 
 %% correlate with volume for bursts before target gap or syllable (IFR) for single units (correlation coefficients)
 [corrmat case_name data] = RA_correlate_vol('singleunits',6,25,6,-40,'n','n','burst',1,'gap');

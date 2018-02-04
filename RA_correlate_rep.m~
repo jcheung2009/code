@@ -194,7 +194,8 @@ for i = 1:length(ff)
                     [lintest lintest2] = regressburst(npks_burst,replength_corr,repid,...
                         minsampsize,shufftrials);
                     bursttable = [bursttable; table({unitid},{repsylls{nrep}},...
-                        repid,{replength_corr},{npks_burst},lintest,lintest2,'VariableNames',...
+                        repid,{replength_corr},...
+                        {npks_burst},lintest,lintest2,'VariableNames',...
                         {'unitid','seqid','position','length','IFR','linear','linear2'})];
 
                     %plot raster and PSTH aligned to target syllable
@@ -204,22 +205,18 @@ for i = 1:length(ff)
                         plotCORR(npks_burst,replength_corr,ifr);
                         subplot(3,1,1);hold on;
                         plotraster(replength_corr,spktms,tb(burstst),tb(burstend),seqons,seqoffs,...
-                            ceil(max(seqst)),ceil(max(seqend)),anchor,ff(i).name,...
-                            pct_error,repsylls{nrep},repid,lintest{1})
+                            ceil(max(seqst)),ceil(max(seqend)),anchor,ff(i).name,pct_error,repsylls{nrep},repid,lintest{1})
                         subplot(3,1,2);hold on;
-                        plotPSTH(ceil(max(seqst)),ceil(max(seqend)),smooth_spiketrains,...
-                            replength_corr,tb(burstst),tb(burstend),repid);
+                        plotPSTH(ceil(max(seqst)),ceil(max(seqend)),smooth_spiketrains,replength_corr,tb(burstst),tb(burstend),repid);
                     elseif lintest2{2} <=0.05
                         classes = double(replength_corr>repid);%1 = continues, 0 = end
                         figure;subplot(3,1,3);hold on;
                         plotBAR(npks_burst,classes,ifr);
                         subplot(3,1,1);hold on;
                         plotraster(replength_corr,spktms,tb(burstst),tb(burstend),seqons,seqoffs,...
-                            ceil(max(seqst)),ceil(max(seqend)),anchor,ff(i).name,pct_error,...
-                            repsylls{nrep},repid,lintest2{1})
+                            ceil(max(seqst)),ceil(max(seqend)),anchor,ff(i).name,pct_error,repsylls{nrep},repid,lintest2{1})
                         subplot(3,1,2);hold on;
-                        plotPSTH(ceil(max(seqst)),ceil(max(seqend)),smooth_spiketrains,...
-                            replength_corr,tb(burstst),tb(burstend),repid);
+                        plotPSTH(ceil(max(seqst)),ceil(max(seqend)),smooth_spiketrains,replength_corr,tb(burstst),tb(burstend),repid);
                     end
                 end
                 
@@ -253,8 +250,8 @@ for i = 1:length(ff)
             fr = cellfun(@(x) mean(x),IFRposition);
             fr = cell2mat(arrayfun(@(x,y) fr(x,1:y)',[1:size(fr,1)]',replength{nrep}','un',0));
             len = cell2mat(arrayfun(@(x) repmat(x,x,1),replength{nrep}','un',0));
-            mmtable = [mmtable; table(unitid2,seqid2,renditionID,...
-                position,len,fr,'VariableNames',{'unitid','seqid','rendition','position','length','FR'})];
+            mmtable = [mmtable; table(unitid2,seqid2,renditionID,position,len,fr,'VariableNames',...
+            {'unitid','seqid','rendition','position','length','FR'})];
         end
     end
 end

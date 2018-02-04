@@ -118,7 +118,7 @@ for i = 1:length(ff)
 
             tb2id = find(tb2>=lags(lagind)-mean(landmarks_aligned(:,pt2)) & ...
                 tb2 <lags(lagind)+motorwin-mean(landmarks_aligned(:,pt2)));
-            r = xcorr(smooth_spiketrains(:,tb2id)',0,'coeff');
+            r = xcorr(smooth_spiketrains2(:,tb2id)',0,'coeff');
             r = reshape(r,[size(smooth_spiketrains2,1) size(smooth_spiketrains2,1)]);
             r = r(find(triu(r,1)));
             varfr2 = nanmean(r);

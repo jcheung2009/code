@@ -204,7 +204,8 @@ plot(randpropsignificant_lo_su,y(1),'k^','markersize',8);hold on;
 plot(mn,y(1),'kd','markersize',8,'markerfacecolor','k');hold on;
 plot([lo  hi],[y(1) y(1)],'k','linewidth',4)
 title('shuffled vs empirical single units');
-xlabel('proportion of significant correlations');ylabel('probability');set(gca,'fontweight','bold');
+xlabel('proportion of significant correlations');ylabel('probability');
+set(gca,'fontweight','bold');
 
 subplot(1,3,2);hold on;
 [n b] = hist(randpropsignificantnegcorr_su,[0:0.01:0.2]);
@@ -215,7 +216,8 @@ plot(randpropsignificantnegcorr_lo_su,y(1),'b^','markersize',8);hold on;
 plot(mn,y(1),'bd','markersize',8,'markerfacecolor','b');hold on;
 plot([lo  hi],[y(1) y(1)],'b','linewidth',4)
 title('shuffled vs empirical single units');
-xlabel('proportion of significantly negative correlations');ylabel('probability');set(gca,'fontweight','bold');
+xlabel('proportion of significantly negative correlations');ylabel('probability');
+set(gca,'fontweight','bold');
 
 subplot(1,3,3);hold on;
 [n b] = hist(randpropsignificantposcorr_su,[0:0.01:0.25]);

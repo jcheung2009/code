@@ -273,8 +273,8 @@ formula = 'FR ~ position + (1|unitid:seqid:length) + (1|unitid:seqid) + (positio
 mdl2 = fitlme(mmtable,formula);
 compare(mdl1,mdl2,'CheckNesting',true);
 
-%position is not related to FR when grouping by length and sequence id 
-mdl2
+%the last model2 (effect of po
+
 
 %test whether to add length as another factor. Yes
 formula = 'FR ~ position'
@@ -304,8 +304,7 @@ formula = 'FR ~ position + length + (1|unitid:seqid) + (position-1|unitid:seqid)
 mdl2 = fitlme(mmtable,formula);
 compare(mdl1,mdl2,'CheckNesting',true);
 
-%position is not related to FR when controlling for length and grouping by
-%seqid 
+
 
 
 
