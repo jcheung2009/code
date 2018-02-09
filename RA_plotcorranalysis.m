@@ -1,6 +1,6 @@
 
 %params and input
-load('gap_correlation_analysis1.mat');
+load('gap_correlation_analysis_singleunits.mat');
 activitythresh = 6;%zscore from shuffled
 overlap = 0.02;%percent overlap threshold for single vs multi unit 
 

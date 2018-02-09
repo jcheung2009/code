@@ -18,12 +18,12 @@ win = gausswin(20);%for smoothing spike trains, 20 ms
 win = win./sum(win);
 shufftrials = 1000;
 
-bursttable = table([],[],[],[],[],[],[],'VariableNames',{'unitid','seqid','position',...
+bursttable = table([],[],[],[],[],[],[],[],'VariableNames',{'unitid','birdid','seqid','position',...
     'length','IFR','linear','linear2'});
 coxtable =  table([],[],[],[],[],'VariableNames',{'unitid','seqid',...
     'averageFR','startFR','burstFR'});
-mmtable = table([],[],[],[],[],[],'VariableNames',...
-        {'unitid','seqid','rendition','position','length','FR'});
+mmtable = table([],[],[],[],[],[],[],'VariableNames',...
+        {'unitid','birdid','seqid','rendition','position','length','FR'});
     
 %% extract FR for each burst in each repeat  
 ff = load_batchf(batchfile);
@@ -31,7 +31,9 @@ for i = 1:length(ff)
     disp(ff(i).name);
     [~,stid] = regexp(ff(i).name,'data_');enid = regexp(ff(i).name,'_TH');
     unitid = ff(i).name(stid+1:enid-1);
+    birdid = unitid(1:regexp(unitid,'_')-1);
     id = find(arrayfun(@(x) ~isempty(strfind(ff(i).name,x.birdname)),params));
+    
     if isempty(params(id).repeat)
         continue
     else
@@ -193,9 +195,9 @@ for i = 1:length(ff)
                     %length
                     [lintest lintest2] = regressburst(npks_burst,replength_corr,repid,...
                         minsampsize,shufftrials);
-                    bursttable = [bursttable; table({unitid},{repsylls{nrep}},...
+                    bursttable = [bursttable; table({unitid},{birdid},{repsylls{nrep}},...
                         repid,{replength_corr},{npks_burst},lintest,lintest2,'VariableNames',...
-                        {'unitid','seqid','position','length','IFR','linear','linear2'})];
+                        {'unitid','birdid','seqid','position','length','IFR','linear','linear2'})];
 
                     %plot raster and PSTH aligned to target syllable
                     %position with target burst for correlated cases
@@ -247,14 +249,15 @@ for i = 1:length(ff)
         if nargout >= 2
             position = cell2mat(arrayfun(@(x) [1:x]',replength{nrep},'un',0)');
             unitid2 = repmat({unitid},length(position),1);
+            birdid2 = repmat({birdid},length(position),1);
             seqid2 = repmat({repsylls{nrep}},length(position),1);
             renditionID = [1:length(replength{nrep})]';
             renditionID = cell2mat(arrayfun(@(x,y) repmat(x,y,1),renditionID,replength{nrep}','un',0));
             fr = cellfun(@(x) mean(x),IFRposition);
             fr = cell2mat(arrayfun(@(x,y) fr(x,1:y)',[1:size(fr,1)]',replength{nrep}','un',0));
             len = cell2mat(arrayfun(@(x) repmat(x,x,1),replength{nrep}','un',0));
-            mmtable = [mmtable; table(unitid2,seqid2,renditionID,...
-                position,len,fr,'VariableNames',{'unitid','seqid','rendition','position','length','FR'})];
+            mmtable = [mmtable; table(unitid2,birdid2,seqid2,renditionID,...
+                position,len,fr,'VariableNames',{'unitid','birdid','seqid','rendition','position','length','FR'})];
         end
     end
 end

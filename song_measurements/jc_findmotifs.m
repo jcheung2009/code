@@ -66,6 +66,10 @@ for i = 1:length(ff)
     
     %find motifs in bout
     p = strfind(labels,motif);
+    en = p+length(motif);
+    en(find(en>length(labels)))=[];
+    en = strfind(labels(en),motif(end));
+    p(en) = [];%if last syllable is repeat, restricts to examples with exact number of repeats in motif
     if isempty(p)
         continue
     end

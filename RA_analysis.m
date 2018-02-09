@@ -1,4 +1,12 @@
 %% gap correlation analysis #1 (IFR within burst)
+[corrtable dattable]=RA_correlate_gapdur('singleunits',6,25,6,-40,0,0,'n','burst',1,'gap');
+save('gap_correlation_analysis_singleunits','corrtable','dattable');
+
+[corrtable dattable]=RA_correlate_gapdur('singleunits',5,25,6,-40,0,0,'n','burst',1,'syll');
+save('dur_correlation_analysis_singleunits','corrtable','dattable');
+
+
+
 [corrmat case_name data] = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','n','burst',1,'gap','n');
 corrmat_shuff = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','y','burst',1,'gap','n');
 corrmat_shuffsu = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','ysu','burst',1,'gap','n');

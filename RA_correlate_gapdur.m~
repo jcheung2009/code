@@ -288,13 +288,12 @@ for i = 1:length(ff)
                     if exist('song') & length_song == length(song)
                         figure;subplot(2,1,1);hold on;
                         if strcmp(gap_or_syll,'gap')
-                            anch = seqoffs(:,ceil(seqlen/2)+targetactivity);
-                        elseif strcmp(gap_or_syll,'syll')
-                            anch = seqons(:,ceil(seqlen/2)+targetactivity);
-                        end
-                        plotampenv(dur_id_corr,song,seqons,seqoffs,anch,fs);
+                            
+                        plotampenv(dur_id_corr,song,seqons,seqoffs,...
+                            seqoffs(:,ceil(seqlen/2)+targetactivity),fs);
                         subplot(2,1,2);hold on;
-                        plotampenv_norm(dur_id_corr,song,seqons,seqoffs,anch,fs);
+                        plotampenv_norm(dur_id_corr,song,seqons,seqoffs,...
+                            seqoffs(:,ceil(seqlen/2)+targetactivity),fs);
                     end
                 end
             end
