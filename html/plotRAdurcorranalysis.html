@@ -1,0 +1,1836 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>plotRAdurcorranalysis</title><meta name="generator" content="MATLAB 9.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-02-09"><meta name="DC.source" content="plotRAdurcorranalysis.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">number of unique active units and birds that went into analysis</a></li><li><a href="#3">distribution of correlations</a></li><li><a href="#4">distribution of proportions</a></li><li><a href="#5">comparing sample sizes for cases that are negative vs positively correlated</a></li><li><a href="#6">mixed model IFR ~ DUR</a></li><li><a href="#7">mixed model IFR ~ DUR + Vol1 + Vol2</a></li><li><a href="#8">mixed model IFR ~ dur + dur1 + dur2</a></li><li><a href="#9">mixed model IFR ~ dur + vol1 + vol2 + dur1 + dur2</a></li><li><a href="#10">mixed model IFR ~ vol1</a></li><li><a href="#11">%% mixed model IFR ~ vol2</a></li></ul></div><pre class="codeinput"><span class="comment">%params and input</span>
+load(<span class="string">'gap_correlation_analysis_singleunits.mat'</span>);
+activitythresh = 6;<span class="comment">%zscore from shuffled</span>
+overlap = 0.02;<span class="comment">%percent overlap threshold for single vs multi unit</span>
+
+<span class="comment">%indices for units with activity above activitythresh that have</span>
+<span class="comment">%significant correlations</span>
+negcorr = find(corrtable.pkactivity&gt;=activitythresh &amp; <span class="keyword">...</span>
+    [corrtable.durcorr{:,2}]'&lt;=0.05 &amp; [corrtable.durcorr{:,1}]'&lt;0);
+poscorr = find(corrtable.pkactivity&gt;=activitythresh &amp; <span class="keyword">...</span>
+    [corrtable.durcorr{:,2}]'&lt;=0.05 &amp; [corrtable.durcorr{:,1}]'&gt;0);
+sigcorr = find(corrtable.pkactivity&gt;=activitythresh &amp; <span class="keyword">...</span>
+    [corrtable.durcorr{:,2}]'&lt;=0.05);
+notsigcorr = find(corrtable.pkactivity&gt;=activitythresh &amp; <span class="keyword">...</span>
+    [corrtable.durcorr{:,2}]'&gt;0.05);
+activecases = find(corrtable.pkactivity&gt;=activitythresh);
+numcases = length(activecases);
+numsignificant = length(find(corrtable.pkactivity&gt;=activitythresh &amp; <span class="keyword">...</span>
+    [corrtable.durcorr{:,2}]'&lt;=0.05));
+</pre><h2 id="2">number of unique active units and birds that went into analysis</h2><pre class="codeinput">disp([num2str(length(unique(corrtable(activecases,:).unitid))),<span class="string">' single units in '</span>,<span class="keyword">...</span>
+    num2str(length(unique(corrtable(activecases,:).birdid))),<span class="string">' birds'</span>]);
+</pre><pre class="codeoutput">18 single units in 7 birds
+</pre><h2 id="3">distribution of correlations</h2><pre class="codeinput">aph = 0.01;ntrials=1000;
+shuffcorr = [corrtable(activecases,:).durcorr{:,3}];
+shuffpval = [corrtable(activecases,:).durcorr{:,4}];
+
+randnumsignificant = sum(shuffpval&lt;=0.05,2);
+randpropsignificant = randnumsignificant/size(shuffpval,2);
+randpropsignificant_sorted = sort(randpropsignificant);
+randpropsignificant_lo = randpropsignificant_sorted(floor(aph*ntrials/2));
+randpropsignificant_hi = randpropsignificant_sorted(ceil(ntrials-(aph*ntrials/2)));
+
+randnumsignificantnegcorr = sum((shuffpval&lt;=0.05).*(shuffcorr&lt;0),2);
+randpropsignificantnegcorr = randnumsignificantnegcorr./size(shuffpval,2);
+randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
+randpropsignificantnegcorr_lo = randpropsignificantnegcorr_sorted(floor(aph*ntrials/2));
+randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+
+randnumsignificantposcorr = sum((shuffpval&lt;=0.05).*(shuffcorr&gt;0),2);
+randpropsignificantposcorr = randnumsignificantposcorr./size(shuffpval,2);
+randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
+randpropsignificantposcorr_lo = randpropsignificantposcorr_sorted(floor(aph*ntrials/2));
+randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+
+randdiffprop = abs(randpropsignificantnegcorr-randpropsignificantposcorr);
+
+figure;hold <span class="string">on</span>;
+[n b] = hist(shuffcorr(:),[-1:0.05:1]);
+stairs(b,n/sum(n),<span class="string">'k'</span>,<span class="string">'linewidth'</span>,2);
+[n b] = hist([corrtable(activecases,:).durcorr{:,1}],[-1:0.05:1]);
+stairs(b,n/sum(n),<span class="string">'r'</span>,<span class="string">'linewidth'</span>,2);y=get(gca,<span class="string">'ylim'</span>);
+plot(mean([corrtable(activecases,:).durcorr{:,1}]),y(1),<span class="string">'r^'</span>,<span class="string">'markersize'</span>,8);hold <span class="string">on</span>;
+plot(mean(shuffcorr(:)),y(1),<span class="string">'k^'</span>,<span class="string">'markersize'</span>,8);hold <span class="string">on</span>;
+xlabel(<span class="string">'correlation coefficient'</span>);ylabel(<span class="string">'probability'</span>);set(gca,<span class="string">'fontweight'</span>,<span class="string">'bold'</span>);
+[h p] = vartest2([corrtable(activecases,:).durcorr{:,1}],shuffcorr(:));
+[h p2] = ttest2([corrtable(activecases,:).durcorr{:,1}],shuffcorr(:));
+[h p3] = kstest2([corrtable(activecases,:).durcorr{:,1}],shuffcorr(:));
+p4 = length(find(randdiffprop&gt;=abs((length(negcorr)/numcases)-(length(poscorr)/numcases))))/ntrials;
+p5 = length(find(randpropsignificant&gt;=length(sigcorr)/numcases))/ntrials;
+p6 = length(find(randpropsignificantposcorr&gt;=length(poscorr)/numcases))/ntrials;
+p7 = length(find(randpropsignificantnegcorr&gt;=length(negcorr)/numcases))/ntrials;
+text(0,1,{[<span class="string">'total active cases:'</span>,num2str(numcases)];<span class="keyword">...</span>
+[<span class="string">'proportion significant cases:'</span>,num2str(numsignificant/numcases)];<span class="keyword">...</span>
+[<span class="string">'proportion significantly negative:'</span>,num2str(length(negcorr)/numcases)];<span class="keyword">...</span>
+[<span class="string">'proportion significantly positive:'</span>,num2str(length(poscorr)/numcases)];<span class="keyword">...</span>
+[<span class="string">'p(F)='</span>,num2str(p)];[<span class="string">'p(t)='</span>,num2str(p2)];[<span class="string">'p(ks)='</span>,num2str(p3)];<span class="keyword">...</span>
+[<span class="string">'p(sig)='</span>,num2str(p5)];[<span class="string">'p(neg)='</span>,num2str(p7)];[<span class="string">'p(pos)='</span>,num2str(p6)];<span class="keyword">...</span>
+[<span class="string">'p(neg-pos)='</span>,num2str(p4)]},<span class="string">'units'</span>,<span class="string">'normalized'</span>,<span class="keyword">...</span>
+<span class="string">'verticalalignment'</span>,<span class="string">'top'</span>);
+</pre><img vspace="5" hspace="5" src="plotRAdurcorranalysis_01.png" alt=""> <h2 id="4">distribution of proportions</h2><pre class="codeinput">figure;subplot(1,3,1);hold <span class="string">on</span>;
+[n b] = hist(randpropsignificant,[0:0.01:0.2]);
+stairs(b,n/sum(n),<span class="string">'k'</span>,<span class="string">'linewidth'</span>,2);y=get(gca,<span class="string">'ylim'</span>);
+plot(randpropsignificant_hi,y(1),<span class="string">'k^'</span>,<span class="string">'markersize'</span>,8);hold <span class="string">on</span>;
+plot(randpropsignificant_lo,y(1),<span class="string">'k^'</span>,<span class="string">'markersize'</span>,8);hold <span class="string">on</span>;
+[mn hi lo] = jc_BootstrapfreqCI([corrtable(activecases,:).durcorr{:,2}]'&lt;=0.05);
+plot(mn,y(1),<span class="string">'k^'</span>,<span class="string">'markersize'</span>,8,<span class="string">'markerfacecolor'</span>,<span class="string">'k'</span>);hold <span class="string">on</span>;
+plot([lo  hi],[y(1) y(1)],<span class="string">'color'</span>,[0.5 0.5 0.5],<span class="string">'linewidth'</span>,4)
+title(<span class="string">'shuffled vs empirical'</span>);
+xlabel(<span class="string">'proportion of significant correlations'</span>);ylabel(<span class="string">'probability'</span>);
+set(gca,<span class="string">'fontweight'</span>,<span class="string">'bold'</span>);
+
+subplot(1,3,2);hold <span class="string">on</span>;
+[n b] = hist(randpropsignificantnegcorr,[0:0.01:0.2]);
+stairs(b,n/sum(n),<span class="string">'k'</span>,<span class="string">'linewidth'</span>,2);y=get(gca,<span class="string">'ylim'</span>);
+plot(randpropsignificantnegcorr_hi,y(1),<span class="string">'b^'</span>,<span class="string">'markersize'</span>,8);hold <span class="string">on</span>;
+plot(randpropsignificantnegcorr_lo,y(1),<span class="string">'b^'</span>,<span class="string">'markersize'</span>,8);hold <span class="string">on</span>;
+[mn hi lo] = jc_BootstrapfreqCI([corrtable(activecases,:).durcorr{:,2}]'&lt;=0.05 &amp; <span class="keyword">...</span>
+    [corrtable(activecases,:).durcorr{:,1}]'&lt;0);
+plot(mn,y(1),<span class="string">'b^'</span>,<span class="string">'markersize'</span>,8,<span class="string">'markerfacecolor'</span>,<span class="string">'b'</span>);hold <span class="string">on</span>;
+plot([lo  hi],[y(1) y(1)],<span class="string">'b'</span>,<span class="string">'linewidth'</span>,4)
+title(<span class="string">'shuffled vs empirical'</span>);
+xlabel(<span class="string">'proportion of significantly negative correlations'</span>);ylabel(<span class="string">'probability'</span>);
+set(gca,<span class="string">'fontweight'</span>,<span class="string">'bold'</span>);
+
+subplot(1,3,3);hold <span class="string">on</span>;
+[n b] = hist(randpropsignificantposcorr,[0:0.01:0.25]);
+stairs(b,n/sum(n),<span class="string">'k'</span>,<span class="string">'linewidth'</span>,2);y=get(gca,<span class="string">'ylim'</span>);
+plot(randpropsignificantposcorr_lo,y(1),<span class="string">'r^'</span>,<span class="string">'markersize'</span>,8);hold <span class="string">on</span>;
+plot(randpropsignificantposcorr_hi,y(1),<span class="string">'r^'</span>,<span class="string">'markersize'</span>,8);hold <span class="string">on</span>;
+[mn hi lo] = jc_BootstrapfreqCI([corrtable(activecases,:).durcorr{:,2}]'&lt;=0.05 &amp; <span class="keyword">...</span>
+    [corrtable(activecases,:).durcorr{:,1}]'&gt;0);
+plot(mn,y(1),<span class="string">'r^'</span>,<span class="string">'markersize'</span>,8,<span class="string">'markerfacecolor'</span>,<span class="string">'r'</span>);hold <span class="string">on</span>;
+plot([lo  hi],[y(1) y(1)],<span class="string">'r'</span>,<span class="string">'linewidth'</span>,4)
+title(<span class="string">'shuffled vs empirical'</span>);
+xlabel(<span class="string">'proportion of significantly positive correlations'</span>);ylabel(<span class="string">'probability'</span>);
+set(gca,<span class="string">'fontweight'</span>,<span class="string">'bold'</span>);
+</pre><img vspace="5" hspace="5" src="plotRAdurcorranalysis_02.png" alt=""> <h2 id="5">comparing sample sizes for cases that are negative vs positively correlated</h2><pre class="codeinput"><span class="comment">%(regardless of significance)</span>
+negsampsize = corrtable([corrtable.durcorr{:,1}]'&lt;0,:).ntrials;
+possampsize = corrtable([corrtable.durcorr{:,1}]'&gt;0,:).ntrials;activecases  = find(dattable.activity&gt;=activitythresh);
+maxsize = max([negsampsize;possampsize]);
+figure;hold <span class="string">on</span>;
+[n b] = hist(negsampsize,[25:10:maxsize+5])
+stairs(b,n/sum(n),<span class="string">'b'</span>,<span class="string">'linewidth'</span>,2);hold <span class="string">on</span>;
+[n b] = hist(possampsize,[25:10:maxsize+5]);
+stairs(b,n/sum(n),<span class="string">'r'</span>,<span class="string">'linewidth'</span>,2);hold <span class="string">on</span>;
+xlabel(<span class="string">'sample size'</span>);ylabel(<span class="string">'counts'</span>);
+legend({<span class="string">'negative'</span>,<span class="string">'positive'</span>});
+y = get(gca,<span class="string">'ylim'</span>);
+plot(median(negsampsize),y(1),<span class="string">'b^'</span>);hold <span class="string">on</span>;
+plot(median(possampsize),y(1),<span class="string">'r^'</span>);hold <span class="string">on</span>;
+p = ranksum(negsampsize,possampsize);
+text(0,1,{[<span class="string">'p='</span>,num2str(p)]},<span class="string">'units'</span>,<span class="string">'normalized'</span>);
+set(gca,<span class="string">'fontweight'</span>,<span class="string">'bold'</span>);
+</pre><pre class="codeoutput">
+n =
+
+  Columns 1 through 13
+
+    17    14    20     5     6     8     4     3     2     3     2     2     0
+
+  Columns 14 through 26
+
+     1     1     1     0     2     2     2     0     0     0     0     0     0
+
+  Columns 27 through 37
+
+     0     0     1     0     0     0     0     1     0     0     0
+
+
+b =
+
+  Columns 1 through 13
+
+    25    35    45    55    65    75    85    95   105   115   125   135   145
+
+  Columns 14 through 26
+
+   155   165   175   185   195   205   215   225   235   245   255   265   275
+
+  Columns 27 through 37
+
+   285   295   305   315   325   335   345   355   365   375   385
+
+</pre><img vspace="5" hspace="5" src="plotRAdurcorranalysis_03.png" alt=""> <h2 id="6">mixed model IFR ~ DUR</h2><pre class="codeinput">activecases  = find(dattable.activity&gt;=activitythresh);
+subset = dattable(activecases,:);
+cases = unique(subset(:,{<span class="string">'unitid'</span>,<span class="string">'seqid'</span>,<span class="string">'burstid'</span>}));
+<span class="keyword">for</span> i = 1:size(cases,1)
+    ind = find(strcmp(subset.unitid,cases(i,:).unitid) &amp; strcmp(subset.seqid,cases(i,:).seqid) &amp; subset.burstid==cases(i,:).burstid);
+    dur = subset(ind,:).dur;
+    dur = (dur-mean(dur))/std(dur);
+    subset(ind,:).dur = dur;
+<span class="keyword">end</span>
+
+<span class="comment">%test whether to add random effect of seqid on intercept. Yes</span>
+formula = <span class="string">'spikes ~ dur + burstid'</span>;
+mdl1 = fitlme(subset,formula);
+formula = <span class="string">'spikes ~ dur + burstid + (1|unitid:seqid)'</span>;
+mdl2 = fitlme(subset,formula);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+figure;plotResiduals(mdl2,<span class="string">'fitted'</span>);
+i = find(residuals(mdl2)&gt;150);
+
+<span class="comment">%test whether to add random effect of seqid on slope. Yes (BIC is lower</span>
+<span class="comment">%with independent estimation)</span>
+formula = <span class="string">'spikes ~ dur + burstid + (1|unitid:seqid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of unitid on intercept. Yes</span>
+formula = <span class="string">'spikes ~ dur + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (1|unitid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of unitid on slope. No</span>
+formula = <span class="string">'spikes ~ dur + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (1|unitid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (1|unitid) + (dur-1|unitid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+
+<span class="comment">%final model, significant negative beta for dur</span>
+formula = <span class="string">'spikes ~ dur + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (1|unitid)'</span>;
+mdl = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+mdl.Rsquared
+</pre><pre class="codeoutput">
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue
+    mdl1     4     90484    90512    -45238                               
+    mdl2     5     83790    83826    -41890    6695.6    1          0     
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue    
+    mdl1     5     78203    78239    -39096                                   
+    mdl2     6     78179    78221    -39083    26.356    1          2.8386e-07
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue
+    mdl1     6     78179    78221    -39083                               
+    mdl2     7     78032    78082    -39009    148.22    1          0     
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue 
+    mdl1     7     78032    78082    -39009                                
+    mdl2     8     78032    78089    -39008    1.8908    1          0.16911
+
+
+ans = 
+
+  struct with fields:
+
+    Ordinary: 0.6925
+    Adjusted: 0.6925
+
+</pre><img vspace="5" hspace="5" src="plotRAdurcorranalysis_04.png" alt=""> <h2 id="7">mixed model IFR ~ DUR + Vol1 + Vol2</h2><pre class="codeinput">activecases  = find(dattable.activity&gt;=activitythresh);
+subset = dattable(activecases,:);
+cases = unique(subset(:,{<span class="string">'unitid'</span>,<span class="string">'seqid'</span>,<span class="string">'burstid'</span>}));
+<span class="keyword">for</span> i = 1:size(cases,1)
+    ind = find(strcmp(subset.unitid,cases(i,:).unitid) &amp; strcmp(subset.seqid,cases(i,:).seqid) &amp; subset.burstid==cases(i,:).burstid);
+    dur = subset(ind,:).dur;
+    dur = (dur-mean(dur))/std(dur);
+    dur1 = subset(ind,:).dur1;
+    dur1 = (dur1-mean(dur1))/std(dur1);
+    dur2 = subset(ind,:).dur2;
+    dur2 = (dur2-mean(dur2))/std(dur2);
+    vol1 = subset(ind,:).vol1;
+    vol1 = (vol1-mean(vol1))/std(vol1);
+    vol2 = subset(ind,:).vol2;
+    vol2 = (vol2-mean(vol2))/std(vol2);
+    subset(ind,:).vol1 = vol1;
+    subset(ind,:).vol2 = vol2;
+    subset(ind,:).dur = dur;
+    subset(ind,:).dur1 = dur1;
+    subset(ind,:).dur2 = dur2;
+<span class="keyword">end</span>
+
+<span class="comment">%test whether to add random effect of seqid on intercept. Yes. CI for</span>
+<span class="comment">%random effect on intercept is above 0</span>
+<span class="comment">%intercept</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + burstid'</span>;
+mdl1 = fitlme(subset,formula);
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid)'</span>;
+mdl2 = fitlme(subset,formula);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+figure;plotResiduals(mdl2,<span class="string">'fitted'</span>);
+i = find(residuals(mdl2)&gt;150);<span class="comment">%outliers</span>
+
+<span class="comment">%test whether to add random effect of seqid on dur slope. Yes.</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of seqid on vol1 slope. Yes. BIC is lower when dur and vol are estimated together</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of seqid on vol2 slope. Yes</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid) + (vol2-1|unitid:seqid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of unitid on intercept. Yes</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid) + (vol2-1|unitid:seqid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of unitid on dur slope. No</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid) + (dur-1|unitid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of unitid on vol1 slope. No</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid) + (vol1-1|unitid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of unitid on vol2 slope. Yes</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid) + (vol2-1|unitid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%final model: dur is still negatively correlated, vol2 is positively</span>
+<span class="comment">%correlated</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid) + (vol2-1|unitid)'</span>;
+mdl = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+mdl.Rsquared
+</pre><pre class="codeoutput">
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue
+    mdl1     6     90482    90524    -45235                               
+    mdl2     7     83781    83831    -41883    6702.7    1          0     
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue    
+    mdl1     7     78185    78234    -39085                                   
+    mdl2     8     78162    78219    -39073    24.066    1          9.3089e-07
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue
+    mdl1      8    78162    78219    -39073                               
+    mdl2     10    78089    78160    -39034    77.473    2          0     
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue    
+    mdl1     10    78089    78160    -39034                                   
+    mdl2     11    78060    78138    -39019    31.432    1          2.0652e-08
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue
+    mdl1     11    78060    78138    -39019                               
+    mdl2     12    77913    77999    -38945    148.21    1          0     
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat     deltaDF    pValue 
+    mdl1     12    77913    77999    -38945                                 
+    mdl2     13    77915    78008    -38945    0.10641    1          0.74427
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue 
+    mdl1     12    77913    77999    -38945                                
+    mdl2     13    77914    78007    -38944    1.2942    1          0.25527
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue   
+    mdl1     12    77913    77999    -38945                                  
+    mdl2     13    77884    77977    -38929    31.38     1          2.122e-08
+
+
+ans = 
+
+  struct with fields:
+
+    Ordinary: 0.7028
+    Adjusted: 0.7027
+
+</pre><img vspace="5" hspace="5" src="plotRAdurcorranalysis_05.png" alt=""> <h2 id="8">mixed model IFR ~ dur + dur1 + dur2</h2><pre class="codeinput">activecases  = find(dattable.activity&gt;=activitythresh);
+subset = dattable(activecases,:);
+cases = unique(subset(:,{<span class="string">'unitid'</span>,<span class="string">'seqid'</span>,<span class="string">'burstid'</span>}));
+<span class="keyword">for</span> i = 1:size(cases,1)
+    ind = find(strcmp(subset.unitid,cases(i,:).unitid) &amp; strcmp(subset.seqid,cases(i,:).seqid) &amp; subset.burstid==cases(i,:).burstid);
+    dur = subset(ind,:).dur;
+    dur = (dur-mean(dur))/std(dur);
+    dur1 = subset(ind,:).dur1;
+    dur1 = (dur1-mean(dur1))/std(dur1);
+    dur2 = subset(ind,:).dur2;
+    dur2 = (dur2-mean(dur2))/std(dur2);
+    vol1 = subset(ind,:).vol1;
+    vol1 = (vol1-mean(vol1))/std(vol1);
+    vol2 = subset(ind,:).vol2;
+    vol2 = (vol2-mean(vol2))/std(vol2);
+    subset(ind,:).vol1 = vol1;
+    subset(ind,:).vol2 = vol2;
+    subset(ind,:).dur = dur;
+    subset(ind,:).dur1 = dur1;
+    subset(ind,:).dur2 = dur2;
+<span class="keyword">end</span>
+
+<span class="comment">%test whether to add random effect of seqid on intercept. Yes.</span>
+<span class="comment">%intercept</span>
+formula = <span class="string">'spikes ~ dur + dur1 + dur2 + burstid'</span>;
+mdl1 = fitlme(subset,formula);
+formula = <span class="string">'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid)'</span>;
+mdl2 = fitlme(subset,formula);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+figure;plotResiduals(mdl2,<span class="string">'fitted'</span>);
+i = find(residuals(mdl2)&gt;150);<span class="comment">%outliers</span>
+
+<span class="comment">%test whether to add random effect of seqid on dur slope. Yes.</span>
+formula = <span class="string">'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of seqid on dur1 slope. Yes.</span>
+formula = <span class="string">'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of seqid on dur2 slope. Yes.</span>
+formula = <span class="string">'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid) + (dur2-1|unitid:seqid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of unitid on intercept. Yes.</span>
+formula = <span class="string">'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid) + (dur2-1|unitid:seqid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid) + (dur2-1|unitid:seqid) + (1|unitid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of unitid on dur slope. No.</span>
+formula = <span class="string">'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid) + (dur2-1|unitid:seqid) + (1|unitid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid) + (dur2-1|unitid:seqid) + (1|unitid) + (dur-1|unitid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of unitid on dur1 slope. No.</span>
+formula = <span class="string">'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid) + (dur2-1|unitid:seqid) + (1|unitid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid) + (dur2-1|unitid:seqid) + (1|unitid) + (dur1-1|unitid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of unitid on dur2 slope. No.</span>
+formula = <span class="string">'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid) + (dur2-1|unitid:seqid) + (1|unitid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid) + (dur2-1|unitid:seqid) + (1|unitid) + (dur2-1|unitid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%final model: significant  negative correlation with dur but not with dur1</span>
+<span class="comment">%or dur2</span>
+formula = <span class="string">'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid) + (dur2-1|unitid:seqid) + (1|unitid)'</span>;
+mdl = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+mdl.Rsquared
+</pre><pre class="codeoutput">
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue
+    mdl1     6     90488    90530    -45238                               
+    mdl2     7     83794    83844    -41890    6695.6    1          0     
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue    
+    mdl1     7     78206    78256    -39096                                   
+    mdl2     8     78181    78238    -39083    26.368    1          2.8216e-07
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue    
+    mdl1     8     78181    78238    -39083                                   
+    mdl2     9     78157    78221    -39070    26.197    1          3.0832e-07
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue    
+    mdl1      9    78157    78221    -39070                                   
+    mdl2     10    78131    78202    -39056    28.097    1          1.1539e-07
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue
+    mdl1     10    78131    78202    -39056                               
+    mdl2     11    77985    78063    -38981    148.2     1          0     
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue 
+    mdl1     11    77985    78063    -38981                                
+    mdl2     12    77986    78071    -38981    1.1343    1          0.28685
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat     deltaDF    pValue 
+    mdl1     11    77985    78063    -38981                                 
+    mdl2     12    77987    78072    -38981    0.10945    1          0.74077
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue 
+    mdl1     11    77985    78063    -38981                                
+    mdl2     12    77984    78069    -38980    3.2006    1          0.07361
+
+
+ans = 
+
+  struct with fields:
+
+    Ordinary: 0.7013
+    Adjusted: 0.7012
+
+</pre><img vspace="5" hspace="5" src="plotRAdurcorranalysis_06.png" alt=""> <h2 id="9">mixed model IFR ~ dur + vol1 + vol2 + dur1 + dur2</h2><pre class="codeinput">activecases  = find(dattable.activity&gt;=activitythresh);
+subset = dattable(activecases,:);
+cases = unique(subset(:,{<span class="string">'unitid'</span>,<span class="string">'seqid'</span>,<span class="string">'burstid'</span>}));
+<span class="keyword">for</span> i = 1:size(cases,1)
+    ind = find(strcmp(subset.unitid,cases(i,:).unitid) &amp; strcmp(subset.seqid,cases(i,:).seqid) &amp; subset.burstid==cases(i,:).burstid);
+    dur = subset(ind,:).dur;
+    dur = (dur-mean(dur))/std(dur);
+    dur1 = subset(ind,:).dur1;
+    dur1 = (dur1-mean(dur1))/std(dur1);
+    dur2 = subset(ind,:).dur2;
+    dur2 = (dur2-mean(dur2))/std(dur2);
+    vol1 = subset(ind,:).vol1;
+    vol1 = (vol1-mean(vol1))/std(vol1);
+    vol2 = subset(ind,:).vol2;
+    vol2 = (vol2-mean(vol2))/std(vol2);
+    subset(ind,:).vol1 = vol1;
+    subset(ind,:).vol2 = vol2;
+    subset(ind,:).dur = dur;
+    subset(ind,:).dur1 = dur1;
+    subset(ind,:).dur2 = dur2;
+<span class="keyword">end</span>
+
+<span class="comment">%test whether to add random effect of seqid on intercept. Yes.</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid'</span>;
+mdl1 = fitlme(subset,formula);
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid)'</span>;
+mdl2 = fitlme(subset,formula);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+figure;plotResiduals(mdl2,<span class="string">'fitted'</span>);
+i = find(residuals(mdl2)&gt;150);<span class="comment">%outliers</span>
+
+<span class="comment">%test whether to add random effect of seqid on dur slope. Yes.</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of seqid on vol1 slope. Yes.</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of seqid on vol2 slope. Yes.</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2-1|unitid:seqid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of seqid on dur1 slope. Yes.</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2-1|unitid:seqid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1-1|unitid:seqid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of seqid on dur2 slope. Yes.</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1-1|unitid:seqid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of unitid on intercept. Yes.</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of unitid on dur slope. No.</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (dur-1|unitid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of unitid on vol1 slope. Yes.</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1-1|unitid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of unitid on vol2 slope. Yes.</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1-1|unitid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1+vol2-1|unitid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of unitid on dur1 slope. No.</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1+vol2-1|unitid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1+vol2+dur1-1|unitid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of unitid on dur2 slope. Yes.</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1+vol2-1|unitid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1+vol2+dur2-1|unitid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%final model: only dur is signficantly correlated</span>
+formula = <span class="string">'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1+vol2+dur2-1|unitid)'</span>;
+mdl = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+mdl.Rsquared
+figure;plotResiduals(mdl,<span class="string">'fitted'</span>)
+</pre><pre class="codeoutput">
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue
+    mdl1     8     90486    90543    -45235                               
+    mdl2     9     83785    83849    -41883    6702.7    1          0     
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue    
+    mdl1      9    78187    78252    -39085                                   
+    mdl2     10    78165    78237    -39073    24.092    1          9.1822e-07
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue
+    mdl1     10    78165    78237    -39073                               
+    mdl2     12    78091    78177    -39034    77.835    2          0     
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue    
+    mdl1     12    78091    78177    -39034                                   
+    mdl2     15    78062    78169    -39016    35.283    3          1.0614e-07
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue    
+    mdl1     15    78062    78169    -39016                                   
+    mdl2     19    77999    78135    -38981    71.06     4          1.3545e-14
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue    
+    mdl1     19    77999    78135    -38981                                   
+    mdl2     24    77942    78113    -38947    67.102    5          4.1023e-13
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue
+    mdl1     24    77942    78113    -38947                               
+    mdl2     25    77796    77974    -38873    148.19    1          0     
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat        deltaDF    pValue
+    mdl1     25    77796    77974    -38873                                   
+    mdl2     26    77798    77983    -38873    1.4552e-11    1          1     
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue  
+    mdl1     25    77796    77974    -38873                                 
+    mdl2     26    77793    77978    -38871    4.6581    1          0.030907
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue    
+    mdl1     26    77793    77978    -38871                                   
+    mdl2     28    77760    77960    -38852    36.915    2          9.6401e-09
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue 
+    mdl1     28    77760    77960    -38852                                
+    mdl2     31    77763    77984    -38851    3.076     3          0.38006
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue    
+    mdl1     28    77760    77960    -38852                                   
+    mdl2     31    77743    77964    -38841    22.886    3          4.2652e-05
+
+
+ans = 
+
+  struct with fields:
+
+    Ordinary: 0.7118
+    Adjusted: 0.7116
+
+</pre><img vspace="5" hspace="5" src="plotRAdurcorranalysis_07.png" alt=""> <img vspace="5" hspace="5" src="plotRAdurcorranalysis_08.png" alt=""> <h2 id="10">mixed model IFR ~ vol1</h2><pre class="codeinput">activecases  = find(dattable.activity&gt;=activitythresh);
+subset = dattable(activecases,:);
+cases = unique(subset(:,{<span class="string">'unitid'</span>,<span class="string">'seqid'</span>,<span class="string">'burstid'</span>}));
+<span class="keyword">for</span> i = 1:size(cases,1)
+    ind = find(strcmp(subset.unitid,cases(i,:).unitid) &amp; strcmp(subset.seqid,cases(i,:).seqid) &amp; subset.burstid==cases(i,:).burstid);
+    dur = subset(ind,:).dur;
+    dur = (dur-mean(dur))/std(dur);
+    dur1 = subset(ind,:).dur1;
+    dur1 = (dur1-mean(dur1))/std(dur1);
+    dur2 = subset(ind,:).dur2;
+    dur2 = (dur2-mean(dur2))/std(dur2);
+    vol1 = subset(ind,:).vol1;
+    vol1 = (vol1-mean(vol1))/std(vol1);
+    vol2 = subset(ind,:).vol2;
+    vol2 = (vol2-mean(vol2))/std(vol2);
+    subset(ind,:).vol1 = vol1;
+    subset(ind,:).vol2 = vol2;
+    subset(ind,:).dur = dur;
+    subset(ind,:).dur1 = dur1;
+    subset(ind,:).dur2 = dur2;
+<span class="keyword">end</span>
+
+<span class="comment">%test whether to add random effect of seqid on intercept. Yes</span>
+formula = <span class="string">'spikes ~ vol1 + burstid'</span>;
+mdl1 = fitlme(subset,formula);
+formula = <span class="string">'spikes ~ vol1 + burstid + (1|unitid:seqid)'</span>;
+mdl2 = fitlme(subset,formula);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+figure;plotResiduals(mdl2,<span class="string">'fitted'</span>);
+i = find(residuals(mdl2)&gt;150);
+
+<span class="comment">%test whether to add random effect of seqid on vol1. Yes</span>
+formula = <span class="string">'spikes ~ vol1 + burstid + (1|unitid:seqid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ vol1 + burstid + (1|unitid:seqid) + (vol1-1|unitid:seqid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of unitid on intercept. Yes</span>
+formula = <span class="string">'spikes ~ vol1 + burstid + (1|unitid:seqid) + (vol1-1|unitid:seqid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ vol1 + burstid + (1|unitid:seqid) + (vol1-1|unitid:seqid) + (1|unitid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of unitid on vol1. Yes</span>
+formula = <span class="string">'spikes ~ vol1 + burstid + (1|unitid:seqid) + (vol1-1|unitid:seqid) + (1|unitid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ vol1 + burstid + (1|unitid:seqid) + (vol1-1|unitid:seqid) + (1|unitid) + (vol1-1|unitid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%final model</span>
+formula = <span class="string">'spikes ~ vol1 + burstid + (1|unitid:seqid) + (vol1-1|unitid:seqid) + (1|unitid) + (vol1-1|unitid)'</span>;
+mdl = fitlme(subset,formula,<span class="string">'exclude'</span>,i)
+mdl.Rsquared
+</pre><pre class="codeoutput">
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue
+    mdl1     4     90482    90511    -45237                               
+    mdl2     5     83787    83822    -41888    6697.4    1          0     
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue
+    mdl1     5     78202    78238    -39096                               
+    mdl2     6     78133    78176    -39060    71.381    1          0     
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue
+    mdl1     6     78133    78176    -39060                               
+    mdl2     7     77987    78036    -38986    148.2     1          0     
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue  
+    mdl1     7     77987    78036    -38986                                 
+    mdl2     8     77983    78040    -38984    5.2902    1          0.021445
+
+
+mdl = 
+
+
+Linear mixed-effects model fit by ML
+
+Model information:
+    Number of observations            9209
+    Fixed effects coefficients           3
+    Random effects coefficients        288
+    Covariance parameters                5
+
+Formula:
+    Linear Mixed Formula with 4 predictors.
+
+Model fit statistics:
+    AIC      BIC      LogLikelihood    Deviance
+    77983    78040    -38984           77967   
+
+Fixed effects coefficients (95% CIs):
+    Name                 Estimate    SE         tStat      DF      pValue    
+    '(Intercept)'         50.137      8.2481     6.0786    9206    1.2603e-09
+    'burstid'            -5.8671      1.8474    -3.1759    9206     0.0014985
+    'vol1'               0.96931     0.55075       1.76    9206      0.078443
+
+
+    Lower       Upper  
+      33.969     66.305
+     -9.4884    -2.2459
+    -0.11028     2.0489
+
+Random effects covariance parameters (95% CIs):
+Group: unitid:seqid (126 Levels)
+    Name1                Name2                Type         Estimate    Lower 
+    '(Intercept)'        '(Intercept)'        'std'        11.84       10.309
+
+
+    Upper 
+    13.598
+
+Group: unitid:seqid (126 Levels)
+    Name1         Name2         Type         Estimate    Lower     Upper 
+    'vol1'        'vol1'        'std'        2.4889      1.9079    3.2469
+
+Group: unitid (18 Levels)
+    Name1                Name2                Type         Estimate    Lower 
+    '(Intercept)'        '(Intercept)'        'std'        33.284      23.511
+
+
+    Upper
+    47.12
+
+Group: unitid (18 Levels)
+    Name1         Name2         Type         Estimate    Lower      Upper 
+    'vol1'        'vol1'        'std'        1.7052      0.87386    3.3275
+
+Group: Error
+    Name             Estimate    Lower     Upper
+    'Res Std'        16.112      15.877    16.35
+
+
+ans = 
+
+  struct with fields:
+
+    Ordinary: 0.6963
+    Adjusted: 0.6963
+
+</pre><img vspace="5" hspace="5" src="plotRAdurcorranalysis_09.png" alt=""> <h2 id="11">%% mixed model IFR ~ vol2</h2><pre class="codeinput">activecases  = find(dattable.activity&gt;=activitythresh);
+subset = dattable(activecases,:);
+cases = unique(subset(:,{<span class="string">'unitid'</span>,<span class="string">'seqid'</span>,<span class="string">'burstid'</span>}));
+<span class="keyword">for</span> i = 1:size(cases,1)
+    ind = find(strcmp(subset.unitid,cases(i,:).unitid) &amp; strcmp(subset.seqid,cases(i,:).seqid) &amp; subset.burstid==cases(i,:).burstid);
+    dur = subset(ind,:).dur;
+    dur = (dur-mean(dur))/std(dur);
+    dur1 = subset(ind,:).dur1;
+    dur1 = (dur1-mean(dur1))/std(dur1);
+    dur2 = subset(ind,:).dur2;
+    dur2 = (dur2-mean(dur2))/std(dur2);
+    vol1 = subset(ind,:).vol1;
+    vol1 = (vol1-mean(vol1))/std(vol1);
+    vol2 = subset(ind,:).vol2;
+    vol2 = (vol2-mean(vol2))/std(vol2);
+    subset(ind,:).vol1 = vol1;
+    subset(ind,:).vol2 = vol2;
+    subset(ind,:).dur = dur;
+    subset(ind,:).dur1 = dur1;
+    subset(ind,:).dur2 = dur2;
+<span class="keyword">end</span>
+
+<span class="comment">%test whether to add random effect of seqid on intercept. Yes</span>
+formula = <span class="string">'spikes ~ vol2 + burstid'</span>;
+mdl1 = fitlme(subset,formula);
+formula = <span class="string">'spikes ~ vol2 + burstid + (1|unitid:seqid)'</span>;
+mdl2 = fitlme(subset,formula);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+figure;plotResiduals(mdl2,<span class="string">'fitted'</span>);
+i = find(residuals(mdl2)&gt;150);
+
+<span class="comment">%test whether to add random effect of seqid on vol1. Yes</span>
+formula = <span class="string">'spikes ~ vol2 + burstid + (1|unitid:seqid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ vol2 + burstid + (1|unitid:seqid) + (vol2-1|unitid:seqid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of unitid on intercept. Yes</span>
+formula = <span class="string">'spikes ~ vol2 + burstid + (1|unitid:seqid) + (vol2-1|unitid:seqid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ vol2 + burstid + (1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%test whether to add random effect of unitid on vol1. Yes</span>
+formula = <span class="string">'spikes ~ vol2 + burstid + (1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid)'</span>;
+mdl1 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+formula = <span class="string">'spikes ~ vol2 + burstid + (1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid) + (vol2-1|unitid)'</span>;
+mdl2 = fitlme(subset,formula,<span class="string">'exclude'</span>,i);
+compare(mdl1,mdl2,<span class="string">'CheckNesting'</span>,true)
+
+<span class="comment">%final model</span>
+formula = <span class="string">'spikes ~ vol2 + burstid + (1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid) + (vol2-1|unitid)'</span>;
+mdl = fitlme(subset,formula,<span class="string">'exclude'</span>,i)
+mdl.Rsquared
+</pre><pre class="codeoutput">
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue
+    mdl1     4     90481    90509    -45236                               
+    mdl2     5     83784    83819    -41887    6699.1    1          0     
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue
+    mdl1     5     78192    78228    -39091                               
+    mdl2     6     78123    78166    -39055    71.128    1          0     
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue
+    mdl1     6     78123    78166    -39055                               
+    mdl2     7     77977    78027    -38981    148.21    1          0     
+
+
+ans = 
+
+
+    THEORETICAL LIKELIHOOD RATIO TEST
+
+    Model    DF    AIC      BIC      LogLik    LRStat    deltaDF    pValue    
+    mdl1     7     77977    78027    -38981                                   
+    mdl2     8     77928    77985    -38956    51.092    1          8.8141e-13
+
+
+mdl = 
+
+
+Linear mixed-effects model fit by ML
+
+Model information:
+    Number of observations            9209
+    Fixed effects coefficients           3
+    Random effects coefficients        288
+    Covariance parameters                5
+
+Formula:
+    Linear Mixed Formula with 4 predictors.
+
+Model fit statistics:
+    AIC      BIC      LogLikelihood    Deviance
+    77928    77985    -38956           77912   
+
+Fixed effects coefficients (95% CIs):
+    Name                 Estimate    SE         tStat      DF      pValue    
+    '(Intercept)'         50.135      8.2482     6.0783    9206    1.2631e-09
+    'burstid'            -5.8653      1.8478    -3.1742    9206     0.0015076
+    'vol2'                1.8747     0.87755     2.1362    9206      0.032686
+
+
+    Lower      Upper  
+     33.966     66.303
+    -9.4874    -2.2431
+    0.15447     3.5949
+
+Random effects covariance parameters (95% CIs):
+Group: unitid:seqid (126 Levels)
+    Name1                Name2                Type         Estimate    Lower 
+    '(Intercept)'        '(Intercept)'        'std'        11.839      10.308
+
+
+    Upper 
+    13.597
+
+Group: unitid:seqid (126 Levels)
+    Name1         Name2         Type         Estimate    Lower      Upper 
+    'vol2'        'vol2'        'std'        0.95894     0.38195    2.4076
+
+Group: unitid (18 Levels)
+    Name1                Name2                Type         Estimate    Lower 
+    '(Intercept)'        '(Intercept)'        'std'        33.284      23.511
+
+
+    Upper 
+    47.121
+
+Group: unitid (18 Levels)
+    Name1         Name2         Type         Estimate    Lower     Upper 
+    'vol2'        'vol2'        'std'        3.4373      2.3411    5.0468
+
+Group: Error
+    Name             Estimate    Lower     Upper 
+    'Res Std'        16.117      15.882    16.356
+
+
+ans = 
+
+  struct with fields:
+
+    Ordinary: 0.6956
+    Adjusted: 0.6955
+
+</pre><img vspace="5" hspace="5" src="plotRAdurcorranalysis_10.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2017b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%params and input
+load('gap_correlation_analysis_singleunits.mat');
+activitythresh = 6;%zscore from shuffled
+overlap = 0.02;%percent overlap threshold for single vs multi unit 
+
+%indices for units with activity above activitythresh that have
+%significant correlations
+negcorr = find(corrtable.pkactivity>=activitythresh & ...
+    [corrtable.durcorr{:,2}]'<=0.05 & [corrtable.durcorr{:,1}]'<0);
+poscorr = find(corrtable.pkactivity>=activitythresh & ...
+    [corrtable.durcorr{:,2}]'<=0.05 & [corrtable.durcorr{:,1}]'>0);
+sigcorr = find(corrtable.pkactivity>=activitythresh & ...
+    [corrtable.durcorr{:,2}]'<=0.05);
+notsigcorr = find(corrtable.pkactivity>=activitythresh & ...
+    [corrtable.durcorr{:,2}]'>0.05);
+activecases = find(corrtable.pkactivity>=activitythresh);
+numcases = length(activecases);
+numsignificant = length(find(corrtable.pkactivity>=activitythresh & ...
+    [corrtable.durcorr{:,2}]'<=0.05));
+
+%% number of unique active units and birds that went into analysis
+disp([num2str(length(unique(corrtable(activecases,:).unitid))),' single units in ',...
+    num2str(length(unique(corrtable(activecases,:).birdid))),' birds']);
+
+%% distribution of correlations 
+aph = 0.01;ntrials=1000;
+shuffcorr = [corrtable(activecases,:).durcorr{:,3}];
+shuffpval = [corrtable(activecases,:).durcorr{:,4}];
+
+randnumsignificant = sum(shuffpval<=0.05,2);    
+randpropsignificant = randnumsignificant/size(shuffpval,2);
+randpropsignificant_sorted = sort(randpropsignificant);
+randpropsignificant_lo = randpropsignificant_sorted(floor(aph*ntrials/2));
+randpropsignificant_hi = randpropsignificant_sorted(ceil(ntrials-(aph*ntrials/2)));
+
+randnumsignificantnegcorr = sum((shuffpval<=0.05).*(shuffcorr<0),2);
+randpropsignificantnegcorr = randnumsignificantnegcorr./size(shuffpval,2);
+randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
+randpropsignificantnegcorr_lo = randpropsignificantnegcorr_sorted(floor(aph*ntrials/2));
+randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+
+randnumsignificantposcorr = sum((shuffpval<=0.05).*(shuffcorr>0),2);
+randpropsignificantposcorr = randnumsignificantposcorr./size(shuffpval,2);
+randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
+randpropsignificantposcorr_lo = randpropsignificantposcorr_sorted(floor(aph*ntrials/2));
+randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+
+randdiffprop = abs(randpropsignificantnegcorr-randpropsignificantposcorr);
+
+figure;hold on;
+[n b] = hist(shuffcorr(:),[-1:0.05:1]);
+stairs(b,n/sum(n),'k','linewidth',2);
+[n b] = hist([corrtable(activecases,:).durcorr{:,1}],[-1:0.05:1]);
+stairs(b,n/sum(n),'r','linewidth',2);y=get(gca,'ylim');
+plot(mean([corrtable(activecases,:).durcorr{:,1}]),y(1),'r^','markersize',8);hold on;
+plot(mean(shuffcorr(:)),y(1),'k^','markersize',8);hold on;
+xlabel('correlation coefficient');ylabel('probability');set(gca,'fontweight','bold');
+[h p] = vartest2([corrtable(activecases,:).durcorr{:,1}],shuffcorr(:));
+[h p2] = ttest2([corrtable(activecases,:).durcorr{:,1}],shuffcorr(:));
+[h p3] = kstest2([corrtable(activecases,:).durcorr{:,1}],shuffcorr(:));
+p4 = length(find(randdiffprop>=abs((length(negcorr)/numcases)-(length(poscorr)/numcases))))/ntrials;
+p5 = length(find(randpropsignificant>=length(sigcorr)/numcases))/ntrials;
+p6 = length(find(randpropsignificantposcorr>=length(poscorr)/numcases))/ntrials;
+p7 = length(find(randpropsignificantnegcorr>=length(negcorr)/numcases))/ntrials;
+text(0,1,{['total active cases:',num2str(numcases)];...
+['proportion significant cases:',num2str(numsignificant/numcases)];...
+['proportion significantly negative:',num2str(length(negcorr)/numcases)];...
+['proportion significantly positive:',num2str(length(poscorr)/numcases)];...
+['p(F)=',num2str(p)];['p(t)=',num2str(p2)];['p(ks)=',num2str(p3)];...
+['p(sig)=',num2str(p5)];['p(neg)=',num2str(p7)];['p(pos)=',num2str(p6)];...
+['p(neg-pos)=',num2str(p4)]},'units','normalized',...
+'verticalalignment','top');
+
+%% distribution of proportions 
+figure;subplot(1,3,1);hold on;
+[n b] = hist(randpropsignificant,[0:0.01:0.2]);
+stairs(b,n/sum(n),'k','linewidth',2);y=get(gca,'ylim');
+plot(randpropsignificant_hi,y(1),'k^','markersize',8);hold on;
+plot(randpropsignificant_lo,y(1),'k^','markersize',8);hold on;
+[mn hi lo] = jc_BootstrapfreqCI([corrtable(activecases,:).durcorr{:,2}]'<=0.05);
+plot(mn,y(1),'k^','markersize',8,'markerfacecolor','k');hold on;
+plot([lo  hi],[y(1) y(1)],'color',[0.5 0.5 0.5],'linewidth',4)
+title('shuffled vs empirical');
+xlabel('proportion of significant correlations');ylabel('probability');
+set(gca,'fontweight','bold');
+
+subplot(1,3,2);hold on;
+[n b] = hist(randpropsignificantnegcorr,[0:0.01:0.2]);
+stairs(b,n/sum(n),'k','linewidth',2);y=get(gca,'ylim');
+plot(randpropsignificantnegcorr_hi,y(1),'b^','markersize',8);hold on;
+plot(randpropsignificantnegcorr_lo,y(1),'b^','markersize',8);hold on;
+[mn hi lo] = jc_BootstrapfreqCI([corrtable(activecases,:).durcorr{:,2}]'<=0.05 & ...
+    [corrtable(activecases,:).durcorr{:,1}]'<0);
+plot(mn,y(1),'b^','markersize',8,'markerfacecolor','b');hold on;
+plot([lo  hi],[y(1) y(1)],'b','linewidth',4)
+title('shuffled vs empirical');
+xlabel('proportion of significantly negative correlations');ylabel('probability');
+set(gca,'fontweight','bold');
+
+subplot(1,3,3);hold on;
+[n b] = hist(randpropsignificantposcorr,[0:0.01:0.25]);
+stairs(b,n/sum(n),'k','linewidth',2);y=get(gca,'ylim');
+plot(randpropsignificantposcorr_lo,y(1),'r^','markersize',8);hold on;
+plot(randpropsignificantposcorr_hi,y(1),'r^','markersize',8);hold on;
+[mn hi lo] = jc_BootstrapfreqCI([corrtable(activecases,:).durcorr{:,2}]'<=0.05 & ...
+    [corrtable(activecases,:).durcorr{:,1}]'>0);
+plot(mn,y(1),'r^','markersize',8,'markerfacecolor','r');hold on;
+plot([lo  hi],[y(1) y(1)],'r','linewidth',4)
+title('shuffled vs empirical');
+xlabel('proportion of significantly positive correlations');ylabel('probability');
+set(gca,'fontweight','bold');
+
+%% comparing sample sizes for cases that are negative vs positively correlated 
+%(regardless of significance)
+negsampsize = corrtable([corrtable.durcorr{:,1}]'<0,:).ntrials;
+possampsize = corrtable([corrtable.durcorr{:,1}]'>0,:).ntrials;activecases  = find(dattable.activity>=activitythresh);
+maxsize = max([negsampsize;possampsize]);
+figure;hold on;
+[n b] = hist(negsampsize,[25:10:maxsize+5])
+stairs(b,n/sum(n),'b','linewidth',2);hold on;
+[n b] = hist(possampsize,[25:10:maxsize+5]);
+stairs(b,n/sum(n),'r','linewidth',2);hold on;
+xlabel('sample size');ylabel('counts');
+legend({'negative','positive'});
+y = get(gca,'ylim');
+plot(median(negsampsize),y(1),'b^');hold on;
+plot(median(possampsize),y(1),'r^');hold on;
+p = ranksum(negsampsize,possampsize);
+text(0,1,{['p=',num2str(p)]},'units','normalized');
+set(gca,'fontweight','bold');
+
+
+%% mixed model IFR ~ DUR 
+activecases  = find(dattable.activity>=activitythresh);
+subset = dattable(activecases,:);
+cases = unique(subset(:,{'unitid','seqid','burstid'}));
+for i = 1:size(cases,1)
+    ind = find(strcmp(subset.unitid,cases(i,:).unitid) & strcmp(subset.seqid,cases(i,:).seqid) & subset.burstid==cases(i,:).burstid);
+    dur = subset(ind,:).dur;
+    dur = (dur-mean(dur))/std(dur);
+    subset(ind,:).dur = dur;
+end
+
+%test whether to add random effect of seqid on intercept. Yes
+formula = 'spikes ~ dur + burstid';
+mdl1 = fitlme(subset,formula);
+formula = 'spikes ~ dur + burstid + (1|unitid:seqid)';
+mdl2 = fitlme(subset,formula);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+figure;plotResiduals(mdl2,'fitted');
+i = find(residuals(mdl2)>150);
+
+%test whether to add random effect of seqid on slope. Yes (BIC is lower
+%with independent estimation)
+formula = 'spikes ~ dur + burstid + (1|unitid:seqid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on intercept. Yes 
+formula = 'spikes ~ dur + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (1|unitid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on slope. No 
+formula = 'spikes ~ dur + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (1|unitid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (1|unitid) + (dur-1|unitid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+
+%final model, significant negative beta for dur 
+formula = 'spikes ~ dur + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (1|unitid)';
+mdl = fitlme(subset,formula,'exclude',i);
+mdl.Rsquared
+
+%% mixed model IFR ~ DUR + Vol1 + Vol2
+activecases  = find(dattable.activity>=activitythresh);
+subset = dattable(activecases,:);
+cases = unique(subset(:,{'unitid','seqid','burstid'}));
+for i = 1:size(cases,1)
+    ind = find(strcmp(subset.unitid,cases(i,:).unitid) & strcmp(subset.seqid,cases(i,:).seqid) & subset.burstid==cases(i,:).burstid);
+    dur = subset(ind,:).dur;
+    dur = (dur-mean(dur))/std(dur);
+    dur1 = subset(ind,:).dur1;
+    dur1 = (dur1-mean(dur1))/std(dur1);
+    dur2 = subset(ind,:).dur2;
+    dur2 = (dur2-mean(dur2))/std(dur2);
+    vol1 = subset(ind,:).vol1;
+    vol1 = (vol1-mean(vol1))/std(vol1);
+    vol2 = subset(ind,:).vol2;
+    vol2 = (vol2-mean(vol2))/std(vol2);
+    subset(ind,:).vol1 = vol1;
+    subset(ind,:).vol2 = vol2;
+    subset(ind,:).dur = dur;
+    subset(ind,:).dur1 = dur1;
+    subset(ind,:).dur2 = dur2;
+end
+
+%test whether to add random effect of seqid on intercept. Yes. CI for
+%random effect on intercept is above 0 
+%intercept
+formula = 'spikes ~ dur + vol1 + vol2 + burstid';
+mdl1 = fitlme(subset,formula);
+formula = 'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid)';
+mdl2 = fitlme(subset,formula);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+figure;plotResiduals(mdl2,'fitted');
+i = find(residuals(mdl2)>150);%outliers
+
+%test whether to add random effect of seqid on dur slope. Yes. 
+formula = 'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of seqid on vol1 slope. Yes. BIC is lower when dur and vol are estimated together 
+formula = 'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of seqid on vol2 slope. Yes
+formula = 'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid) + (vol2-1|unitid:seqid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on intercept. Yes
+formula = 'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid) + (vol2-1|unitid:seqid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on dur slope. No
+formula = 'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid) + (dur-1|unitid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on vol1 slope. No
+formula = 'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid) + (vol1-1|unitid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on vol2 slope. Yes
+formula = 'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid) + (vol2-1|unitid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%final model: dur is still negatively correlated, vol2 is positively
+%correlated 
+formula = 'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid) + (vol2-1|unitid)';
+mdl = fitlme(subset,formula,'exclude',i);
+mdl.Rsquared
+
+%% mixed model IFR ~ dur + dur1 + dur2
+activecases  = find(dattable.activity>=activitythresh);
+subset = dattable(activecases,:);
+cases = unique(subset(:,{'unitid','seqid','burstid'}));
+for i = 1:size(cases,1)
+    ind = find(strcmp(subset.unitid,cases(i,:).unitid) & strcmp(subset.seqid,cases(i,:).seqid) & subset.burstid==cases(i,:).burstid);
+    dur = subset(ind,:).dur;
+    dur = (dur-mean(dur))/std(dur);
+    dur1 = subset(ind,:).dur1;
+    dur1 = (dur1-mean(dur1))/std(dur1);
+    dur2 = subset(ind,:).dur2;
+    dur2 = (dur2-mean(dur2))/std(dur2);
+    vol1 = subset(ind,:).vol1;
+    vol1 = (vol1-mean(vol1))/std(vol1);
+    vol2 = subset(ind,:).vol2;
+    vol2 = (vol2-mean(vol2))/std(vol2);
+    subset(ind,:).vol1 = vol1;
+    subset(ind,:).vol2 = vol2;
+    subset(ind,:).dur = dur;
+    subset(ind,:).dur1 = dur1;
+    subset(ind,:).dur2 = dur2;
+end
+
+%test whether to add random effect of seqid on intercept. Yes.
+%intercept
+formula = 'spikes ~ dur + dur1 + dur2 + burstid';
+mdl1 = fitlme(subset,formula);
+formula = 'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid)';
+mdl2 = fitlme(subset,formula);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+figure;plotResiduals(mdl2,'fitted');
+i = find(residuals(mdl2)>150);%outliers
+
+%test whether to add random effect of seqid on dur slope. Yes. 
+formula = 'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of seqid on dur1 slope. Yes. 
+formula = 'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of seqid on dur2 slope. Yes. 
+formula = 'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid) + (dur2-1|unitid:seqid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on intercept. Yes. 
+formula = 'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid) + (dur2-1|unitid:seqid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid) + (dur2-1|unitid:seqid) + (1|unitid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on dur slope. No. 
+formula = 'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid) + (dur2-1|unitid:seqid) + (1|unitid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid) + (dur2-1|unitid:seqid) + (1|unitid) + (dur-1|unitid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on dur1 slope. No. 
+formula = 'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid) + (dur2-1|unitid:seqid) + (1|unitid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid) + (dur2-1|unitid:seqid) + (1|unitid) + (dur1-1|unitid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on dur2 slope. No. 
+formula = 'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid) + (dur2-1|unitid:seqid) + (1|unitid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid) + (dur2-1|unitid:seqid) + (1|unitid) + (dur2-1|unitid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%final model: significant  negative correlation with dur but not with dur1
+%or dur2
+formula = 'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (dur1-1|unitid:seqid) + (dur2-1|unitid:seqid) + (1|unitid)';
+mdl = fitlme(subset,formula,'exclude',i);
+mdl.Rsquared
+
+%% mixed model IFR ~ dur + vol1 + vol2 + dur1 + dur2
+activecases  = find(dattable.activity>=activitythresh);
+subset = dattable(activecases,:);
+cases = unique(subset(:,{'unitid','seqid','burstid'}));
+for i = 1:size(cases,1)
+    ind = find(strcmp(subset.unitid,cases(i,:).unitid) & strcmp(subset.seqid,cases(i,:).seqid) & subset.burstid==cases(i,:).burstid);
+    dur = subset(ind,:).dur;
+    dur = (dur-mean(dur))/std(dur);
+    dur1 = subset(ind,:).dur1;
+    dur1 = (dur1-mean(dur1))/std(dur1);
+    dur2 = subset(ind,:).dur2;
+    dur2 = (dur2-mean(dur2))/std(dur2);
+    vol1 = subset(ind,:).vol1;
+    vol1 = (vol1-mean(vol1))/std(vol1);
+    vol2 = subset(ind,:).vol2;
+    vol2 = (vol2-mean(vol2))/std(vol2);
+    subset(ind,:).vol1 = vol1;
+    subset(ind,:).vol2 = vol2;
+    subset(ind,:).dur = dur;
+    subset(ind,:).dur1 = dur1;
+    subset(ind,:).dur2 = dur2;
+end
+
+%test whether to add random effect of seqid on intercept. Yes.
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid';
+mdl1 = fitlme(subset,formula);
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid)';
+mdl2 = fitlme(subset,formula);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+figure;plotResiduals(mdl2,'fitted');
+i = find(residuals(mdl2)>150);%outliers
+
+%test whether to add random effect of seqid on dur slope. Yes.
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of seqid on vol1 slope. Yes.
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of seqid on vol2 slope. Yes.
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2-1|unitid:seqid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of seqid on dur1 slope. Yes.
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2-1|unitid:seqid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1-1|unitid:seqid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of seqid on dur2 slope. Yes.
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1-1|unitid:seqid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on intercept. Yes.
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on dur slope. No.
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (dur-1|unitid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on vol1 slope. Yes.
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1-1|unitid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on vol2 slope. Yes.
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1-1|unitid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1+vol2-1|unitid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on dur1 slope. No.
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1+vol2-1|unitid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1+vol2+dur1-1|unitid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on dur2 slope. Yes.
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1+vol2-1|unitid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1+vol2+dur2-1|unitid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%final model: only dur is signficantly correlated
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1+vol2+dur2-1|unitid)';
+mdl = fitlme(subset,formula,'exclude',i);
+mdl.Rsquared
+figure;plotResiduals(mdl,'fitted')
+
+%% mixed model IFR ~ vol1 
+activecases  = find(dattable.activity>=activitythresh);
+subset = dattable(activecases,:);
+cases = unique(subset(:,{'unitid','seqid','burstid'}));
+for i = 1:size(cases,1)
+    ind = find(strcmp(subset.unitid,cases(i,:).unitid) & strcmp(subset.seqid,cases(i,:).seqid) & subset.burstid==cases(i,:).burstid);
+    dur = subset(ind,:).dur;
+    dur = (dur-mean(dur))/std(dur);
+    dur1 = subset(ind,:).dur1;
+    dur1 = (dur1-mean(dur1))/std(dur1);
+    dur2 = subset(ind,:).dur2;
+    dur2 = (dur2-mean(dur2))/std(dur2);
+    vol1 = subset(ind,:).vol1;
+    vol1 = (vol1-mean(vol1))/std(vol1);
+    vol2 = subset(ind,:).vol2;
+    vol2 = (vol2-mean(vol2))/std(vol2);
+    subset(ind,:).vol1 = vol1;
+    subset(ind,:).vol2 = vol2;
+    subset(ind,:).dur = dur;
+    subset(ind,:).dur1 = dur1;
+    subset(ind,:).dur2 = dur2;
+end
+
+%test whether to add random effect of seqid on intercept. Yes
+formula = 'spikes ~ vol1 + burstid';
+mdl1 = fitlme(subset,formula);
+formula = 'spikes ~ vol1 + burstid + (1|unitid:seqid)';
+mdl2 = fitlme(subset,formula);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+figure;plotResiduals(mdl2,'fitted');
+i = find(residuals(mdl2)>150);
+
+%test whether to add random effect of seqid on vol1. Yes
+formula = 'spikes ~ vol1 + burstid + (1|unitid:seqid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ vol1 + burstid + (1|unitid:seqid) + (vol1-1|unitid:seqid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on intercept. Yes
+formula = 'spikes ~ vol1 + burstid + (1|unitid:seqid) + (vol1-1|unitid:seqid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ vol1 + burstid + (1|unitid:seqid) + (vol1-1|unitid:seqid) + (1|unitid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on vol1. Yes
+formula = 'spikes ~ vol1 + burstid + (1|unitid:seqid) + (vol1-1|unitid:seqid) + (1|unitid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ vol1 + burstid + (1|unitid:seqid) + (vol1-1|unitid:seqid) + (1|unitid) + (vol1-1|unitid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%final model
+formula = 'spikes ~ vol1 + burstid + (1|unitid:seqid) + (vol1-1|unitid:seqid) + (1|unitid) + (vol1-1|unitid)';
+mdl = fitlme(subset,formula,'exclude',i)
+mdl.Rsquared
+
+%% %% mixed model IFR ~ vol2
+activecases  = find(dattable.activity>=activitythresh);
+subset = dattable(activecases,:);
+cases = unique(subset(:,{'unitid','seqid','burstid'}));
+for i = 1:size(cases,1)
+    ind = find(strcmp(subset.unitid,cases(i,:).unitid) & strcmp(subset.seqid,cases(i,:).seqid) & subset.burstid==cases(i,:).burstid);
+    dur = subset(ind,:).dur;
+    dur = (dur-mean(dur))/std(dur);
+    dur1 = subset(ind,:).dur1;
+    dur1 = (dur1-mean(dur1))/std(dur1);
+    dur2 = subset(ind,:).dur2;
+    dur2 = (dur2-mean(dur2))/std(dur2);
+    vol1 = subset(ind,:).vol1;
+    vol1 = (vol1-mean(vol1))/std(vol1);
+    vol2 = subset(ind,:).vol2;
+    vol2 = (vol2-mean(vol2))/std(vol2);
+    subset(ind,:).vol1 = vol1;
+    subset(ind,:).vol2 = vol2;
+    subset(ind,:).dur = dur;
+    subset(ind,:).dur1 = dur1;
+    subset(ind,:).dur2 = dur2;
+end
+
+%test whether to add random effect of seqid on intercept. Yes
+formula = 'spikes ~ vol2 + burstid';
+mdl1 = fitlme(subset,formula);
+formula = 'spikes ~ vol2 + burstid + (1|unitid:seqid)';
+mdl2 = fitlme(subset,formula);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+figure;plotResiduals(mdl2,'fitted');
+i = find(residuals(mdl2)>150);
+
+%test whether to add random effect of seqid on vol1. Yes
+formula = 'spikes ~ vol2 + burstid + (1|unitid:seqid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ vol2 + burstid + (1|unitid:seqid) + (vol2-1|unitid:seqid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on intercept. Yes
+formula = 'spikes ~ vol2 + burstid + (1|unitid:seqid) + (vol2-1|unitid:seqid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ vol2 + burstid + (1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on vol1. Yes
+formula = 'spikes ~ vol2 + burstid + (1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ vol2 + burstid + (1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid) + (vol2-1|unitid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%final model
+formula = 'spikes ~ vol2 + burstid + (1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid) + (vol2-1|unitid)';
+mdl = fitlme(subset,formula,'exclude',i)
+mdl.Rsquared
+##### SOURCE END #####
+--></body></html>
