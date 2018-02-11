@@ -1,5 +1,5 @@
 %% parameters and input
-load('gap_correlation_analysis_singleunits.mat');
+load('gap_correlation_analysis_multiunits.mat');
 activitythresh = 6;%zscore from shuffled
 
 %indices for units with activity above activitythresh that have
@@ -18,12 +18,15 @@ numsignificant = length(find(corrtable.pkactivity>=activitythresh & ...
     [corrtable.durcorr{:,2}]'<=0.05));
 
 %% number of unique active units and birds that went into analysis
-disp([num2str(length(unique(corrtable(activecases,:).unitid))),' single units in ',...
-    num2str(length(unique(corrtable(activecases,:).birdid))),' birds']);
+disp([num2str(size((corrtable(activecases,{'unitid','seqid'})),1)),...
+    ' cases in ',num2str(size(unique(corrtable(activecases,{'unitid'})),1)),...
+    ' units in ',num2str(size(unique(corrtable(activecases,...
+    {'birdid'})),1)),' birds']);
 
 %% number of unique active units and birds from which significant correlations were found
-disp([num2str(length(unique(corrtable(sigcorr,:).unitid))),' single units in ',...
-    num2str(length(unique(corrtable(sigcorr,:).birdid))),' birds']);
+disp([num2str(size((corrtable(sigcorr,{'unitid','seqid'})),1)),...
+    ' cases in ',num2str(size(unique(corrtable(sigcorr,{'unitid'})),1)),...
+    ' units in ',num2str(size(unique(corrtable(sigcorr,{'birdid'})),1)),' birds']);
 
 %% distribution of correlations between empirical and shuffled data
 aph = 0.01;ntrials=1000;
@@ -119,7 +122,7 @@ negsampsize = corrtable([corrtable.durcorr{:,1}]'<0,:).ntrials;
 possampsize = corrtable([corrtable.durcorr{:,1}]'>0,:).ntrials;activecases  = find(dattable.activity>=activitythresh);
 maxsize = max([negsampsize;possampsize]);
 figure;hold on;
-[n b] = hist(negsampsize,[25:10:maxsize+5])
+[n b] = hist(negsampsize,[25:10:maxsize+5]);
 stairs(b,n/sum(n),'b','linewidth',2);hold on;
 [n b] = hist(possampsize,[25:10:maxsize+5]);
 stairs(b,n/sum(n),'r','linewidth',2);hold on;

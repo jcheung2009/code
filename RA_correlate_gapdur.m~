@@ -44,7 +44,7 @@ rawdatatable = table([],[],[],[],[],[],[],[],[],[],[],[],'VariableNames',{'dur',
     'unittype','activity','birdid','unitid','seqid','burstid','vol1','vol2','dur1','dur2'});
 
 ff = load_batchf(batchfile);
-for i = 1:length(ff)
+for i = 4%1:length(ff)
     disp(ff(i).name);
     [~,stid] = regexp(ff(i).name,'data_');enid = regexp(ff(i).name,'_TH');
     unitid = ff(i).name(stid+1:enid-1);
@@ -161,7 +161,7 @@ for i = 1:length(ff)
             
             %find peaks/bursts in PSTH in premotor window aligned to target
             %element
-            [pks, locs,w,~,wc] = findpeaks2(PSTH_mn,'MinPeakProminence',5,...
+            [pks, locs,w,~,wc] = findpeaks2(PSTH_mn,'MinPeakProminence',1,...
                 'MinPeakWidth',10,'Annotate','extents','WidthReference','halfheight');
             pkid = find(tb(locs)>=pt(1) & tb(locs)<=pt(2));
             wc = round(wc);
@@ -181,11 +181,11 @@ for i = 1:length(ff)
                 outbursts = cell2mat(arrayfun(@(x,y) (x:x+y)',wc(:,1),wc(:,2)-wc(:,1),'un',0));
                 outbursts = setdiff([1:length(PSTH_mn)],outbursts);
                 outburstactivity = (mean(PSTH_mn(outbursts))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
-                if ifr == 1
+%                 if ifr == 1
                     npks_burst = mean(smooth_spiketrains(:,burstst:burstend),2).*1000;
-                else
-                    npks_burst = countspks(spktms,tb(burstst),tb(burstend));
-                end
+%                 else
+%                     npks_burst = countspks(spktms,tb(burstst),tb(burstend));
+%                 end
                 
                 %measure latency between burst center and next syllable/gap onset 
                 if targetactivity == 0 & targetdur == 0
@@ -211,15 +211,20 @@ for i = 1:length(ff)
                 
                 %extract volume for syllables adjacent to target dur and
                 %correlate with target burst
-                vol1 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
-                    seqons(:,ceil(seqlen/2)),seqoffs(:,ceil(seqlen/2)),'un',1);
-                vol2 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
-                    seqons(:,ceil(seqlen/2)+1),seqoffs(:,ceil(seqlen/2)+1),'un',1);
-                [rvol1 pvol1] = corrcoef(npks_burst,vol1);rvol1 = rvol1(2); pvol1 = pvol1(2);
-                [rvol2 pvol2] = corrcoef(npks_burst,vol2);rvol2 = rvol2(2); pvol2 = pvol2(2);
-                [shuffr4 shuffp4] = shuffle(npks_burst,vol1,shufftrials);
-                [shuffr5 shuffp5] = shuffle(npks_burst,vol2,shufftrials);
-
+                if exist('song') & length_song == length(song)
+                    vol1 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
+                        seqons(:,ceil(seqlen/2)),seqoffs(:,ceil(seqlen/2)),'un',1);
+                    vol2 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
+                        seqons(:,ceil(seqlen/2)+1),seqoffs(:,ceil(seqlen/2)+1),'un',1);
+                    [rvol1 pvol1] = corrcoef(npks_burst,vol1);rvol1 = rvol1(2); pvol1 = pvol1(2);
+                    [rvol2 pvol2] = corrcoef(npks_burst,vol2);rvol2 = rvol2(2); pvol2 = pvol2(2);
+                    [shuffr4 shuffp4] = shuffle(npks_burst,vol1,shufftrials);
+                    [shuffr5 shuffp5] = shuffle(npks_burst,vol2,shufftrials);
+                else
+                    vol1=NaN(length(npks_burst),1);vol2=NaN(length(npks_burst),1);
+                    rvol1=NaN;pvol1=NaN;rvol2=NaN;pvol2=NaN;
+                    shuffr4=NaN;shuffp4=NaN;shuffr5=NaN;shuffp5=NaN;
+                end
                 
                 %correlation with target and adjacent elements (border
                 %syllables  or gaps) 
@@ -288,12 +293,13 @@ for i = 1:length(ff)
                     if exist('song') & length_song == length(song)
                         figure;subplot(2,1,1);hold on;
                         if strcmp(gap_or_syll,'gap')
-                            
-                        plotampenv(dur_id_corr,song,seqons,seqoffs,...
-                            seqoffs(:,ceil(seqlen/2)+targetactivity),fs);
+                            anch = seqoffs(:,ceil(seqlen/2)+targetactivity);
+                        elseif strcmp(gap_or_syll,'syll')
+                            anch = seqons(:,ceil(seqlen/2)+targetactivity);
+                        end
+                        plotampenv(dur_id_corr,song,seqons,seqoffs,anch,fs);
                         subplot(2,1,2);hold on;
-                        plotampenv_norm(dur_id_corr,song,seqons,seqoffs,...
-                            seqoffs(:,ceil(seqlen/2)+targetactivity),fs);
+                        plotampenv_norm(dur_id_corr,song,seqons,seqoffs,anch,fs);
                     end
                 end
             end
