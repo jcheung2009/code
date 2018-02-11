@@ -416,12 +416,12 @@ function [PSTH_mn tb smooth_spiketrains spktms] = smoothtrain(spiketimes,seqst,s
         spktms{m} = x - anchor(m); 
         spktimes = round(spktms{m})+seqst+1;
         if ifr == 1
-            temp(spktimes(1:end-1)) = 1./diff(x);
+            temp = instantfr(spktms{m},-seqst:seqend);
+            %temp(spktimes(1:end-1)) = 1./diff(x);
         else
             temp(spktimes) = 1;
         end
-        smooth_spiketrains(m,:) = temp;
-        %smooth_spiketrains(m,:) = conv(temp,win,'same');
+        smooth_spiketrains(m,:) = conv(temp,win,'same');
     end
     tb = [-seqst:seqend];
     PSTH_mn = mean(smooth_spiketrains,1).*1000;%spikes/second

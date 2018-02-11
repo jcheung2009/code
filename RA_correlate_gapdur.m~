@@ -161,8 +161,8 @@ for i = 4%1:length(ff)
             
             %find peaks/bursts in PSTH in premotor window aligned to target
             %element
-            [pks, locs,w,~,wc] = findpeaks2(PSTH_mn,'MinPeakProminence',1,...
-                'MinPeakWidth',10,'Annotate','extents','WidthReference','halfheight');
+            [pks, locs,w,~,wc] = findpeaks2(PSTH_mn,'MinPeakWidth',10,...
+                'Annotate','extents','WidthReference','halfheight');
             pkid = find(tb(locs)>=pt(1) & tb(locs)<=pt(2));
             wc = round(wc);
 
@@ -416,7 +416,8 @@ function [PSTH_mn tb smooth_spiketrains spktms] = smoothtrain(spiketimes,seqst,s
         spktms{m} = x - anchor(m); 
         spktimes = round(spktms{m})+seqst+1;
         if ifr == 1
-            temp(spktimes(1:end-1)) = 1./diff(x);
+            temp = instantfr(spktms{m},-seqst:seqend);
+            %temp(spktimes(1:end-1)) = 1./diff(x);
         else
             temp(spktimes) = 1;
         end
