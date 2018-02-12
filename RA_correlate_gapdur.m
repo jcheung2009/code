@@ -44,7 +44,7 @@ rawdatatable = table([],[],[],[],[],[],[],[],[],[],[],[],'VariableNames',{'dur',
     'unittype','activity','birdid','unitid','seqid','burstid','vol1','vol2','dur1','dur2'});
 
 ff = load_batchf(batchfile);
-for i = 4%1:length(ff)
+for i = 1:length(ff)
     disp(ff(i).name);
     [~,stid] = regexp(ff(i).name,'data_');enid = regexp(ff(i).name,'_TH');
     unitid = ff(i).name(stid+1:enid-1);
@@ -88,10 +88,10 @@ for i = 4%1:length(ff)
         gapseq = seqons(:,2:end)-seqoffs(:,1:end-1);
         if strcmp(gap_or_syll,'gap')
             offset = durseq(:,seqlen/2+targetactivity);
-            offset = [mean(offset)-std(offset)+motorwin, mean(offset)+std(offset)];
+            offset = [mean(offset)+motorwin, mean(offset)];
         elseif strcmp(gap_or_syll,'syll')
             offset = gapseq(:,ceil(seqlen/2)-1+targetactivity);
-            offset = [mean(offset)-std(offset)+motorwin, mean(offset)+std(offset)];
+            offset = [mean(offset)+motorwin, mean(offset)];
         end
         
         %target dur for correlation 
@@ -161,7 +161,7 @@ for i = 4%1:length(ff)
             
             %find peaks/bursts in PSTH in premotor window aligned to target
             %element
-            [pks, locs,w,~,wc] = findpeaks2(PSTH_mn,'MinPeakWidth',10,...
+            [pks, locs,w,~,wc] = findpeaks2(PSTH_mn,'MinPeakProminence',10,'MinPeakWidth',10,...
                 'Annotate','extents','WidthReference','halfheight');
             pkid = find(tb(locs)>=pt(1) & tb(locs)<=pt(2));
             wc = round(wc);
@@ -181,12 +181,13 @@ for i = 4%1:length(ff)
                 outbursts = cell2mat(arrayfun(@(x,y) (x:x+y)',wc(:,1),wc(:,2)-wc(:,1),'un',0));
                 outbursts = setdiff([1:length(PSTH_mn)],outbursts);
                 outburstactivity = (mean(PSTH_mn(outbursts))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
-%                 if ifr == 1
-                    npks_burst = mean(smooth_spiketrains(:,burstst:burstend),2).*1000;
-%                 else
-%                     npks_burst = countspks(spktms,tb(burstst),tb(burstend));
-%                 end
-                
+                 if ifr == 1
+                    npks_burst = burstifr(spktms,tb(burstst),tb(burstend));
+                 else
+                    npks_burst = countspks(spktms,tb(burstst),tb(burstend));
+                 end
+               %npks_burst = mean(smooth_spiketrains(:,burstst:burstend),2).*1000;  
+               
                 %measure latency between burst center and next syllable/gap onset 
                 if targetactivity == 0 & targetdur == 0
                     if strcmp(gap_or_syll,'gap')
@@ -447,11 +448,18 @@ function [burstst burstend] = peakborder(wc,id,locs,tb);
     end
     
 function npks = countspks(spktms,tm1,tm2);
-if length(tm1) == 1
-    npks = cellfun(@(x) length(find(x>=tm1 & x<tm2)),spktms);%extract nspks in each trial
-else
-    npks = cellfun(@(x,y,z) length(find(x>=y & x<z)),spktms,tm1,tm2);%extract nspks in each trial
-end
+    if length(tm1) == 1
+        npks = cellfun(@(x) length(find(x>=tm1 & x<tm2)),spktms);%extract nspks in each trial
+    else
+        npks = cellfun(@(x,y,z) length(find(x>=y & x<z)),spktms,tm1,tm2);%extract nspks in each trial
+    end
+    npks = 1000*(npks./(tm2-tm1));
+
+function npks = burstifr(spktms,tm1,tm2,win);
+    npks = cellfun(@(x) x(find(x>=tm1 & x<tm2)),spktms,'un',0);
+    npks = cell2mat(cellfun(@(x) median(instantfr(x)),npks,'un',0)).*1000;
+    npks(isnan(npks)) = 0;
+    %npks = mean(cell2mat(cellfun(@(x) conv(instantfr(x,tm1:tm2),win,'same'),npks,'un',0)),2).*1000;
     
 function [r p] = shuffle(npks_burst,dur_id_corr,shufftrials);
     npks_burst_shuff = repmat(npks_burst',shufftrials,1);

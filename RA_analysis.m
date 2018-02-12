@@ -1,5 +1,5 @@
 %% gap correlation analysis #1 (IFR within burst)
-[corrtable dattable]=RA_correlate_gapdur('singleunits',6,25,6,-40,0,0,'n','burst',1,'gap');
+[corrtable dattable]=RA_correlate_gapdur('singleunits',6,25,6,-40,0,0,'y+','burst',1,'gap');
 save('gap_correlation_analysis_singleunits','corrtable','dattable');
 
 [corrtable dattable]=RA_correlate_gapdur('singleunits',5,25,6,-40,0,0,'n','burst',1,'syll');

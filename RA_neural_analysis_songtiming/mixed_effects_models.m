@@ -22,7 +22,7 @@ mdl2 = fitlme(subset,formula);
 compare(mdl1,mdl2,'CheckNesting',true)
 
 figure;plotResiduals(mdl2,'fitted');
-i = find(residuals(mdl2)>150);
+i = find(residuals(mdl2)>200);
 
 %test whether to add random effect of seqid on slope. Yes (BIC is lower
 %with independent estimation)
@@ -46,6 +46,12 @@ formula = 'spikes ~ dur + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (1
 mdl2 = fitlme(subset,formula,'exclude',i);
 compare(mdl1,mdl2,'CheckNesting',true)
 
+%test whether to add random effect of birdid on intercept. No 
+formula = 'spikes ~ dur + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (1|unitid)';
+mdl1 = fitlme(subset,formula,'exclude',i);
+formula = 'spikes ~ dur + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (1|unitid) + (1|birdid)';
+mdl2 = fitlme(subset,formula,'exclude',i);
+compare(mdl1,mdl2,'CheckNesting',true)
 
 %final model, significant negative beta for dur 
 formula = 'spikes ~ dur + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid) + (1|unitid)';
@@ -86,7 +92,7 @@ mdl2 = fitlme(subset,formula);
 compare(mdl1,mdl2,'CheckNesting',true)
 
 figure;plotResiduals(mdl2,'fitted');
-i = find(residuals(mdl2)>150);%outliers
+i = find(residuals(mdl2)>200);%outliers
 
 %test whether to add random effect of seqid on dur slope. Yes. 
 formula = 'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid)';
@@ -266,7 +272,7 @@ mdl2 = fitlme(subset,formula);
 compare(mdl1,mdl2,'CheckNesting',true)
 
 figure;plotResiduals(mdl2,'fitted');
-i = find(residuals(mdl2)>150);%outliers
+i = find(residuals(mdl2)>1000);%outliers
 
 %test whether to add random effect of seqid on dur slope. Yes.
 formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid)';
@@ -468,3 +474,46 @@ compare(mdl1,mdl2,'CheckNesting',true)
 formula = 'spikes ~ vol2 + burstid + (1|unitid:seqid) + (vol2-1|unitid:seqid) + (1|unitid) + (vol2-1|unitid)';
 mdl = fitlme(subset,formula,'exclude',i)
 mdl.Rsquared
+
+%% mixed model dur ~ vol1
+activecases  = find(dattable.activity>=activitythresh);
+subset = dattable(activecases,:);
+cases = unique(subset(:,{'unitid','seqid','burstid'}));
+for i = 1:size(cases,1)
+    ind = find(strcmp(subset.unitid,cases(i,:).unitid) & strcmp(subset.seqid,cases(i,:).seqid) & subset.burstid==cases(i,:).burstid);
+    vol1 = subset(ind,:).vol1;
+    vol1 = (vol1-mean(vol1))/std(vol1);
+    subset(ind,:).vol1 = vol1;
+end
+
+
+%test whether to add random effect of seqid on intercept. Yes
+formula = 'dur ~ vol1 + burstid';
+mdl1 = fitlme(subset,formula);
+formula = 'dur ~ vol1 + burstid + (1|unitid:seqid)';
+mdl2 = fitlme(subset,formula);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of seqid on vol1. Yes
+formula = 'dur ~ vol1 + burstid + (1|unitid:seqid)';
+mdl1 = fitlme(subset,formula);
+formula = 'dur ~ vol1 + burstid + (1|unitid:seqid) + (vol1-1|unitid:seqid)';
+mdl2 = fitlme(subset,formula);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on intercept. Yes
+formula = 'dur ~ vol1 + burstid + (1|unitid:seqid) + (vol1-1|unitid:seqid)';
+mdl1 = fitlme(subset,formula);
+formula = 'dur ~ vol1 + burstid + (1|unitid:seqid) + (vol1-1|unitid:seqid) + (1|unitid)';
+mdl2 = fitlme(subset,formula);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+%test whether to add random effect of unitid on intercept. No
+formula = 'dur ~ vol1 + burstid + (1|unitid:seqid) + (vol1-1|unitid:seqid) + (1|unitid)';
+mdl1 = fitlme(subset,formula);
+formula = 'dur ~ vol1 + burstid + (1|unitid:seqid) + (vol1-1|unitid:seqid) + (1|unitid) + (vol1-1|unitid)';
+mdl2 = fitlme(subset,formula);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+formula = 'dur ~ vol1 + burstid + (1|unitid:seqid) + (vol1-1|unitid:seqid) + (1|unitid)';
+mdl1 = fitlme(subset,formula)
