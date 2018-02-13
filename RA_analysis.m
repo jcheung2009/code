@@ -1,24 +1,27 @@
 %% gap correlation analysis #1 (IFR within burst)
-[corrtable dattable]=RA_correlate_gapdur('singleunits',6,25,6,-40,0,0,'y+','burst',1,'gap');
-save('gap_correlation_analysis_singleunits','corrtable','dattable');
+[corrtable dattable]=RA_correlate_gapdur('singleunits',6,25,6,-40,0,0,'n','burst',1,'gap');
+save('gap_correlation_analysis_singleunits_ifr','corrtable','dattable');
 
 [corrtable dattable]=RA_correlate_gapdur('singleunits',5,25,6,-40,0,0,'n','burst',1,'syll');
-save('dur_correlation_analysis_singleunits','corrtable','dattable');
+save('dur_correlation_analysis_singleunits_ifr','corrtable','dattable');
 
-[corrtable dattable]=RA_correlate_gapdur('multiunits',6,25,6,-40,0,0,'y+','burst',1,'gap');
-save('gap_correlation_analysis_multiunits','corrtable','dattable');
+[corrtable dattable]=RA_correlate_gapdur('multiunits',6,25,6,-40,0,0,'n','burst',1,'gap');
+save('gap_correlation_analysis_multiunits_ifr','corrtable','dattable');
 
-[corrtable dattable]=RA_correlate_gapdur('multiunits',5,25,6,-40,0,0,'y+','burst',1,'syll');
-save('dur_correlation_analysis_multiunits','corrtable','dattable');
+[corrtable dattable]=RA_correlate_gapdur('multiunits',5,25,6,-40,0,0,'n','burst',1,'syll');
+save('dur_correlation_analysis_multiunits_ifr','corrtable','dattable');
 
 [corrtable dattable]=RA_correlate_gapdur('multiunits',6,25,6,-40,0,0,'n','burst',0,'gap');
-save('gap_correlation_analysis_multiunits2','corrtable','dattable');
+save('gap_correlation_analysis_multiunits_fr','corrtable','dattable');
 
 [corrtable dattable]=RA_correlate_gapdur('multiunits',5,25,6,-40,0,0,'n','burst',0,'syll');
-save('dur_correlation_analysis_multiunits2','corrtable','dattable');
+save('dur_correlation_analysis_multiunits_fr','corrtable','dattable');
 
 [corrtable dattable]=RA_correlate_gapdur('singleunits',6,25,6,-40,0,0,'n','burst',0,'gap');
-save('gap_correlation_analysis_singleunits2','corrtable','dattable');
+save('gap_correlation_analysis_singleunits_fr','corrtable','dattable');
+
+[corrtable dattable]=RA_correlate_gapdur('singleunits',5,25,6,-40,0,0,'n','burst',0,'syll');
+save('dur_correlation_analysis_singleunits_fr','corrtable','dattable');
 
 
 [corrmat case_name data] = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','n','burst',1,'gap','n');

@@ -148,6 +148,9 @@ for i = 1:length(ff)
         [PSTH_mn_rand smooth_spiketrains_rand] = shuffletrain(spiketimes,...
             seqst,seqend,anchor,win,ifr);
         
+        smooth_spiketrains_rand = permute_rowel(smooth_spiketrains);
+        PSTH_mn_rand = mean(smooth_spiketrains_rand,1).*1000;
+
         if strcmp(mode,'burst')
             
             %find peaks/bursts in PSTH in premotor window aligned to target
@@ -167,7 +170,7 @@ for i = 1:length(ff)
                 %define peak borders and other peak characteristics
                 [burstst burstend] = peakborder(wc,pkid(ixx),locs,tb);
                 wth = tb(burstend)-tb(burstst);
-                gaplatency = tb(locs(pkid(ixx)))-pt(2);%((tb(burstst)+tb(burstend))/2)-pt(2);
+                gaplatency = (tb(burstst)+tb(burstend))/2;
                 pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
                 outbursts = cell2mat(arrayfun(@(x,y) (x:x+y)',wc(:,1),wc(:,2)-wc(:,1),'un',0));
                 outbursts = setdiff([1:length(PSTH_mn)],outbursts);
@@ -426,6 +429,7 @@ function [PSTH_mn_rand smooth_spiketrains_rand] = shuffletrain(spiketimes,...
         x = spiketimes(find(spiketimes>=(anchor(m)-seqst) & spiketimes<=(anchor(m)+seqend)));
         spktms{m} = x - anchor(m); 
         spktimes = round(spktms{m})+seqst+1;
+        temp = instantfr(spktms{m},-seqst:seqend);
         if ifr == 1
             temp = instantfr(spktms{m},-seqst:seqend);
         else

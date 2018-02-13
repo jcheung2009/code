@@ -1,6 +1,6 @@
 %% parameters and input
 load('gap_correlation_analysis_multiunits_ifr.mat');
-activitythresh = 6;%zscore from shuffled
+activitythresh = 3;%zscore from shuffled
 
 %indices for units with activity above activitythresh that have
 %significant correlations

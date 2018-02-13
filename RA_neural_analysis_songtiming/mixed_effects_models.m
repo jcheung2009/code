@@ -92,7 +92,7 @@ mdl2 = fitlme(subset,formula);
 compare(mdl1,mdl2,'CheckNesting',true)
 
 figure;plotResiduals(mdl2,'fitted');
-i = find(residuals(mdl2)>200);%outliers
+i = find(residuals(mdl2)>2000);%outliers
 
 %test whether to add random effect of seqid on dur slope. Yes. 
 formula = 'spikes ~ dur + vol1 + vol2 + burstid + (1|unitid:seqid)';
@@ -272,7 +272,7 @@ mdl2 = fitlme(subset,formula);
 compare(mdl1,mdl2,'CheckNesting',true)
 
 figure;plotResiduals(mdl2,'fitted');
-i = find(residuals(mdl2)>1000);%outliers
+i = find(residuals(mdl2)>2000);%outliers
 
 %test whether to add random effect of seqid on dur slope. Yes.
 formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid)';
