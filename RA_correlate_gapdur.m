@@ -296,29 +296,12 @@ for i = 1:length(ff)
                 end
             end
         elseif strcmp(mode,'spikes')
+            tbid = find(tb>=pt(1) & tb <=pt(2));
             pkactivity = (max(PSTH_mn(tbid))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
             if ifr == 1
-                npks_burst = mean(smooth_spiketrains(:,tbid),2).*1000;
+                npks_burst = burstifr(spktms,tb(tbid(1)),tb(tbid(end)));
             else
                 npks_burst = countspks(spktms,tb(tbid(1)),tb(tbid(end)));
-            end
-            
-            %average pairwise correlation of spike trains 
-            tbid = find(tb>=motorwin & tb <=0);
-            r = xcorr(smooth_spiketrains(:,tbid)',0,'coeff');
-            r = reshape(r,[size(smooth_spiketrains,1) size(smooth_spiketrains,1)]);
-            r = r(find(triu(r,1)));
-            varfr = nanmean(r);
-
-            %n-trial lag correlation 
-            if nargout >=3
-                [r p] = corrcoef(npks_burst,dur_id_corr);
-                if mean(pct_error)<=0.02 & pkactivity >= activitythresh & p(2)<=0.05
-                    [trcorr lag] = xcov(npks_burst,dur_id_corr,'coeff');
-                    [shuffcorrtrial lag] = shuffletrialcorr(npks_burst,dur_id_corr,1000);
-                    corrtrial = [corrtrial; [trcorr lag' shuffcorrtrial]];
-                end
-                continue
             end
 
             %extract volume for syllables adjacent to target dur and
@@ -333,8 +316,9 @@ for i = 1:length(ff)
                 [shuffr4 shuffp4] = shuffle(npks_burst,vol1,shufftrials);
                 [shuffr5 shuffp5] = shuffle(npks_burst,vol2,shufftrials);
             else
-                rvol1=NaN;pvol1=NaN;shuffr4=NaN;shuffp4=NaN
-                rvol2=NaN;pvol2=NaN;shuffr5=NaN;shuffp5=NaN;
+                vol1=NaN(length(npks_burst),1);vol2=NaN(length(npks_burst),1);
+                rvol1=NaN;pvol1=NaN;rvol2=NaN;pvol2=NaN;
+                shuffr4=NaN;shuffp4=NaN;shuffr5=NaN;shuffp5=NaN;
             end
 
             %correlation with target and adjacent elements (border
@@ -358,25 +342,36 @@ for i = 1:length(ff)
             [shuffr shuffp] = shuffle(npks_burst,dur_id_corr,shufftrials);
             [shuffr2 shuffp2] = shuffle(npks_burst,dur1_id,shufftrials);
             [shuffr3 shuffp3] = shuffle(npks_burst,dur2_id,shufftrials);
-
+            
             %save measurements and variables
-            outburstactivity=NaN;gaplatency=NaN;durmotorwin=NaN;
-            corrtable = [corrtable; table(birdid,unitid,gapids{n},alignby,...
+            outburstactivity=NaN;gaplatency=NaN;durmotorwin=NaN;burstid=NaN;wth=NaN;
+            corrtable = [corrtable; table({birdid},{unitid},gapids(n),burstid,alignby,...
                 pkactivity,wth,mean(pct_error),length(dur_id_corr),varfr,...
                 outburstactivity,[gaplatency durmotorwin],{r(2) p(2) shuffr shuffp},...
                 {r1 p1 r2 p2 shuffr2 shuffp2 shuffr3 shuffp3},...
                 {rvol1 pvol1 rvol2 pvol2 shuffr4 shuffp4 shuffr5 shuffp5},...
-                'VariableNames',{'birdid','unitid','seqid','alignby',...
+                'VariableNames',{'birdid','unitid','seqid','burstid','alignby',...
                 'pkactivity','width','pct_error','ntrials','trialbytrialcorr',...
                 'bgactivity','latency','durcorr','adjdurcorr','volcorr'})];
-            rawdatatable = [rawdatatable; table(dur_id_corr,npks_burst,...
-                mean(pct_error)<=0.02,repmat(pkactivity,length(npks_burst),1),...
+              
+            %normalized variables and save raw data in table
+            fr = npks_burst;%(npks_burst-mean(npks_burst))./std(npks_burst);
+             dur = dur_id_corr;%(dur_id_corr-mean(dur_id_corr))./std(dur_id_corr);
+             %vol1 = (vol1-mean(vol1))./std(vol1);
+             %vol2 = (vol2-mean(vol2))./std(vol2);
+             dur1 = dur1_id;%(dur1_id-mean(dur1_id))./std(dur1_id);
+             dur2 = dur2_id;%(dur2_id-mean(dur2_id))./std(dur2_id);
+             rawdatatable = [rawdatatable; table(dur,fr,...
+                repmat(mean(pct_error)<=0.02,length(npks_burst),1),...
+                repmat(pkactivity,length(npks_burst),1),...
                 repmat({birdid},length(npks_burst),1),...
                 repmat({unitid},length(npks_burst),1),...
-                repmat(gapids{n},length(npks_burst),1),...
+                repmat(gapids(n),length(npks_burst),1),...
+                repmat(burstid,length(npks_burst),1),...
+                vol1,vol2,dur1,dur2,...
                 'VariableNames',{'dur','spikes','unittype','activity',...
-                'birdid','unitid','seqid'})];
-
+                'birdid','unitid','seqid','burstid','vol1','vol2','dur1','dur2'})];
+                
             if eval(plotcasecondition)
                 figure;subplot(3,1,1);hold on
                 plotraster(dur_id_corr,spktms,tb(tbid(1)),tb(tbid(end)),...
@@ -442,7 +437,7 @@ function r = trialbytrialcorr_spiketrain(spiketimes,seqst,seqend,anchor,pt,win);
  %trial by trial correlation based on smoothed spike trains when computed by spikes not ifr
     [~,tb,smooth_spiketrains] = smoothtrain(spiketimes,seqst,seqend,anchor,win,0);
     tbid = find(tb>=pt(1) & tb<=pt(2));
-    r = xcorr(smooth_spiketrains(:,tbid)',0,'coeff');
+    r = xcov(smooth_spiketrains(:,tbid)',0,'coeff');
     r = reshape(r,[size(smooth_spiketrains,1) size(smooth_spiketrains,1)]);
     r = r(find(triu(r,1)));
     r = nanmean(r);

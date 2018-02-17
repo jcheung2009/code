@@ -116,10 +116,10 @@ for i = 1:length(ff)
 
     %shuffled spike train to detect peaks that are significantly
     %above shuffled activity
-    smooth_spiketrains_rand_IFR = permute_rowel(smooth_spiketrains_IFR);
-    PSTH_mn_rand_IFR = mean(smooth_spiketrains_rand_IFR,1).*1000;
-    smooth_spiketrains_rand_FR = permute_rowel(smooth_spiketrains_FR);
-    PSTH_mn_rand_FR = mean(smooth_spiketrains_rand_FR,1).*1000;
+    [PSTH_mn_rand_IFR smooth_spiketrains_rand_IFR] = shuffletrain(spiketimes,...
+            seqst,seqend,anchor,win,1);
+    [PSTH_mn_rand_FR smooth_spiketrains_rand_FR] = shuffletrain(spiketimes,...
+            seqst,seqend,anchor,win,0);
 
     if strcmp(mode,'burst')
         ixx = caseid{i,{'burstid'}};
@@ -132,24 +132,37 @@ for i = 1:length(ff)
 
         %plot for IFR 
         figure;hold on;
-        if ~isempty(pkid) & length(pkid) >= ixx
-            [burstst burstend] = peakborder(wc,pkid(ixx),locs,tb_IFR);
-            pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand_IFR))/std(PSTH_mn_rand_IFR);
+        if ~isempty(pkid) 
+            if length(pkid) >= ixx
+                [burstst burstend] = peakborder(wc,pkid(ixx),locs,tb_IFR);
+                pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand_IFR))/std(PSTH_mn_rand_IFR);
+            else
+                [burstst burstend] = peakborder(wc,pkid(1),locs,tb_IFR);
+                pkactivity = (pks(pkid(1))-mean(PSTH_mn_rand_IFR))/std(PSTH_mn_rand_IFR);
+            end
             npks_burst = burstifr(spktms,tb_IFR(burstst),tb_IFR(burstend));
+            notoutliers = find(npks_burst<=400);
             
-            [r p] = corrcoef(npks_burst,dur_id_corr);
+            [r p] = corrcoef(npks_burst(notoutliers),dur_id_corr(notoutliers));
             
             subplot(3,2,1);hold on;
             plotraster(dur_id_corr,spktms,tb_IFR(burstst),tb_IFR(burstend),...
                 seqons,seqoffs,seqst,seqend,anchor,ff(i).name,...
-                (pct_error),caseid{i,{'seqid'}}{:},r(2));
+                (pct_error),caseid{i,{'seqid'}}{:},r(2),p(2),pkactivity);
 
             subplot(3,2,3);hold on;
             plotPSTH(seqst,seqend,smooth_spiketrains_IFR,dur_id_corr,...
                 tb_IFR(burstst),tb_IFR(burstend));
 
             subplot(3,2,5);hold on;
-            plotCORR(npks_burst,dur_id_corr,1);
+            plotCORR(npks_burst(notoutliers),dur_id_corr(notoutliers,1);
+        else
+            subplot(3,2,1);hold on;
+            plotraster(dur_id_corr,spktms,'','',seqons,seqoffs,seqst,seqend,...
+                anchor,ff(i).name,(pct_error),caseid{i,{'seqid'}}{:},'','','');
+
+            subplot(3,2,3);hold on;
+            plotPSTH(seqst,seqend,smooth_spiketrains_IFR,dur_id_corr,'','');
         end
         
         %find peaks/bursts in PSTH in premotor window for FR
@@ -162,14 +175,14 @@ for i = 1:length(ff)
         if ~isempty(pkid)
             [burstst burstend] = peakborder(wc,pkid(ixx),locs,tb_FR);
             pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand_FR))/std(PSTH_mn_rand_FR);
-            npks_burst = burstifr(spktms,tb_FR(burstst),tb_FR(burstend));
+            npks_burst = countspks(spktms,tb_FR(burstst),tb_FR(burstend));
             
             [r p] = corrcoef(npks_burst,dur_id_corr);
             
             subplot(3,2,2);hold on;
             plotraster(dur_id_corr,spktms,tb_FR(burstst),tb_FR(burstend),...
                 seqons,seqoffs,seqst,seqend,anchor,ff(i).name,...
-                (pct_error),caseid{i,{'seqid'}}{:},r(2));
+                (pct_error),caseid{i,{'seqid'}}{:},r(2),p(2),pkactivity);
 
             subplot(3,2,4);hold on;
             plotPSTH(seqst,seqend,smooth_spiketrains_FR,dur_id_corr,...
@@ -177,6 +190,13 @@ for i = 1:length(ff)
 
             subplot(3,2,6);hold on;
             plotCORR(npks_burst,dur_id_corr,0);
+        else
+            subplot(3,2,4);hold on;
+            plotraster(dur_id_corr,spktms,'','',seqons,seqoffs,seqst,seqend,...
+                anchor,ff(i).name,(pct_error),caseid{i,{'seqid'}}{:},'','','');
+
+            subplot(3,2,6);hold on;
+            plotPSTH(seqst,seqend,smooth_spiketrains_IFR,dur_id_corr,'','');
         end
     end
 end
@@ -199,7 +219,28 @@ function [PSTH_mn tb smooth_spiketrains spktms] = smoothtrain(spiketimes,seqst,s
     end
     tb = [-seqst:seqend];
     PSTH_mn = mean(smooth_spiketrains,1).*1000;%spikes/second
-
+    
+function [PSTH_mn_rand smooth_spiketrains_rand] = shuffletrain(spiketimes,...
+            seqst,seqend,anchor,win,ifr);
+    spktms = cell(size(anchor,1),1);%spike times for each trial relative to target gap 
+    smooth_spiketrains = zeros(size(anchor,1),seqst+seqend+1);
+    for m = 1:size(anchor,1)
+        temp = zeros(1,seqst+seqend+1);
+        x = spiketimes(find(spiketimes>=(anchor(m)-seqst) & spiketimes<=(anchor(m)+seqend)));
+        spktms{m} = x - anchor(m); 
+        spktimes = round(spktms{m})+seqst+1;
+        if ifr == 1
+            temp = instantfr(spktms{m},-seqst:seqend);
+        else
+            temp(spktimes) = 1;
+        end
+        smooth_spiketrains(m,:) = temp;
+    end
+    tb = [-seqst:seqend];
+    smooth_spiketrains_rand = permute_rowel(smooth_spiketrains);
+    smooth_spiketrains_rand = conv2(1,win,smooth_spiketrains_rand,'same');
+    PSTH_mn_rand = mean(smooth_spiketrains_rand,1).*1000;
+    
 function r = trialbytrialcorr_spiketrain(spiketimes,seqst,seqend,anchor,pt,win);
  %trial by trial correlation based on smoothed spike trains when computed by spikes not ifr
     [~,tb,smooth_spiketrains] = smoothtrain(spiketimes,seqst,seqend,anchor,win,0);
@@ -245,22 +286,24 @@ function npks = burstifr(spktms,tm1,tm2,win);
 
 
 function plotraster(dur_id,spktms,tm1,tm2,seqons,seqoffs,...
-    seqst,seqend,anchor,name,pct_error,seqid,corrval)
+    seqst,seqend,anchor,name,pct_error,seqid,corrval,pval,pkactivity)
     thr1 = quantile(dur_id,0.25);%threshold for small gaps
     smallgaps_id = find(dur_id <= thr1);
     thr2 = quantile(dur_id,0.75);%threshold for large gaps
     largegaps_id = find(dur_id >= thr2);
     if length(tm1) == 1
         spktms_inburst = cellfun(@(x) x(find(x>=tm1&x<tm2)),spktms,'un',0);
-    else
+    elseif length(tm1)==1
         spktms_inburst = cellfun(@(x,y,z) x(find(x>=y&x<z)),spktms,tm1,tm2,'un',0);
+    elseif isempty(tm1) & isempty(tm2)
+        spktms_inburst = [];
     end
     cnt=0;
     for m = 1:length(dur_id)
         if ~isempty(spktms{m})
             plot(repmat(spktms{m},2,1),[cnt cnt+1],'k');hold on;
         end
-        if ~isempty(spktms_inburst{m})
+        if ~isempty(spktms_inburst) & ~isempty(spktms_inburst{m})
             plot(repmat(spktms_inburst{m},2,1),[cnt cnt+1],'b');hold on;
         end
         for syll=1:size(seqons,2)
@@ -273,7 +316,8 @@ function plotraster(dur_id,spktms,tm1,tm2,seqons,seqoffs,...
     enid = regexp(name,'_TH');
     unitid = name(stid+1:enid-1);
     singleunit = mean(pct_error)<=0.02;
-    title([unitid,' ',seqid,' r=',num2str(corrval),' unit=',num2str(singleunit)],'interpreter','none');
+    title([unitid,' ',seqid,' r=',num2str(corrval),' p=',num2str(pval),...
+        ' pkact=',num2str(pkactivity),' unit=',num2str(singleunit)],'interpreter','none');
     xlabel('time (ms)');ylabel('trial');set(gca,'fontweight','bold');
     xlim([-seqst seqend]);ylim([0 cnt]);
     plot(-seqst,min(smallgaps_id),'r>','markersize',4,'linewidth',2);hold on;
@@ -297,7 +341,9 @@ function plotPSTH(seqst,seqend,smooth_spiketrains,dur_id,tm1,tm2);
         fliplr(mean(smooth_spiketrains,1)+...
         stderr(smooth_spiketrains,1))])*1000,[0.8 0.8 0.8],'edgecolor','none','facealpha',0.7);
     yl = get(gca,'ylim');
-    plot(repmat([tm1 tm2],2,1),yl,'g','linewidth',2);hold on;
+    if ~isempty(tm1) & ~isempty(tm2)
+        plot(repmat([tm1 tm2],2,1),yl,'g','linewidth',2);hold on;
+    end
     xlim([-seqst seqend]);
     xlabel('time (ms)');ylabel('Hz');set(gca,'fontweight','bold');
 

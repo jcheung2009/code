@@ -23,6 +23,8 @@ save('gap_correlation_analysis_singleunits_fr','corrtable','dattable');
 [corrtable dattable]=RA_correlate_gapdur('singleunits',5,25,6,-40,0,0,'n','burst',0,'syll');
 save('dur_correlation_analysis_singleunits_fr','corrtable','dattable');
 
+[corrtable dattable]=RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'y+','burst',1,'gap');
+save('gap_correlation_analysis_singleunits_ifr','corrtable','dattable');
 
 
 [corrmat case_name data] = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','n','burst',1,'gap','n');

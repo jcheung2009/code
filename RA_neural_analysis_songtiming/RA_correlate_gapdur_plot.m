@@ -141,8 +141,10 @@ for i = 1:length(ff)
                 pkactivity = (pks(pkid(1))-mean(PSTH_mn_rand_IFR))/std(PSTH_mn_rand_IFR);
             end
             npks_burst = burstifr(spktms,tb_IFR(burstst),tb_IFR(burstend));
+%             notoutliers = find(npks_burst<=400);
+            notoutliers = 1:length(npks_burst);
             
-            [r p] = corrcoef(npks_burst,dur_id_corr);
+            [r p] = corrcoef(npks_burst(notoutliers),dur_id_corr(notoutliers));
             
             subplot(3,2,1);hold on;
             plotraster(dur_id_corr,spktms,tb_IFR(burstst),tb_IFR(burstend),...
@@ -154,7 +156,14 @@ for i = 1:length(ff)
                 tb_IFR(burstst),tb_IFR(burstend));
 
             subplot(3,2,5);hold on;
-            plotCORR(npks_burst,dur_id_corr,1);
+            plotCORR(npks_burst(notoutliers),dur_id_corr(notoutliers),1);
+        else
+            subplot(3,2,1);hold on;
+            plotraster(dur_id_corr,spktms,'','',seqons,seqoffs,seqst,seqend,...
+                anchor,ff(i).name,(pct_error),caseid{i,{'seqid'}}{:},'','','');
+
+            subplot(3,2,3);hold on;
+            plotPSTH(seqst,seqend,smooth_spiketrains_IFR,dur_id_corr,'','');
         end
         
         %find peaks/bursts in PSTH in premotor window for FR
@@ -182,6 +191,13 @@ for i = 1:length(ff)
 
             subplot(3,2,6);hold on;
             plotCORR(npks_burst,dur_id_corr,0);
+        else
+            subplot(3,2,4);hold on;
+            plotraster(dur_id_corr,spktms,'','',seqons,seqoffs,seqst,seqend,...
+                anchor,ff(i).name,(pct_error),caseid{i,{'seqid'}}{:},'','','');
+
+            subplot(3,2,6);hold on;
+            plotPSTH(seqst,seqend,smooth_spiketrains_IFR,dur_id_corr,'','');
         end
     end
 end
@@ -278,15 +294,17 @@ function plotraster(dur_id,spktms,tm1,tm2,seqons,seqoffs,...
     largegaps_id = find(dur_id >= thr2);
     if length(tm1) == 1
         spktms_inburst = cellfun(@(x) x(find(x>=tm1&x<tm2)),spktms,'un',0);
-    else
+    elseif length(tm1)==1
         spktms_inburst = cellfun(@(x,y,z) x(find(x>=y&x<z)),spktms,tm1,tm2,'un',0);
+    elseif isempty(tm1) & isempty(tm2)
+        spktms_inburst = [];
     end
     cnt=0;
     for m = 1:length(dur_id)
         if ~isempty(spktms{m})
             plot(repmat(spktms{m},2,1),[cnt cnt+1],'k');hold on;
         end
-        if ~isempty(spktms_inburst{m})
+        if ~isempty(spktms_inburst) & ~isempty(spktms_inburst{m})
             plot(repmat(spktms_inburst{m},2,1),[cnt cnt+1],'b');hold on;
         end
         for syll=1:size(seqons,2)
@@ -324,7 +342,9 @@ function plotPSTH(seqst,seqend,smooth_spiketrains,dur_id,tm1,tm2);
         fliplr(mean(smooth_spiketrains,1)+...
         stderr(smooth_spiketrains,1))])*1000,[0.8 0.8 0.8],'edgecolor','none','facealpha',0.7);
     yl = get(gca,'ylim');
-    plot(repmat([tm1 tm2],2,1),yl,'g','linewidth',2);hold on;
+    if ~isempty(tm1) & ~isempty(tm2)
+        plot(repmat([tm1 tm2],2,1),yl,'g','linewidth',2);hold on;
+    end
     xlim([-seqst seqend]);
     xlabel('time (ms)');ylabel('Hz');set(gca,'fontweight','bold');
 
