@@ -1,16 +1,17 @@
-%% gap correlation analysis #1 (IFR within burst)
+%% gap and syll correlation analysis #1 (IFR within burst-pct error)
 [corrtable dattable]=RA_correlate_gapdur('singleunits',6,25,6,-40,0,0,'n','burst',1,'gap');
 save('gap_correlation_analysis_singleunits_ifr','corrtable','dattable');
 
 [corrtable dattable]=RA_correlate_gapdur('singleunits',5,25,6,-40,0,0,'n','burst',1,'syll');
 save('dur_correlation_analysis_singleunits_ifr','corrtable','dattable');
 
-[corrtable dattable]=RA_correlate_gapdur('multiunits',6,25,6,-40,0,0,'n','burst',1,'gap');
+[corrtable dattable]=RA_correlate_gapdur('multiunits',6,25,6,-40,0,0,'y+','burst',1,'gap');
 save('gap_correlation_analysis_multiunits_ifr','corrtable','dattable');
 
 [corrtable dattable]=RA_correlate_gapdur('multiunits',5,25,6,-40,0,0,'n','burst',1,'syll');
 save('dur_correlation_analysis_multiunits_ifr','corrtable','dattable');
 
+%% gap and syll correlation analysis (spike cnt within burst-pct error)
 [corrtable dattable]=RA_correlate_gapdur('multiunits',6,25,6,-40,0,0,'n','burst',0,'gap');
 save('gap_correlation_analysis_multiunits_fr','corrtable','dattable');
 
@@ -23,8 +24,34 @@ save('gap_correlation_analysis_singleunits_fr','corrtable','dattable');
 [corrtable dattable]=RA_correlate_gapdur('singleunits',5,25,6,-40,0,0,'n','burst',0,'syll');
 save('dur_correlation_analysis_singleunits_fr','corrtable','dattable');
 
+%% gap and syll correlation analysis (IFR within burst-spk posterior)
+[corrtable dattable]=RA_correlate_gapdur('singleunits_spkpost',6,25,6,-40,0,0,'n','burst',1,'gap');
+save('gap_correlation_analysis_singleunits_spkpost','corrtable','dattable');
+
+[corrtable dattable]=RA_correlate_gapdur('singleunits_spkpost',5,25,6,-40,0,0,'n','burst',1,'syll');
+save('dur_correlation_analysis_singleunits_spkpost','corrtable','dattable');
+
+[corrtable dattable]=RA_correlate_gapdur('multiunits_spkpost',6,25,6,-40,0,0,'n','burst',1,'gap');
+save('gap_correlation_analysis_multiunits_spkpost','corrtable','dattable');
+
+[corrtable dattable]=RA_correlate_gapdur('multiunits_spkpost',5,25,6,-40,0,0,'n','burst',1,'syll');
+save('dur_correlation_analysis_multiunits_spkpost','corrtable','dattable');
+
+%% gap and syll correlation analysis (IFR within burst-spk posterior+pcterror)
+[corrtable dattable]=RA_correlate_gapdur('singleunits_spkpost_pcterror',6,25,6,-40,0,0,'n','burst',1,'gap');
+save('gap_correlation_analysis_singleunits_spkpost_pcterror','corrtable','dattable');
+
+[corrtable dattable]=RA_correlate_gapdur('singleunits_spkpost_pcterror',5,25,6,-40,0,0,'n','burst',1,'syll');
+save('dur_correlation_analysis_singleunits_spkpost_pcterror','corrtable','dattable');
+
+[corrtable dattable]=RA_correlate_gapdur('multiunits_spkpost_pcterror',6,25,6,-40,0,0,'n','burst',1,'gap');
+save('gap_correlation_analysis_multiunits_spkpost_pcterror','corrtable','dattable');
+
+[corrtable dattable]=RA_correlate_gapdur('multiunits_spkpost_pcterror',5,25,6,-40,0,0,'n','burst',1,'syll');
+save('dur_correlation_analysis_multiunits_spkpost_pcterror','corrtable','dattable');
 
 
+%%
 [corrmat case_name data] = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','n','burst',1,'gap','n');
 corrmat_shuff = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','y','burst',1,'gap','n');
 corrmat_shuffsu = RA_correlate_gapdur('batchfile',6,25,6,-40,0,0,'n','ysu','burst',1,'gap','n');

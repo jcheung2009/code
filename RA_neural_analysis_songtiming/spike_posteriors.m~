@@ -11,8 +11,8 @@ rawwaveforms = [];
 rawneuraldat = [];
 mainspiketimes = [];mainspikeind = [];
 for i = 1:length(ff)
-    [dat fs] = evsoundin('',ff(i).name,'obs1');
-    load([ff(i).name,'.neuralnot_CH1.mat']);
+    [dat fs] = evsoundin('',ff(i).name,'obs3');
+    load([ff(i).name,'.neuralnot_CH3.mat']);
     filespiketimes = round([Data.spiketimes{1:end-1}]*fs);
     %filespiketimes = [filespiketimes round(Data.spiketimes_from_recommended_TH*fs)];
     nsamp = Data.nsamp_wave;
