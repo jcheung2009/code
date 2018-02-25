@@ -140,23 +140,40 @@ for i = 1:length(ff)
                 [burstst burstend] = peakborder(wc,pkid(1),locs,tb_IFR);
                 pkactivity = (pks(pkid(1))-mean(PSTH_mn_rand_IFR))/std(PSTH_mn_rand_IFR);
             end
-            npks_burst = burstifr(spktms,tb_IFR(burstst),tb_IFR(burstend));
-%             notoutliers = find(npks_burst<=400);
-            notoutliers = 1:length(npks_burst);
+            npks_burst =  mean(smooth_spiketrains_IFR(:,burstst:burstend),2).*1000;
             
-            [r p] = corrcoef(npks_burst(notoutliers),dur_id_corr(notoutliers));
+            vol1 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
+                seqons(:,ceil(seqlen/2)),seqoffs(:,ceil(seqlen/2)),'un',1);
+            vol2 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
+                seqons(:,ceil(seqlen/2)+1),seqoffs(:,ceil(seqlen/2)+1),'un',1);
+            dur1_id = seqoffs(:,seqlen/2)-...
+                seqons(:,seqlen/2);%previous syll
+            dur2_id = seqoffs(:,seqlen/2+1)-...
+                seqons(:,seqlen/2+1);%next syll       
+            
+            dur_id_corrn = (dur_id_corr-mean(dur_id_corr))/std(dur_id_corr);
+            vol1n = (vol1-mean(vol1))/std(vol1);
+            vol2n = (vol2-mean(vol2))/std(vol2);
+            dur1_idn = (dur1_id-mean(dur1_id))/std(dur1_id);
+            dur2_idn = (dur2_id-mean(dur2_id))/std(dur2_id);
+%             mdl = fitlm([dur_id_corrn vol1n vol2n dur1_idn dur2_idn],npks_burst);
+%             betas = mdl.Coefficients.Estimate(2:end);
+%             pVals = mdl.Coefficients.pValue(2:end);
+            [r p] = partialcorr(dur_id_corrn,npks_burst,[vol1n vol2n dur1_idn dur2_idn]);  
+            
+            %[r p] = corrcoef(npks_burst,dur_id_corr);
             
             subplot(3,2,1);hold on;
             plotraster(dur_id_corr,spktms,tb_IFR(burstst),tb_IFR(burstend),...
                 seqons,seqoffs,seqst,seqend,anchor,ff(i).name,...
-                (pct_error),caseid{i,{'seqid'}}{:},r(2),p(2),pkactivity);
+                (pct_error),caseid{i,{'seqid'}}{:},r,p,pkactivity);
 
             subplot(3,2,3);hold on;
             plotPSTH(seqst,seqend,smooth_spiketrains_IFR,dur_id_corr,...
                 tb_IFR(burstst),tb_IFR(burstend));
 
             subplot(3,2,5);hold on;
-            plotCORR(npks_burst(notoutliers),dur_id_corr(notoutliers),1);
+            plotCORR(npks_burst,dur_id_corr,1);
         else
             subplot(3,2,1);hold on;
             plotraster(dur_id_corr,spktms,'','',seqons,seqoffs,seqst,seqend,...
@@ -176,14 +193,32 @@ for i = 1:length(ff)
         if ~isempty(pkid)
             [burstst burstend] = peakborder(wc,pkid(ixx),locs,tb_FR);
             pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand_FR))/std(PSTH_mn_rand_FR);
-            npks_burst = countspks(spktms,tb_FR(burstst),tb_FR(burstend));
+            npks_burst = mean(smooth_spiketrains_FR(:,burstst:burstend),2).*1000;
             
-            [r p] = corrcoef(npks_burst,dur_id_corr);
+            vol1 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
+                seqons(:,ceil(seqlen/2)),seqoffs(:,ceil(seqlen/2)),'un',1);
+            vol2 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
+                seqons(:,ceil(seqlen/2)+1),seqoffs(:,ceil(seqlen/2)+1),'un',1);
+            dur1_id = seqoffs(:,seqlen/2)-...
+                seqons(:,seqlen/2);%previous syll
+            dur2_id = seqoffs(:,seqlen/2+1)-...
+                seqons(:,seqlen/2+1);%next syll       
+            
+            dur_id_corrn = (dur_id_corr-mean(dur_id_corr))/std(dur_id_corr);
+            vol1n = (vol1-mean(vol1))/std(vol1);
+            vol2n = (vol2-mean(vol2))/std(vol2);
+            dur1_idn = (dur1_id-mean(dur1_id))/std(dur1_id);
+            dur2_idn = (dur2_id-mean(dur2_id))/std(dur2_id);
+%             mdl = fitlm([dur_id_corrn vol1n vol2n dur1_idn dur2_idn],npks_burst);
+%             betas = mdl.Coefficients.Estimate(2:end);
+%             pVals = mdl.Coefficients.pValue(2:end);
+            [r p] = partialcorr(dur_id_corrn,npks_burst,[vol1n vol2n dur1_idn dur2_idn]);  
+            %[r p] = corrcoef(npks_burst,dur_id_corr);
             
             subplot(3,2,2);hold on;
             plotraster(dur_id_corr,spktms,tb_FR(burstst),tb_FR(burstend),...
                 seqons,seqoffs,seqst,seqend,anchor,ff(i).name,...
-                (pct_error),caseid{i,{'seqid'}}{:},r(2),p(2),pkactivity);
+                (pct_error),caseid{i,{'seqid'}}{:},r,p,pkactivity);
 
             subplot(3,2,4);hold on;
             plotPSTH(seqst,seqend,smooth_spiketrains_FR,dur_id_corr,...
@@ -197,7 +232,7 @@ for i = 1:length(ff)
                 anchor,ff(i).name,(pct_error),caseid{i,{'seqid'}}{:},'','','');
 
             subplot(3,2,6);hold on;
-            plotPSTH(seqst,seqend,smooth_spiketrains_IFR,dur_id_corr,'','');
+            plotPSTH(seqst,seqend,smooth_spiketrains_FR,dur_id_corr,'','');
         end
     end
 end

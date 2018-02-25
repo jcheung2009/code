@@ -1,20 +1,41 @@
-%% parameters and input
-load('gap_correlation_analysis_multiunits_ifr.mat');
-activitythresh = 6;%zscore from shuffled
+%plotting analysis of frequency of significant correlations, individual
+%cases were regressed with target dur only 
 
-%indices for units with activity above activitythresh that have
-%significant correlations
-negcorr = find(corrtable.pkactivity>=activitythresh & ...
+
+%% parameters and input
+load('gap_multicorrelation_analysis_fr.mat');
+activitythresh = 50;%zscore from shuffled
+
+%% indices for units with FR above activitythresh that have 
+%significant correlations (individual corr with target dur only)
+negcorr = find(corrtable.pkFR>=activitythresh & ...
     [corrtable.durcorr{:,2}]'<=0.05 & [corrtable.durcorr{:,1}]'<0);
-poscorr = find(corrtable.pkactivity>=activitythresh & ...
+poscorr = find(corrtable.pkFR>=activitythresh & ...
     [corrtable.durcorr{:,2}]'<=0.05 & [corrtable.durcorr{:,1}]'>0);
-sigcorr = find(corrtable.pkactivity>=activitythresh & ...
+sigcorr = find(corrtable.pkFR>=activitythresh & ...
     [corrtable.durcorr{:,2}]'<=0.05);
-notsigcorr = find(corrtable.pkactivity>=activitythresh & ...
+notsigcorr = find(corrtable.pkFR>=activitythresh & ...
     [corrtable.durcorr{:,2}]'>0.05);
-activecases = find(corrtable.pkactivity>=activitythresh);
+activecases = find(corrtable.pkFR>=activitythresh);
 numcases = length(activecases);
-numsignificant = length(find(corrtable.pkactivity>=activitythresh & ...
+numsignificant = length(find(corrtable.pkFR>=activitythresh & ...
+    [corrtable.durcorr{:,2}]'<=0.05));
+
+%% indices for units with FR above activitythresh that have
+%significant correlations (individual multiple correlation) 
+
+negcorr = find(corrtable.pkFR>=activitythresh & ...
+    [corrtable.durcorr{:,2}]'<=0.05 & [corrtable.durcorr{:,1}]'<0);
+poscorr = find(corrtable.pkFR>=activitythresh & ...
+    [corrtable.durcorr{:,2}]'<=0.05 & [corrtable.durcorr{:,1}]'>0);
+sigcorr = find(corrtable.pkFR>=activitythresh & ...
+    [corrtable.durcorr{:,2}]'<=0.05);
+notsigcorr = find(corrtable.pkFR>=activitythresh & ...
+    [corrtable.durcorr{:,2}]'>0.05);
+activecases = find(corrtable.pkFR>=activitythresh);
+
+numcases = length(activecases);
+numsignificant = length(find(corrtable.pkFR>=activitythresh & ...
     [corrtable.durcorr{:,2}]'<=0.05));
 
 %% number of unique active units and birds that went into analysis

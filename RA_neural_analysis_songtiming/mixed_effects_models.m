@@ -240,8 +240,8 @@ formula = 'spikes ~ dur + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unit
 mdl = fitlme(subset,formula,'exclude',i);
 mdl.Rsquared
 
-%% mixed model IFR ~ dur + vol1 + vol2 + dur1 + dur2
-activecases  = find(dattable.activity>=activitythresh);
+%% mixed model IFR ~ dur + vol1 + vol2 + dur1 + dur2 (independent covariance among variables) 
+activecases  = find(dattable.pkFR>=activitythresh);
 subset = dattable(activecases,:);
 cases = unique(subset(:,{'unitid','seqid','burstid'}));
 for i = 1:size(cases,1)
@@ -263,6 +263,68 @@ for i = 1:size(cases,1)
     subset(ind,:).dur1 = dur1;
     subset(ind,:).dur2 = dur2;
 end
+subset.burstid = nominal(subset.burstid);
+
+%test whether to add random effect of seqid on intercept. Yes.
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid';
+mdl1 = fitlme(subset,formula);
+formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid)';
+mdl2 = fitlme(subset,formula);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+figure;plotResiduals(mdl2,'fitted');
+i = find(residuals(mdl2)>400);%outliers
+
+vars = {'+(burstid-1|unitid:seqid)','+ (dur-1|unitid:seqid)','+ (vol1-1|unitid:seqid)',...
+    '+ (vol2-1|unitid:seqid)','+ (dur1-1|unitid:seqid)','+ (dur2-1|unitid:seqid)',...
+    '+ (1|unitid)','+ (burstid-1|unitid)','+ (dur-1|unitid)','+ (vol1-1|unitid)',...
+    '+ (vol2-1|unitid)','+ (dur1-1|unitid)','+ (dur2-1|unitid)','+ (1|birdid)',...
+    '+ (burstid-1|birdid)','+ (dur-1|birdid)','+ (vol1-1|birdid)','+ (vol2-1|birdid)',...
+    '+ (dur1-1|birdid)','+ (dur2-1|birdid)'};
+formula1 = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid)';
+for m = 1:length(vars)
+    mdl1 = fitlme(subset,formula1,'exclude',i);
+    formula2 = [formula1,vars{m}];
+    mdl2 = fitlme(subset,formula2,'exclude',i);
+    try
+        t=compare(mdl1,mdl2,'CheckNesting',true)
+    catch
+        continue
+    end
+    if t.pValue <=0.05
+        formula1=formula2;
+    end 
+end
+
+%final model: 
+mdl = fitlme(subset,formula1,'exclude',i);
+mdl.Rsquared
+figure;plotResiduals(mdl,'fitted')
+
+%% mixed model IFR ~ dur + vol1 + vol2 + dur1 + dur2 (non-independent covariance among variables) 
+activecases  = find(dattable.pkFR>=activitythresh);
+subset = dattable(activecases,:);
+cases = unique(subset(:,{'unitid','seqid','burstid'}));
+for i = 1:size(cases,1)
+    ind = find(strcmp(subset.unitid,cases(i,:).unitid) & ...
+        strcmp(subset.seqid,cases(i,:).seqid) & subset.burstid==cases(i,:).burstid);
+    dur = subset(ind,:).dur;
+    dur = (dur-mean(dur))/std(dur);
+    dur1 = subset(ind,:).dur1;
+    dur1 = (dur1-mean(dur1))/std(dur1);
+    dur2 = subset(ind,:).dur2;
+    dur2 = (dur2-mean(dur2))/std(dur2);
+    vol1 = subset(ind,:).vol1;
+    vol1 = (vol1-mean(vol1))/std(vol1);
+    vol2 = subset(ind,:).vol2;
+    vol2 = (vol2-mean(vol2))/std(vol2);
+    subset(ind,:).vol1 = vol1;
+    subset(ind,:).vol2 = vol2;
+    subset(ind,:).dur = dur;
+    subset(ind,:).dur1 = dur1;
+    subset(ind,:).dur2 = dur2;
+end
+subset.burstid = nominal(subset.burstid);
 
 %test whether to add random effect of seqid on intercept. Yes.
 formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid';
@@ -274,86 +336,38 @@ compare(mdl1,mdl2,'CheckNesting',true)
 figure;plotResiduals(mdl2,'fitted');
 i = find(residuals(mdl2)>600);%outliers
 
-%test whether to add random effect of seqid on dur slope. Yes.
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid)';
-mdl1 = fitlme(subset,formula,'exclude',i);
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid)';
-mdl2 = fitlme(subset,formula,'exclude',i);
-compare(mdl1,mdl2,'CheckNesting',true)
+vars = {'dur+','vol1+','vol2+','dur1+','dur2+','burstid+'};
+vars2 = {'+(1|unitid:seqid)','+(1|unitid)','+(1|birdid)'};
+formula1 = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid';
+for m = 1:length(vars2)
+    mdl1 = fitlme(subset,formula1,'exclude',i);
+    formula2 = [formula1,vars2{m}];
+    mdl2 = fitlme(subset,formula2,'exclude',i);
+    try
+        t=compare(mdl1,mdl2,'CheckNesting',true)
+    catch
+        continue
+    end
+    if t.pValue <=0.05
+        formula1=formula2;
+        for n = 1:length(vars)
+            mdl1 = fitlme(subset,formula1,'exclude',i);
+            formula2 = insertBefore(formula1,vars2{m}(3:end),vars{n});
+            mdl2 = fitlme(subset,formula2,'exclude',i);
+            try 
+                t=compare(mdl1,mdl2,'CheckNesting',true)
+            catch
+                continue
+            end
+            if t.pValue<=0.05
+                formula1=formula2;
+            end
+        end
+    end 
+end
 
-%test whether to add random effect of seqid on vol1 slope. Yes.
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur-1|unitid:seqid)';
-mdl1 = fitlme(subset,formula,'exclude',i);
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid)';
-mdl2 = fitlme(subset,formula,'exclude',i);
-compare(mdl1,mdl2,'CheckNesting',true)
-
-%test whether to add random effect of seqid on vol2 slope. Yes.
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1-1|unitid:seqid)';
-mdl1 = fitlme(subset,formula,'exclude',i);
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2-1|unitid:seqid)';
-mdl2 = fitlme(subset,formula,'exclude',i);
-compare(mdl1,mdl2,'CheckNesting',true)
-
-%test whether to add random effect of seqid on dur1 slope. Yes.
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2-1|unitid:seqid)';
-mdl1 = fitlme(subset,formula,'exclude',i);
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1-1|unitid:seqid)';
-mdl2 = fitlme(subset,formula,'exclude',i);
-compare(mdl1,mdl2,'CheckNesting',true)
-
-%test whether to add random effect of seqid on dur2 slope. Yes.
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1-1|unitid:seqid)';
-mdl1 = fitlme(subset,formula,'exclude',i);
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid)';
-mdl2 = fitlme(subset,formula,'exclude',i);
-compare(mdl1,mdl2,'CheckNesting',true)
-
-%test whether to add random effect of unitid on intercept. Yes.
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid)';
-mdl1 = fitlme(subset,formula,'exclude',i);
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid)';
-mdl2 = fitlme(subset,formula,'exclude',i);
-compare(mdl1,mdl2,'CheckNesting',true)
-
-%test whether to add random effect of unitid on dur slope. No.
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid)';
-mdl1 = fitlme(subset,formula,'exclude',i);
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (dur-1|unitid)';
-mdl2 = fitlme(subset,formula,'exclude',i);
-compare(mdl1,mdl2,'CheckNesting',true)
-
-%test whether to add random effect of unitid on vol1 slope. Yes.
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid)';
-mdl1 = fitlme(subset,formula,'exclude',i);
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1-1|unitid)';
-mdl2 = fitlme(subset,formula,'exclude',i);
-compare(mdl1,mdl2,'CheckNesting',true)
-
-%test whether to add random effect of unitid on vol2 slope. Yes.
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1-1|unitid)';
-mdl1 = fitlme(subset,formula,'exclude',i);
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1+vol2-1|unitid)';
-mdl2 = fitlme(subset,formula,'exclude',i);
-compare(mdl1,mdl2,'CheckNesting',true)
-
-%test whether to add random effect of unitid on dur1 slope. No.
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1+vol2-1|unitid)';
-mdl1 = fitlme(subset,formula,'exclude',i);
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1+vol2+dur1-1|unitid)';
-mdl2 = fitlme(subset,formula,'exclude',i);
-compare(mdl1,mdl2,'CheckNesting',true)
-
-%test whether to add random effect of unitid on dur2 slope. Yes.
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1+vol2-1|unitid)';
-mdl1 = fitlme(subset,formula,'exclude',i);
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1+vol2+dur2-1|unitid)';
-mdl2 = fitlme(subset,formula,'exclude',i);
-compare(mdl1,mdl2,'CheckNesting',true)
-
-%final model: only dur is signficantly correlated
-formula = 'spikes ~ dur + vol1 + vol2 + dur1 + dur2 + burstid + (1|unitid:seqid) + (dur+vol1+vol2+dur1+dur2-1|unitid:seqid) + (1|unitid) + (vol1+vol2+dur2-1|unitid)';
-mdl = fitlme(subset,formula,'exclude',i);
+%final model: 
+mdl = fitlme(subset,formula1,'exclude',i);
 mdl.Rsquared
 figure;plotResiduals(mdl,'fitted')
 

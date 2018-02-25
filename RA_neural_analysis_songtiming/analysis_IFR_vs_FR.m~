@@ -1,0 +1,152 @@
+%% comparing gap and syllable correlation with single units (<2% error) for IFR vs FR, 
+%using 50 Hz as activity threshold and 20 ms gaussian window
+
+%load('gap_correlation_analysis_ifr');
+%load('gap_correlation_analysis_fr');
+%load('dur_correlation_analysis_ifr');
+load('dur_correlation_analysis_fr');
+activitythresh = 50;
+corrtable = corrtable20(find(corrtable20.pct_error<=0.02),:);
+
+negcorr = find(corrtable.pkFR>=activitythresh & ...
+    [corrtable.durcorr{:,2}]'<=0.05 & [corrtable.durcorr{:,1}]'<0);
+poscorr = find(corrtable.pkFR>=activitythresh & ...
+    [corrtable.durcorr{:,2}]'<=0.05 & [corrtable.durcorr{:,1}]'>0);
+sigcorr = find(corrtable.pkFR>=activitythresh & ...
+    [corrtable.durcorr{:,2}]'<=0.05);
+notsigcorr = find(corrtable.pkFR>=activitythresh & ...
+    [corrtable.durcorr{:,2}]'>0.05);
+activecases = find(corrtable.pkFR>=activitythresh);
+
+numcases = length(activecases);
+numsignificant = length(find(corrtable.pkFR>=activitythresh & ...
+    [corrtable.durcorr{:,2}]'<=0.05));
+
+aph = 0.01;ntrials=1000;
+shuffcorr = [corrtable(activecases,:).durcorr{:,3}];
+shuffpval = [corrtable(activecases,:).durcorr{:,4}];
+
+randnumsignificant = sum(shuffpval<=0.05,2);    
+randpropsignificant = randnumsignificant/size(shuffpval,2);
+randpropsignificant_sorted = sort(randpropsignificant);
+randpropsignificant_lo = randpropsignificant_sorted(floor(aph*ntrials/2));
+randpropsignificant_hi = randpropsignificant_sorted(ceil(ntrials-(aph*ntrials/2)));
+
+randnumsignificantnegcorr = sum((shuffpval<=0.05).*(shuffcorr<0),2);
+randpropsignificantnegcorr = randnumsignificantnegcorr./size(shuffpval,2);
+randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
+randpropsignificantnegcorr_lo = randpropsignificantnegcorr_sorted(floor(aph*ntrials/2));
+randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+
+randnumsignificantposcorr = sum((shuffpval<=0.05).*(shuffcorr>0),2);
+randpropsignificantposcorr = randnumsignificantposcorr./size(shuffpval,2);
+randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
+randpropsignificantposcorr_lo = randpropsignificantposcorr_sorted(floor(aph*ntrials/2));
+randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+
+randdiffprop = abs(randpropsignificantnegcorr-randpropsignificantposcorr);
+
+figure;hold on;
+[n b] = hist(shuffcorr(:),[-1:0.05:1]);
+stairs(b,n/sum(n),'k','linewidth',2);
+[n b] = hist([corrtable(activecases,:).durcorr{:,1}],[-1:0.05:1]);
+stairs(b,n/sum(n),'r','linewidth',2);y=get(gca,'ylim');
+plot(mean([corrtable(activecases,:).durcorr{:,1}]),y(1),'r^','markersize',8);hold on;
+plot(mean(shuffcorr(:)),y(1),'k^','markersize',8);hold on;
+xlabel('correlation coefficient');ylabel('probability');set(gca,'fontweight','bold');
+[h p] = vartest2([corrtable(activecases,:).durcorr{:,1}],shuffcorr(:));
+[h p2] = ttest2([corrtable(activecases,:).durcorr{:,1}],shuffcorr(:));
+[h p3] = kstest2([corrtable(activecases,:).durcorr{:,1}],shuffcorr(:));
+p4 = length(find(randdiffprop>=abs((length(negcorr)/numcases)-(length(poscorr)/numcases))))/ntrials;
+p5 = length(find(randpropsignificant>=length(sigcorr)/numcases))/ntrials;
+p6 = length(find(randpropsignificantposcorr>=length(poscorr)/numcases))/ntrials;
+p7 = length(find(randpropsignificantnegcorr>=length(negcorr)/numcases))/ntrials;
+text(0,1,{['total active cases:',num2str(numcases)];...
+['proportion significant cases:',num2str(numsignificant/numcases)];...
+['proportion significantly negative:',num2str(length(negcorr)/numcases)];...
+['proportion significantly positive:',num2str(length(poscorr)/numcases)];...
+['p(F)=',num2str(p)];['p(t)=',num2str(p2)];['p(ks)=',num2str(p3)];...
+['p(sig)=',num2str(p5)];['p(neg)=',num2str(p7)];['p(pos)=',num2str(p6)];...
+['p(neg-pos)=',num2str(p4)]},'units','normalized',...
+'verticalalignment','top');
+
+
+%% cases that were active with fr but not with ifr
+load('gap_multicorrelation_analysis_ifr');
+gap_singleifr = corrtable20(find(corrtable20.pct_error<=0.02 & corrtable20.pkFR>=50),:);
+load('gap_multicorrelation_analysis_fr');
+gap_singlefr = corrtable20(find(corrtable20.pct_error<=0.02 & corrtable20.pkFR>=50),:);
+
+[x ix] = setdiff(gap_singlefr(:,{'unitid','seqid'}),gap_singleifr(:,{'unitid','seqid'}));
+x = gap_singlefr(ix,{'unitid','seqid','burstid'});
+
+RA_correlate_gapdur_plot('singleunits_leq_2pcterr',x,-40,'burst','gap')
+
+%% cases that were significantly positive with either fr OR ifr (exclusive) 
+load('gap_multicorrelation_analysis_ifr');
+gap_singleifr = corrtable20(find(corrtable20.pct_error<=0.02 & corrtable20.pkFR>=50 ...
+    & cellfun(@(x) x(1),corrtable20.corrs(:,2))<=0.05 & cellfun(@(x) x(1),corrtable20.corrs(:,1))>0),:);
+load('gap_multicorrelation_analysis_fr');
+gap_singlefr = corrtable20(find(corrtable20.pct_error<=0.02 & corrtable20.pkFR>=50 ...
+    & cellfun(@(x) x(1),corrtable20.corrs(:,2))<=0.05 & cellfun(@(x) x(1),corrtable20.corrs(:,1))>0),:);
+
+[~,ia,ib] = setxor(gap_singleifr(:,{'unitid','seqid'}),gap_singlefr(:,{'unitid','seqid'}));
+
+x = [gap_singleifr(ia,{'unitid','seqid','burstid'});gap_singlefr(ib,{'unitid','seqid','burstid'})];
+RA_correlate_gapdur_plot('singleunits_leq_2pcterr',x,-40,'burst','gap')
+
+
+%% cases that were significantly negative with either fr OR ifr (exclusive) 
+load('gap_correlation_analysis_ifr');
+gap_singleifr = corrtable20(find(corrtable20.pct_error<=0.02 & corrtable20.pkFR>=50 ...
+    & [corrtable20.durcorr{:,2}]'<=0.05 & [corrtable20.durcorr{:,1}]'<0),:);
+load('gap_correlation_analysis_fr');
+gap_singlefr = corrtable20(find(corrtable20.pct_error<=0.02 & corrtable20.pkFR>=50 ...
+    & [corrtable20.durcorr{:,2}]'<=0.05 & [corrtable20.durcorr{:,1}]'<0),:);
+
+[~,ia,ib] = setxor(gap_singleifr(:,{'unitid','seqid'}),gap_singlefr(:,{'unitid','seqid'}));
+
+x = [gap_singleifr(ia,{'unitid','seqid','burstid'});gap_singlefr(ib,{'unitid','seqid','burstid'})];
+RA_correlate_gapdur_plot('singleunits_leq_2pcterr',x,-40,'burst','gap')
+
+%% distribution of ISI for all RA spikes
+ff = load_batchf('batchfile');
+ISI = [];
+for i = 1:length(ff)
+    load(ff(i).name);
+    ISI = [ISI diff(spiketimes)];
+end
+ISI = ISI*1000;
+ISI = ISI(find(ISI<=1000));
+[n b] = hist(ISI,[0:1:1000]);
+figure;stairs(b,n/sum(n),'k');xlabel('ISI (ms)');ylabel('probability');title('all units');
+figure;plot(b,cumsum(n/sum(n)));xlabel('ISI (ms)');ylabel('cdf');xlim([0 100]);
+title('all units')
+
+ff = load_batchf('singleunits_leq_2pcterr');
+ISI = [];
+for i = 1:length(ff)
+    load(ff(i).name);
+    ISI = [ISI diff(spiketimes)];
+end
+ISI = ISI*1000;
+ISI = ISI(find(ISI<=1000));
+[n b] = hist(ISI,[0:1:1000]);
+figure;stairs(b,n/sum(n),'k');xlabel('ISI (ms)');ylabel('probability');title('single units');
+figure;plot(b,cumsum(n/sum(n)));xlabel('ISI (ms)');ylabel('cdf');xlim([0 100]);
+title('single units');
+
+ff = load_batchf('multiunits_gt_2pcterr');
+ISI = [];
+for i = 1:length(ff)
+    load(ff(i).name);
+    ISI = [ISI diff(spiketimes)];
+end
+ISI = ISI*1000;
+ISI = ISI(find(ISI<=1000));
+[n b] = hist(ISI,[0:1:1000]);
+figure;stairs(b,n/sum(n),'k');xlabel('ISI (ms)');ylabel('probability');title('single units');
+figure;plot(b,cumsum(n/sum(n)));xlabel('ISI (ms)');ylabel('cdf');xlim([0 100]);
+title('multi units');
+%use 20 or 40 ms gaussian window for convolving spike trains
+
