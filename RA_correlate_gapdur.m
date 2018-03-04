@@ -4,17 +4,15 @@ function [corrtable rawdatatable corrtrial] = RA_correlate_gapdur(batchfile,seql
 %correlate premotor spikes with gapdur 
 %seqlen = length of syllable sequence (use even # for gap and odd for syll)
 %minsampsize = minimum number of trials 
-%activitythresh = for peak detection (zscore relative to shuffled activity)
+%activitythresh = threshold for mean activity in target window in Hz
 %motorwin = -40 (40 ms premotor window)
 % targetactivity = 0;%-1:previous, 0:current, 1:next
 % targetdur = 0;%-1:previous, 0:current, 1:next
 %plotcasecondition = 'n' (don't plot), 'y+' (plot significant cases),'y++'
 %(plot strongly significant cases),'y+su' (...single units)
-%spk_gapdur_corr = [corrcoef pval alignment firingrate width mn(pct_error)...
-%numtrials, corrcoefdur1 pval corrcoefdur2 pval durmotorwin]
 %alignby=1 or 2 (off1 vs on1: gap; on1 vs prevoff: syll)
-%mode = 'burst' for restricting analysis to bursts and detectinb burst borders,'spikes' for counting
-%any spikes in a set 40 ms window
+%mode = 'burst' for restricting analysis to bursts and detecting burst borders,'spikes' for counting
+%any spikes in a fixed 40 ms window
 %ifr = 1 use mean instantaneous FR or 0 use spike count
 %gap_or_syll = 'gap' or 'syll'
 %winsize = length of gaussian window for convolution
@@ -28,27 +26,23 @@ fs= 32000;%sampling rate
 if strcmp(plotcasecondition,'n')
     plotcasecondition = '1==0';
 elseif strcmp(plotcasecondition,'y+')
-    plotcasecondition = ['p(2)<=0.05 & pkactivity >=',num2str(activitythresh)];
+    plotcasecondition = ['rpval<=0.05 & pkFR >=',num2str(activitythresh)];
 elseif strcmp(plotcasecondition,'y++')
-    plotcasecondition = ['p(2)<=0.05 & abs(r(2)) >= 0.3 & pkactivity >=',num2str(activitythresh)];
+    plotcasecondition = ['rpval<=0.05 & abs(r(2)) >= 0.3 & pkFR >=',num2str(activitythresh)];
 elseif strcmp(plotcasecondition,'y+su')
-     plotcasecondition = ['p(2)<=0.05 & mean(pct_error)<=0.02 & pkactivity >=',num2str(activitythresh)];
+     plotcasecondition = ['rpval<=0.05 & mean(pct_error)<=0.02 & pkFR >=',num2str(activitythresh)];
 end
 
 %% 
 corrtrial = {};
 
-corrtable = table([],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],'VariableNames',...
+corrtable = table([],[],[],[],[],[],[],[],[],[],[],[],[],[],'VariableNames',...
                     {'birdid','unitid','seqid','burstid','alignby',...
-                    'pkFR','pkactivity','width','pct_error','spkposterior','ntrials','trialbytrialcorr',...
-                    'bgactivity','latency','corrs','shuffle'});
+                    'pkFR','pkactivity','width','pct_error','ntrials','trialbytrialcorr',...
+                    'latency','corrs','shuffle'});
 
-% corrtable = table([],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],...
-%     'VariableNames',{'birdid','unitid','seqid','burstid','alignby','pkFR','pkactivity','width',...
-%     'pct_error','spkposterior','ntrials','trialbytrialcorr','bgactivity','latency','durcorr',...
-%     'adjdurcorr','volcorr'});
-rawdatatable = table([],[],[],[],[],[],[],[],[],[],[],[],[],[],[],'VariableNames',{'dur','spikes',...
-    'pct_error','burstvar','spkposterior','pkFR','activity','birdid','unitid','seqid','burstid','vol1','vol2','dur1','dur2'});
+rawdatatable = table([],[],[],[],[],[],[],[],[],[],[],[],[],[],'VariableNames',{'dur','spikes',...
+    'pct_error','burstvar','pkFR','activity','birdid','unitid','seqid','burstid','vol1','vol2','dur1','dur2'});
 
 ff = load_batchf(batchfile);
 for i = 1:length(ff)
@@ -66,7 +60,7 @@ for i = 1:length(ff)
     gapdurs_all = onsets(2:end)-offsets(1:end-1);
     durs_all = offsets-onsets;
     for n = 1:length(gapids)
-        disp(gapids{n});
+%         disp(gapids{n});
         %remove outliers 
         idx = strfind(labels,gapids(n));
         seqons = onsets(bsxfun(@plus, idx',(0:seqlen-1)));%realtime 
@@ -159,49 +153,33 @@ for i = 1:length(ff)
             
             %find peaks/bursts in PSTH in premotor window aligned to target
             %element
-            [pks, locs,w,~,wc] = findpeaks2(PSTH_mn,'MinPeakProminence',10,'MinPeakWidth',10,...
+            [pks, locs,w,~,wc] = findpeaks2(PSTH_mn,'MinPeakProminence',20,'MinPeakWidth',10,...
+                'MinPeakDistance',15,'MinPeakHeight',mean(PSTH_mn_rand)+20,...
                 'Annotate','extents','WidthReference','halfheight');
             pkid = find(tb(locs)>=pt(1) & tb(locs)<=pt(2));
             wc = round(wc);
-
             if isempty(pkid)
                 continue
             end
-
             %for each burst found, correlate with target dur
-            burstid = 0;
+            burstid = 0;lastburstst=NaN;lastburstend=NaN;
             for ixx = 1:length(pkid)
+                
                 %define peak borders and other peak characteristics
-                [burstst burstend] = peakborder(wc,pkid(ixx),locs,tb);
-                wth = tb(burstend)-tb(burstst);
-                gaplatency = tb(locs(pkid(ixx)))-pt(2);%((tb(burstst)+tb(burstend))/2)-pt(2);
-                pkFR = pks(pkid(ixx));
-                pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
-                outbursts = cell2mat(arrayfun(@(x,y) (x:x+y)',wc(:,1),wc(:,2)-wc(:,1),'un',0));
-                outbursts = setdiff([1:length(PSTH_mn)],outbursts);
-                outburstactivity = (mean(PSTH_mn(outbursts))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
-                burstspkposterior = burstposterior(spktms,spkpost,tb(burstst),tb(burstend));
-                [pr b] = hist(burstspkposterior,[0:0.01:1]);
-                cdfburstspkposterior = cumsum(pr/sum(pr));
-                burstconfidence = b(min(find(cdfburstspkposterior>=0.2)));
-      
-%                 if ifr == 1
-%                     npks_burst = burstifr(spktms,tb(burstst),tb(burstend));%median ISI
-%                  else
-%                     npks_burst = countspks(spktms,tb(burstst),tb(burstend));%spike count
-%                  end
-               npks_burst = mean(smooth_spiketrains(:,burstst:burstend),2).*1000;  
-               
-                %measure latency between burst center and next syllable/gap onset 
-                if targetactivity == 0 & targetdur == 0
-                    if strcmp(gap_or_syll,'gap')
-                        durmotorwin = tb(locs(pkid(ixx)))-mean(gapseq(:,seqlen/2));
-                    elseif strcmp(gap_or_syll,'syll')
-                        durmotorwin = tb(locs(pkid(ixx)))-mean(durseq(:,ceil(seqlen/2)));
-                    end
-                else
-                    durmotorwin = NaN;
+                [burstst burstend] = peakborder2(locs(pkid(ixx)),...
+                    tb,PSTH_mn,mean(PSTH_mn_rand));
+                if tb(burstend)>pt(2)+20 | tb(burstst)< pt(1)-20 | ...
+                        tb(burstend)-tb(burstst)<10 | ...
+                        mean(PSTH_mn(burstst:burstend)) < activitythresh | ...
+                        (burstst==lastburstst & burstend==lastburstend)
+                    continue
                 end
+                wth = tb(burstend)-tb(burstst);
+                gaplatency = ((tb(burstst)+tb(burstend))/2)-pt(2);
+                pkFR = mean(PSTH_mn(burstst:burstend));
+                pkactivity = (pkFR-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
+                npks_burst = mean(smooth_spiketrains(:,burstst:burstend),2).*1000;  
+                lastburstst = burstst;lastburstend = burstend;
                 
                 %n-trial lag correlation 
                 if nargout >=3
@@ -216,20 +194,10 @@ for i = 1:length(ff)
                 
                 %extract volume for syllables adjacent to target dur and
                 %correlate with target burst
-                if exist('song') & length_song == length(song)
-                    vol1 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
-                        seqons(:,ceil(seqlen/2)),seqoffs(:,ceil(seqlen/2)),'un',1);
-                    vol2 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
-                        seqons(:,ceil(seqlen/2)+1),seqoffs(:,ceil(seqlen/2)+1),'un',1);
-%                     [rvol1 pvol1] = corrcoef(npks_burst,vol1);rvol1 = rvol1(2); pvol1 = pvol1(2);
-%                     [rvol2 pvol2] = corrcoef(npks_burst,vol2);rvol2 = rvol2(2); pvol2 = pvol2(2);
-%                     [shuffr4 shuffp4] = shuffle(npks_burst,vol1,shufftrials);
-%                     [shuffr5 shuffp5] = shuffle(npks_burst,vol2,shufftrials);
-                else
-                    vol1=NaN(length(npks_burst),1);vol2=NaN(length(npks_burst),1);
-%                     rvol1=NaN;pvol1=NaN;rvol2=NaN;pvol2=NaN;
-%                     shuffr4=NaN;shuffp4=NaN;shuffr5=NaN;shuffp5=NaN;
-                end
+                vol1 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
+                    seqons(:,ceil(seqlen/2)),seqoffs(:,ceil(seqlen/2)),'un',1);
+                vol2 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
+                    seqons(:,ceil(seqlen/2)+1),seqoffs(:,ceil(seqlen/2)+1),'un',1);
                 
                 %correlation with target and adjacent elements (border
                 %syllables  or gaps) 
@@ -240,72 +208,49 @@ for i = 1:length(ff)
                         seqons(:,seqlen/2+targetdur+1);%next syll
                 elseif strcmp(gap_or_syll,'syll')
                     dur1_id = seqons(:,ceil(seqlen/2)+targetdur)-...
-                        seqoffs(:,ceil(seqlen/2)+targetdur-1);
+                        seqoffs(:,ceil(seqlen/2)+targetdur-1);%previous gap
                     dur2_id = seqons(:,ceil(seqlen/2)+targetdur+1)-...
-                        seqoffs(:,ceil(seqlen/2)+targetdur);
+                        seqoffs(:,ceil(seqlen/2)+targetdur);%next gap
                 end
                 
+                %normalize predictors and fit multiple regression and
+                %partial corrs
                 dur_id_corrn = (dur_id_corr-mean(dur_id_corr))/std(dur_id_corr);
                 vol1n = (vol1-mean(vol1))/std(vol1);
                 vol2n = (vol2-mean(vol2))/std(vol2);
                 dur1_idn = (dur1_id-mean(dur1_id))/std(dur1_id);
                 dur2_idn = (dur2_id-mean(dur2_id))/std(dur2_id);
-                mdl = fitlm([dur_id_corrn vol1n vol2n dur1_idn dur2_idn],npks_burst);
+                mdl = fitlm([dur_id_corrn vol1n vol2n],npks_burst);
                 betas = mdl.Coefficients.Estimate(2:end);
                 pVals = mdl.Coefficients.pValue(2:end);
-                [rho rpval] = partialcorr(dur_id_corrn,npks_burst,[vol1n vol2n dur1_idn dur2_idn]);
+                [rho rpval] = partialcorr(dur_id_corrn,npks_burst,[vol1n vol2n]);
                 [shuffbetas shuffpVals shuffr shuffp] = shuffle_multipleregress...
-                    (npks_burst,[dur_id_corrn vol1n vol2n dur1_idn dur2_idn],shufftrials);
-                
-                %[r p] = corrcoef(npks_burst,dur_id_corr);
-%                [r1 p1] = corrcoef(npks_burst,dur1_id);
-%                [r2 p2] = corrcoef(npks_burst,dur2_id);
-
-                %shuffle analysis
-                %[shuffr shuffp] = shuffle(npks_burst,dur_id_corr,shufftrials);
-%                [shuffr2 shuffp2] = shuffle(npks_burst,dur1_id,shufftrials);
-%                [shuffr3 shuffp3] = shuffle(npks_burst,dur2_id,shufftrials);
+                    (npks_burst,[dur_id_corrn vol1n vol2n],shufftrials);
 
                 %save measurements and variables
                 burstid = burstid+1;
                 corrtable = [corrtable; table({birdid},{unitid},gapids(n),burstid,alignby,...
-                    pkFR,pkactivity,wth,mean(pct_error),burstconfidence,length(dur_id_corr),varfr,...
-                    outburstactivity,[gaplatency durmotorwin],{betas pVals rho rpval},...
+                    pkFR,pkactivity,wth,mean(pct_error),length(dur_id_corr),varfr,...
+                    gaplatency,{betas pVals rho rpval},...
                     {shuffbetas shuffpVals shuffr shuffp},'VariableNames',...
                     {'birdid','unitid','seqid','burstid','alignby',...
-                    'pkFR','pkactivity','width','pct_error','spkposterior','ntrials','trialbytrialcorr',...
-                    'bgactivity','latency','corrs','shuffle'})];
-                
-%                 corrtable = [corrtable; table({birdid},{unitid},gapids(n),burstid,alignby,...
-%                     pkFR,pkactivity,wth,mean(pct_error),burstconfidence,length(dur_id_corr),varfr,...
-%                     outburstactivity,[gaplatency durmotorwin],{r(2) p(2) shuffr shuffp},...
-%                     {r1 p1 r2 p2 shuffr2 shuffp2 shuffr3 shuffp3},...
-%                     {rvol1 pvol1 rvol2 pvol2 shuffr4 shuffp4 shuffr5 shuffp5},...
-%                     'VariableNames',{'birdid','unitid','seqid','burstid','alignby',...
-%                     'pkFR','pkactivity','width','pct_error','spkposterior','ntrials','trialbytrialcorr',...
-%                     'bgactivity','latency','durcorr','adjdurcorr','volcorr'})];
-%                 
-                %normalized variables and save raw data in table
-                 fr = npks_burst;%(npks_burst-mean(npks_burst))./std(npks_burst);
-                 dur = dur_id_corr;%(dur_id_corr-mean(dur_id_corr))./std(dur_id_corr);
-                 %vol1 = (vol1-mean(vol1))./std(vol1);
-                 %vol2 = (vol2-mean(vol2))./std(vol2);
-                 dur1 = dur1_id;%(dur1_id-mean(dur1_id))./std(dur1_id);
-                 dur2 = dur2_id;%(dur2_id-mean(dur2_id))./std(dur2_id);
-                 rawdatatable = [rawdatatable; table(dur,fr,...
+                    'pkFR','pkactivity','width','pct_error','ntrials','trialbytrialcorr',...
+                    'latency','corrs','shuffle'})];
+
+                 rawdatatable = [rawdatatable; table(dur_id_corr,npks_burst,...
                     repmat(mean(pct_error),length(npks_burst),1),...
                     repmat(varfr,length(npks_burst),1),...
-                    repmat(burstconfidence,length(npks_burst),1),...
                     repmat(pkFR,length(npks_burst),1),...
                     repmat(pkactivity,length(npks_burst),1),...
                     repmat({birdid},length(npks_burst),1),...
                     repmat({unitid},length(npks_burst),1),...
                     repmat(gapids(n),length(npks_burst),1),...
                     repmat(burstid,length(npks_burst),1),...
-                    vol1,vol2,dur1,dur2,...
-                    'VariableNames',{'dur','spikes','pct_error','burstvar','spkposterior','pkFR','activity',...
+                    vol1,vol2,dur1_id,dur2_id,...
+                    'VariableNames',{'dur','spikes','pct_error','burstvar','pkFR','activity',...
                     'birdid','unitid','seqid','burstid','vol1','vol2','dur1','dur2'})];
-
+                
+                %plot significant cases
                 if eval(plotcasecondition)
                     figure;subplot(3,1,1);hold on
                     plotraster(dur_id_corr,spktms,tb(burstst),tb(burstend),...
@@ -334,33 +279,22 @@ for i = 1:length(ff)
             end
         elseif strcmp(mode,'spikes')
             tbid = find(tb>=pt(1) & tb <=pt(2));
-            pkactivity = (max(PSTH_mn(tbid))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
-            if ifr == 1
-                npks_burst = burstifr(spktms,tb(tbid(1)),tb(tbid(end)));
-            else
-                npks_burst = countspks(spktms,tb(tbid(1)),tb(tbid(end)));
+            pkFR = mean(PSTH_mn(tbid));
+            if pkFR < activitythresh
+                continue
             end
+            pkactivity = (max(PSTH_mn(tbid))-mean(PSTH_mn_rand))/std(PSTH_mn_rand);
+            npks_burst = mean(smooth_spiketrains(:,tbid(1):tbid(end)),2).*1000; 
 
             %extract volume for syllables adjacent to target dur and
             %correlate with target burst
-            if exist('song') & length_song == length(song)
-                vol1 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
-                    seqons(:,ceil(seqlen/2)),seqoffs(:,ceil(seqlen/2)),'un',1);
-                vol2 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
-                    seqons(:,ceil(seqlen/2)+1),seqoffs(:,ceil(seqlen/2)+1),'un',1);
-                [rvol1 pvol1] = corrcoef(npks_burst,vol1);rvol1 = rvol1(2); pvol1 = pvol1(2);
-                [rvol2 pvol2] = corrcoef(npks_burst,vol2);rvol2 = rvol2(2); pvol2 = pvol2(2);
-                [shuffr4 shuffp4] = shuffle(npks_burst,vol1,shufftrials);
-                [shuffr5 shuffp5] = shuffle(npks_burst,vol2,shufftrials);
-            else
-                vol1=NaN(length(npks_burst),1);vol2=NaN(length(npks_burst),1);
-                rvol1=NaN;pvol1=NaN;rvol2=NaN;pvol2=NaN;
-                shuffr4=NaN;shuffp4=NaN;shuffr5=NaN;shuffp5=NaN;
-            end
+            vol1 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
+                seqons(:,ceil(seqlen/2)),seqoffs(:,ceil(seqlen/2)),'un',1);
+            vol2 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
+                seqons(:,ceil(seqlen/2)+1),seqoffs(:,ceil(seqlen/2)+1),'un',1);
 
             %correlation with target and adjacent elements (border
             %syllables  or gaps) 
-            [r p] = corrcoef(npks_burst,dur_id_corr);
             if strcmp(gap_or_syll,'gap')
                 dur1_id = seqoffs(:,seqlen/2+targetdur)-...
                     seqons(:,seqlen/2+targetdur);%previous syll
@@ -372,46 +306,48 @@ for i = 1:length(ff)
                 dur2_id = seqons(:,ceil(seqlen/2)+targetdur+1)-...
                     seqoffs(:,ceil(seqlen/2)+targetdur);
             end
-            [r1 p1] = corrcoef(npks_burst,dur1_id);
-            [r2 p2] = corrcoef(npks_burst,dur2_id);
 
-            %shuffle analysis
-            [shuffr shuffp] = shuffle(npks_burst,dur_id_corr,shufftrials);
-            [shuffr2 shuffp2] = shuffle(npks_burst,dur1_id,shufftrials);
-            [shuffr3 shuffp3] = shuffle(npks_burst,dur2_id,shufftrials);
+            dur_id_corrn = (dur_id_corr-mean(dur_id_corr))/std(dur_id_corr);
+            vol1n = (vol1-mean(vol1))/std(vol1);
+            vol2n = (vol2-mean(vol2))/std(vol2);
+            dur1_idn = (dur1_id-mean(dur1_id))/std(dur1_id);
+            dur2_idn = (dur2_id-mean(dur2_id))/std(dur2_id);
+            mdl = fitlm([dur_id_corrn vol1n vol2n],npks_burst);
+            betas = mdl.Coefficients.Estimate(2:end);
+            pVals = mdl.Coefficients.pValue(2:end);
+            [rho rpval] = partialcorr(dur_id_corrn,npks_burst,[vol1n vol2n]);
+            [shuffbetas shuffpVals shuffr shuffp] = shuffle_multipleregress...
+                (npks_burst,[dur_id_corrn vol1n vol2n],shufftrials);
             
             %save measurements and variables
-            outburstactivity=NaN;gaplatency=NaN;durmotorwin=NaN;burstid=NaN;wth=NaN;
+            gaplatency=NaN;burstid=NaN;wth=NaN;
             corrtable = [corrtable; table({birdid},{unitid},gapids(n),burstid,alignby,...
-                pkactivity,wth,mean(pct_error),length(dur_id_corr),varfr,...
-                outburstactivity,[gaplatency durmotorwin],{r(2) p(2) shuffr shuffp},...
-                {r1 p1 r2 p2 shuffr2 shuffp2 shuffr3 shuffp3},...
-                {rvol1 pvol1 rvol2 pvol2 shuffr4 shuffp4 shuffr5 shuffp5},...
-                'VariableNames',{'birdid','unitid','seqid','burstid','alignby',...
-                'pkactivity','width','pct_error','ntrials','trialbytrialcorr',...
-                'bgactivity','latency','durcorr','adjdurcorr','volcorr'})];
-              
-            %save raw data in table
-             fr = npks_burst;
-             dur = dur_id_corr;
-             dur1 = dur1_id;
-             dur2 = dur2_id;
-             rawdatatable = [rawdatatable; table(dur,fr,...
-                repmat(mean(pct_error)<=0.02,length(npks_burst),1),...
+                    pkFR,pkactivity,wth,mean(pct_error),length(dur_id_corr),varfr,...
+                    gaplatency,{betas pVals rho rpval},...
+                    {shuffbetas shuffpVals shuffr shuffp},'VariableNames',...
+                    {'birdid','unitid','seqid','burstid','alignby',...
+                    'pkFR','pkactivity','width','pct_error','ntrials','trialbytrialcorr',...
+                    'latency','corrs','shuffle'})];
+
+             rawdatatable = [rawdatatable; table(dur_id_corr,npks_burst,...
+                repmat(mean(pct_error),length(npks_burst),1),...
+                repmat(varfr,length(npks_burst),1),...
+                repmat(pkFR,length(npks_burst),1),...
                 repmat(pkactivity,length(npks_burst),1),...
                 repmat({birdid},length(npks_burst),1),...
                 repmat({unitid},length(npks_burst),1),...
                 repmat(gapids(n),length(npks_burst),1),...
                 repmat(burstid,length(npks_burst),1),...
-                vol1,vol2,dur1,dur2,...
-                'VariableNames',{'dur','spikes','unittype','activity',...
+                vol1,vol2,dur1_id,dur2_id,...
+                'VariableNames',{'dur','spikes','pct_error','burstvar','pkFR','activity',...
                 'birdid','unitid','seqid','burstid','vol1','vol2','dur1','dur2'})];
-                
+            
+            %plot significant cases
             if eval(plotcasecondition)
                 figure;subplot(3,1,1);hold on
                 plotraster(dur_id_corr,spktms,tb(tbid(1)),tb(tbid(end)),...
                     seqons,seqoffs,seqst,seqend,anchor,ff(i).name,(pct_error),...
-                    gapids{n},r(2));
+                    gapids{n},rho);
   
                 subplot(3,1,2);hold on;
                 plotPSTH(seqst,seqend,smooth_spiketrains,dur_id_corr,...
@@ -504,6 +440,17 @@ function [burstst burstend] = peakborder(wc,id,locs,tb);
     if burstend > length(tb)
         burstend = length(tb);
     end
+    
+function [burstst burstend] = peakborder2(id,tb,PSTH,activitythresh);
+ %peak borders based on when activity falls back below activity threshold   
+    FRbelow = find(PSTH<=activitythresh);
+    if FRbelow(1) ~= 1
+        FRbelow = [1 FRbelow];
+    elseif FRbelow(end) ~= length(tb)
+        FRbelow = [FRbelow length(tb)];
+    end
+    burstst = FRbelow(find(diff(id-FRbelow>0)<0));
+    burstend = FRbelow(find(diff(id-FRbelow<0)==1)+1);
     
 function burstspkposterior = burstposterior(spktms,spkpost,tm1,tm2);
     id = cellfun(@(x) (find(x>=tm1 & x<tm2)),spktms,'un',0);

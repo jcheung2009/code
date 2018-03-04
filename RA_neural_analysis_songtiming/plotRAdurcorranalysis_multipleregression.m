@@ -2,22 +2,22 @@
 %cases were multiple regression with target dur, volume, and adjacent durs
 
 %% parameters and input
-load('dur_multicorrelation_analysis_ifr.mat');
+load('dur_multicorrelation_analysis_ifr_spks.mat');
 activitythresh = 50;%zscore from shuffled
 
-ff = load_batchf('multiunits_gt_2pcterr');
+ff = load_batchf('singleunits_leq_1pctISI');
 id = [];
 for i = 1:length(ff)
-    id = [id;find(cellfun(@(x) contains(ff(i).name,x),corrtable20.unitid))];
+    id = [id;find(cellfun(@(x) contains(ff(i).name,x),corrtable10.unitid))];
 end
-corrtable = corrtable20(id,:);
+corrtable = corrtable10(id,:);
 
-ff = load_batchf('multiunits_gt_2pcterr');
-id = [];
-for i = 1:length(ff)
-    id = [id;find(cellfun(@(x) contains(ff(i).name,x),dattable20.unitid))];
-end
-dattable = dattable20(id,:);
+% ff = load_batchf('multiunits_gt_2pcterr');
+% id = [];
+% for i = 1:length(ff)
+%     id = [id;find(cellfun(@(x) contains(ff(i).name,x),dattable20.unitid))];
+% end
+% dattable = dattable20(id,:);
 
 %% BETAS: threshold by FR 
 negcorr = find(corrtable.pkFR>=activitythresh & ...
@@ -92,8 +92,52 @@ activecases = find(corrtable.pkFR>=activitythresh);
 numcases = length(activecases);
 numsignificant = length(find(corrtable.pkFR>=activitythresh & ...
     [corrtable.corrs{:,4}]'<=0.05));
-
 aph = 0.01;ntrials=1000;
+
+% randpropsignificant = NaN(ntrials,1);
+% randpropsignificantnegcorr = NaN(ntrials,1);
+% randpropsignificantposcorr = NaN(ntrials,1);
+% for nrep = 1:ntrials
+%     birdgroups = unique(corrtable.birdid);
+%     cls = randsample(birdgroups,length(birdgroups),'true');
+%     sub = arrayfun(@(x) corrtable(find(strcmp(corrtable.birdid,x)),:),cls,'un',0);
+%     sub = vertcat(sub{:});
+%     unitgroups = unique(sub.unitid);
+%     cls = randsample(unitgroups,length(unitgroups),'true');
+%     sub = arrayfun(@(x) sub(find(strcmp(sub.unitid,x)),:),cls,'un',0);
+%     sub = vertcat(sub{:});
+%     seqgroups = unique(sub(:,{'unitid','seqid'}),'rows');
+%     cls = seqgroups{randsample(size(seqgroups,1),size(seqgroups,1),'true'),:};
+%     sub = arrayfun(@(x,y) sub(find(strcmp(sub.unitid,x) & strcmp(sub.seqid,y)),:),cls(:,1),cls(:,2),'un',0);
+%     sub = vertcat(sub{:});
+%     shufftrialid = randsample(ntrials,size(sub,1),'true');
+%     tempcorr = [sub.shuffle{:,3}];
+%     temppval = [sub.shuffle{:,4}];
+%     ind = sub2ind(size(tempcorr),shufftrialid',1:size(tempcorr,2));
+%     corr = tempcorr(ind);
+%     pval = temppval(ind);
+%     randpropsignificant(nrep) = length(find(pval<=0.05))/length(pval);
+%     randpropsignificantnegcorr(nrep) = sum((pval<=0.05).*(corr<0))/length(corr);
+%     randpropsignificantposcorr(nrep) = sum((pval<=0.05).*(corr>0))/length(corr);
+% end
+%     
+% randpropsignificant_sorted = sort(randpropsignificant);
+% randpropsignificant_lo = randpropsignificant_sorted(floor(aph*ntrials/2));
+% randpropsignificant_hi = randpropsignificant_sorted(ceil(ntrials-(aph*ntrials/2)));
+% randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
+% randpropsignificantnegcorr_lo = randpropsignificantnegcorr_sorted(floor(aph*ntrials/2));
+% randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+% randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
+% randpropsignificantposcorr_lo = randpropsignificantposcorr_sorted(floor(aph*ntrials/2));
+% randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));  
+% randdiffprop = abs(randpropsignificantnegcorr-randpropsignificantposcorr);
+
+
+
+
+
+%____________________________-
+
 shuffcorr = [corrtable(activecases,:).shuffle{:,3}];
 shuffpval = [corrtable(activecases,:).shuffle{:,4}];
 
@@ -116,7 +160,7 @@ randpropsignificantposcorr_lo = randpropsignificantposcorr_sorted(floor(aph*ntri
 randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
 
 randdiffprop = abs(randpropsignificantnegcorr-randpropsignificantposcorr);
-
+%________________________________________
 figure;hold on;
 [n b] = hist(shuffcorr(:),[-1:0.05:1]);
 stairs(b,n/sum(n),'k','linewidth',2);

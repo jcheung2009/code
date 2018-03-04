@@ -407,20 +407,20 @@ stairs(bx,cnt,'b');xlabel('posterior probability for 20% of spikes');ylabel('cou
 
 %% parameter analysis
 
-load('gap_correlation_analysis_ifr')
+load('dur_correlation_analysis_fr')
 tables = {corrtable10 corrtable20 corrtable40};
 activitythresh = [6 50];
 winsize = [10,20,40];
-fr_type = {'IFR'};
+fr_type = {'FR'};
 aph = 0.01;ntrials=1000;
-
+% 
  summarytable = table([],[],[],[],[],[],[],[],[],[],'VariableNames',{'unit','FR_or_IFR','winsize',...
      'threshold','pneg','ppos','pdiff','numcases','prneg','prpos'});
 
 files = {'singleunits_leq_1pcterr','singleunits_leq_2pcterr','singleunits_leq_4pcterr',...
     'singleunits_leq_1pctISI','singleunits_95pctpost_80pct','singleunits_90pctpost_85pct',...
     'multiunits_gt_1pcterr','multiunits_gt_2pcterr','multiunits_gt_4pcterr',...
-    'multiunits_gt_1pctISI'};
+    'multiunits_gt_1pctISI','multiunits_95pctpost_80pct','multiunits_90pctpost_85pct'};
 
 for m = 1:length(files)
     ff = load_batchf(files{m});
@@ -504,20 +504,18 @@ summarytable
 save('parametertest','summarytable');
 
 %% 
-load('dur_multicorrelation_analysis_fr')
-tables = {corrtable10 corrtable20 corrtable40};
-activitythresh = [6 50];
-winsize = [10,20,40];
-fr_type = {'FR'};
+load('gap_multicorrelation_analysis_ifr_spks')
+tables = {corrtable5 corrtable10 corrtable20};
+activitythresh = [50];
+winsize = [5,10,20];
+fr_type = {'IFR_fixed'};
 aph = 0.01;ntrials=1000;
 
 %  summarytable = table([],[],[],[],[],[],[],[],[],[],'VariableNames',{'unit','FR_or_IFR','winsize',...
 %      'threshold','pneg','ppos','pdiff','numcases','prneg','prpos'});
 
-files = {'singleunits_leq_1pcterr','singleunits_leq_2pcterr','singleunits_leq_4pcterr',...
-    'singleunits_leq_1pctISI','singleunits_95pctpost_80pct','singleunits_90pctpost_85pct',...
-    'multiunits_gt_1pcterr','multiunits_gt_2pcterr','multiunits_gt_4pcterr',...
-    'multiunits_gt_1pctISI'};
+files = {'singleunits_leq_2pcterr','singleunits_leq_1pctISI',...
+    'multiunits_gt_2pcterr','multiunits_gt_1pctISI'};
 
 for m = 1:length(files)
     ff = load_batchf(files{m});
@@ -535,32 +533,32 @@ for m = 1:length(files)
 
             if activitythresh(n) == 50
                 negcorr = find(corrtable.pkFR>=activitythresh(n) & ...
-                    cellfun(@(x) x(1),corrtable.corrs(:,2))<=0.05 & cellfun(@(x) x(1),corrtable.corrs(:,1))<0);
+                    cellfun(@(x) x(1),corrtable.corrs(:,4))<=0.05 & cellfun(@(x) x(1),corrtable.corrs(:,3))<0);
                 poscorr = find(corrtable.pkFR>=activitythresh(n) & ...
-                    cellfun(@(x) x(1),corrtable.corrs(:,2))<=0.05 & cellfun(@(x) x(1),corrtable.corrs(:,1))>0);
+                    cellfun(@(x) x(1),corrtable.corrs(:,4))<=0.05 & cellfun(@(x) x(1),corrtable.corrs(:,3))>0);
                 sigcorr = find(corrtable.pkFR>=activitythresh(n) & ...
-                    cellfun(@(x) x(1),corrtable.corrs(:,2))<=0.05);
+                    cellfun(@(x) x(1),corrtable.corrs(:,4))<=0.05);
                 activecases = find(corrtable.pkFR>=activitythresh(n));
 
                 numcases = length(activecases);
                 numsignificant = length(find(corrtable.pkFR>=activitythresh(n) & ...
-                    cellfun(@(x) x(1),corrtable.corrs(:,2))<=0.05));
+                    cellfun(@(x) x(1),corrtable.corrs(:,4))<=0.05));
             elseif activitythresh(n)==6
                 negcorr = find(corrtable.pkactivity>=activitythresh(n) & ...
-                    cellfun(@(x) x(1),corrtable.corrs(:,2))<=0.05 & cellfun(@(x) x(1),corrtable.corrs(:,1))<0);
+                    cellfun(@(x) x(1),corrtable.corrs(:,4))<=0.05 & cellfun(@(x) x(1),corrtable.corrs(:,3))<0);
                 poscorr = find(corrtable.pkactivity>=activitythresh(n) & ...
-                    cellfun(@(x) x(1),corrtable.corrs(:,2))<=0.05 & cellfun(@(x) x(1),corrtable.corrs(:,1))>0);
+                    cellfun(@(x) x(1),corrtable.corrs(:,4))<=0.05 & cellfun(@(x) x(1),corrtable.corrs(:,3))>0);
                 sigcorr = find(corrtable.pkactivity>=activitythresh(n) & ...
-                    cellfun(@(x) x(1),corrtable.corrs(:,2))<=0.05);
+                    cellfun(@(x) x(1),corrtable.corrs(:,4))<=0.05);
                 activecases = find(corrtable.pkactivity>=activitythresh(n));
 
                 numcases = length(activecases);
                 numsignificant = length(find(corrtable.pkFR>=activitythresh(n) & ...
-                    cellfun(@(x) x(1),corrtable.corrs(:,2))<=0.05));
+                    cellfun(@(x) x(1),corrtable.corrs(:,4))<=0.05));
             end
 
-            shuffcorr = cell2mat(cellfun(@(x) x(:,1),corrtable(activecases,:).shuffle(:,1),'un',0)');
-            shuffpval = cell2mat(cellfun(@(x) x(:,1),corrtable(activecases,:).shuffle(:,2),'un',0)');
+            shuffcorr = cell2mat(cellfun(@(x) x(:,1),corrtable(activecases,:).shuffle(:,3),'un',0)');
+            shuffpval = cell2mat(cellfun(@(x) x(:,1),corrtable(activecases,:).shuffle(:,4),'un',0)');
 
 
             randnumsignificant = sum(shuffpval<=0.05,2);    
@@ -596,3 +594,16 @@ for m = 1:length(files)
     end
 end
 summarytable
+
+%% plot the significant negative cases in multiunit syllables (>1pctISI), 20 ms gaussian window, multiple regress
+
+load('dur_multicorrelation_analysis_ifr.mat');
+id = [];ff = load_batchf('multiunits_gt_1pctISI');
+for i = 1:length(ff)
+    id = [id;find(cellfun(@(x) contains(ff(i).name,x),corrtable20.unitid))];
+end
+corrtable = corrtable20(id,:);
+corrtable = corrtable(find(corrtable.pkFR>=50 ...
+    & cellfun(@(x) x(1),corrtable.corrs(:,2))<=0.05 & cellfun(@(x) x(1),corrtable.corrs(:,1))<0),:);
+
+RA_correlate_gapdur_plot('multiunits_gt_1pctISI',corrtable,-40,'burst','syll')
