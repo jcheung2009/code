@@ -1,5 +1,6 @@
 function script_findseqtrans(batch,ind)
 %script to make seq structs
+%for identified branch points
 
 config;
 pathname = fileparts([pwd,'/analysis/data_structures/']);
