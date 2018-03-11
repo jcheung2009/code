@@ -241,6 +241,14 @@ mdl = fitlme(subset,formula,'exclude',i);
 mdl.Rsquared
 
 %% mixed model IFR ~ dur + vol1 + vol2 + dur1 + dur2 (independent covariance among variables) 
+ff = load_batchf('singleunits_leq_1pctISI_2pcterr');
+id = [];
+for i = 1:length(ff)
+    id = [id;find(cellfun(@(x) contains(ff(i).name,x),dattable10.unitid))];
+end
+dattable = dattable10(id,:);
+
+
 activecases  = find(dattable.pkFR>=activitythresh);
 subset = dattable(activecases,:);
 cases = unique(subset(:,{'unitid','seqid','burstid'}));
@@ -302,6 +310,15 @@ mdl.Rsquared
 figure;plotResiduals(mdl,'fitted')
 
 %% mixed model IFR ~ dur + vol1 + vol2 + dur1 + dur2 (non-independent covariance among variables) 
+
+ff = load_batchf('singleunits_leq_1pctISI_2pcterr');
+id = [];
+for i = 1:length(ff)
+    id = [id;find(cellfun(@(x) contains(ff(i).name,x),dattable10.unitid))];
+end
+dattable = dattable10(id,:);
+
+
 activecases  = find(dattable.pkFR>=activitythresh);
 subset = dattable(activecases,:);
 cases = unique(subset(:,{'unitid','seqid','burstid'}));

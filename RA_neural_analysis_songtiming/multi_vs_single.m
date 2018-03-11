@@ -145,6 +145,18 @@ for i = 1:size(clustererr,1)
 end
 fclose(fid)
 
+%write batchfile for units with <1% ISI violation AND/OR <2% err
+fid = fopen('singleunits_leq_1pctISI_2pcterr','w');
+fid2 = fopen('multiunits_gt_1pctISI_2pcterr','w');
+for i = 1:size(clustererr,1)
+    if clustererr(i,2)<=0.01 | clustererr(i,1)<=0.02
+        fprintf(fid,'%s\n',ff(i).name);
+    else
+        fprintf(fid2,'%s\n',ff(i).name);
+    end
+end
+fclose(fid)
+
 %% plot distribution of average trial by trial variability for gap single vs
 %multi unit bursts classified by leq 2% error with a 20 ms gaussian win
 load('gap_correlation_analysis_ifr.mat');
@@ -504,18 +516,19 @@ summarytable
 save('parametertest','summarytable');
 
 %% 
-load('gap_multicorrelation_analysis_ifr_spks')
+load('gap_multicorrelation_analysis_fr_spks')
 tables = {corrtable5 corrtable10 corrtable20};
 activitythresh = [50];
 winsize = [5,10,20];
-fr_type = {'IFR_fixed'};
+fr_type = {'FR_fixed'};
 aph = 0.01;ntrials=1000;
 
-%  summarytable = table([],[],[],[],[],[],[],[],[],[],'VariableNames',{'unit','FR_or_IFR','winsize',...
-%      'threshold','pneg','ppos','pdiff','numcases','prneg','prpos'});
+%  summarytable = table([],[],[],[],[],[],[],[],[],[],[],'VariableNames',{'unit','FR_or_IFR','winsize',...
+%      'threshold','psig','pneg','ppos','pdiff','numcases','prneg','prpos'});
 
-files = {'singleunits_leq_2pcterr','singleunits_leq_1pctISI',...
-    'multiunits_gt_2pcterr','multiunits_gt_1pctISI'};
+files = {'singleunits_leq_2pcterr','singleunits_leq_1pctISI','singleunits_leq_1pctISI_2pcterr',...
+    'multiunits_gt_2pcterr','multiunits_gt_1pctISI',...
+    'multiunits_gt_1pctISI_2pcterr'};
 
 for m = 1:length(files)
     ff = load_batchf(files{m});
@@ -580,7 +593,8 @@ for m = 1:length(files)
             randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
 
             randdiffprop = abs(randpropsignificantnegcorr-randpropsignificantposcorr);
-
+            
+            psig = length(find(randpropsignificant>=length(sigcorr)/numcases))/ntrials;
             pneg = length(find(randpropsignificantnegcorr>=length(negcorr)/numcases))/ntrials;
             ppos = length(find(randpropsignificantposcorr>=length(poscorr)/numcases))/ntrials;
             pdiff = length(find(randdiffprop>=abs((length(negcorr)/numcases)-(length(poscorr)/numcases))))/ntrials;
@@ -588,8 +602,8 @@ for m = 1:length(files)
             prpos = length(poscorr)/numcases;
 
             summarytable = [summarytable;table(files(m),fr_type,winsize(ii),activitythresh(n),...
-                pneg,ppos,pdiff,numcases,prneg,prpos,'VariableNames',{'unit','FR_or_IFR','winsize',...
-            'threshold','pneg','ppos','pdiff','numcases','prneg','prpos'})];
+                psig,pneg,ppos,pdiff,numcases,prneg,prpos,'VariableNames',{'unit','FR_or_IFR','winsize',...
+            'threshold','psig','pneg','ppos','pdiff','numcases','prneg','prpos'})];
         end
     end
 end

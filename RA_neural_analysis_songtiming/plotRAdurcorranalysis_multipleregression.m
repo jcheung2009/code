@@ -2,10 +2,10 @@
 %cases were multiple regression with target dur, volume, and adjacent durs
 
 %% parameters and input
-load('dur_multicorrelation_analysis_ifr_spks.mat');
+load('dur_multicorrelation_analysis_fr.mat');
 activitythresh = 50;%zscore from shuffled
 
-ff = load_batchf('singleunits_leq_1pctISI');
+ff = load_batchf('singleunits_leq_1pctISI_2pcterr');
 id = [];
 for i = 1:length(ff)
     id = [id;find(cellfun(@(x) contains(ff(i).name,x),corrtable10.unitid))];
@@ -160,6 +160,9 @@ randpropsignificantposcorr_lo = randpropsignificantposcorr_sorted(floor(aph*ntri
 randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
 
 randdiffprop = abs(randpropsignificantnegcorr-randpropsignificantposcorr);
+randdiffprop_sorted = sort(randdiffprop);
+randdiffprop_lo = randdiffprop_sorted(floor(aph*ntrials/2));
+randdiffprop_hi = randdiffprop_sorted(ceil(ntrials-(aph*ntrials/2)));
 %________________________________________
 figure;hold on;
 [n b] = hist(shuffcorr(:),[-1:0.05:1]);
@@ -185,3 +188,66 @@ text(0,1,{['total active cases:',num2str(numcases)];...
 ['p(neg-pos)=',num2str(p4)]},'units','normalized',...
 'verticalalignment','top');
 
+figure;hold on;
+[n b] = hist(shuffcorr(:),[-1:0.05:1]);
+plot(b,cumsum(n/sum(n)),'k','linewidth',2);hold on;
+[n b] = hist([corrtable(activecases,:).corrs{:,3}],[-1:0.05:1]);
+plot(b,cumsum(n/sum(n)),'r','linewidth',2);hold on;
+xlabel('correlation');ylabel('cumulative probability');
+set(gca,'fontweight','bold');
+
+figure;hold on;
+bar(2,numsignificant/numcases,'facecolor','none','edgecolor','k','linewidth',2);hold on;
+bar(5,length(negcorr)/numcases,'facecolor','none','edgecolor','r','linewidth',2);hold on;
+bar(8,length(poscorr)/numcases,'facecolor','none','edgecolor','b','linewidth',2);hold on;
+plot([0 3],[0.1032 0.1032],'k','linewidth',2);hold on;
+plot([3 6],[0.0635 0.0635],'k','linewidth',2);hold on;
+plot([6 9],[0.0714 0.0714],'k','linewidth',2);hold on;
+set(gca,'XTick',[1,2,4,5,7,8],'XTickLabel',{'gap','syllable'})
+ylabel('proportion of cases with significant correlations')
+
+%% distribution of proportion of significant correlations for empirical vs shuffled
+figure;subplot(1,4,1);hold on;
+[n b] = hist(randpropsignificant,[0:0.01:0.2]);
+stairs(b,n/sum(n),'k','linewidth',2);y=get(gca,'ylim');
+plot(randpropsignificant_hi,y(1),'k^','markersize',8);hold on;
+plot(randpropsignificant_lo,y(1),'k^','markersize',8);hold on;
+mn = sum([corrtable.corrs{:,4}]'<=0.05)/numcases;
+plot(mn,y(1),'k^','markersize',8,'markerfacecolor','k');hold on;
+title('shuffled vs empirical');
+xlabel('proportion of significant correlations');ylabel('probability');
+set(gca,'fontweight','bold');
+
+subplot(1,4,2);hold on;
+[n b] = hist(randpropsignificantnegcorr,[0:0.01:0.2]);
+stairs(b,n/sum(n),'k','linewidth',2);y=get(gca,'ylim');
+plot(randpropsignificantnegcorr_hi,y(1),'b^','markersize',8);hold on;
+plot(randpropsignificantnegcorr_lo,y(1),'b^','markersize',8);hold on;
+mn = sum([corrtable.corrs{:,4}]'<=0.05 & [corrtable.corrs{:,3}]'<0)/numcases;
+plot(mn,y(1),'b^','markersize',8,'markerfacecolor','b');hold on;
+title('shuffled vs empirical');
+xlabel('proportion of significantly negative correlations');ylabel('probability');
+set(gca,'fontweight','bold');
+
+subplot(1,4,3);hold on;
+[n b] = hist(randpropsignificantposcorr,[0:0.01:0.25]);
+stairs(b,n/sum(n),'k','linewidth',2);y=get(gca,'ylim');
+plot(randpropsignificantposcorr_lo,y(1),'r^','markersize',8);hold on;
+plot(randpropsignificantposcorr_hi,y(1),'r^','markersize',8);hold on;
+mn = sum([corrtable.corrs{:,4}]'<=0.05 & [corrtable.corrs{:,3}]'>0)/numcases;
+plot(mn,y(1),'r^','markersize',8,'markerfacecolor','r');hold on;
+title('shuffled vs empirical');
+xlabel('proportion of significantly positive correlations');ylabel('probability');
+set(gca,'fontweight','bold');
+
+subplot(1,4,4);hold on;
+[n b] = hist(randdiffprop,[0:0.01:0.08]);
+stairs(b,n/sum(n),'k','linewidth',2);y=get(gca,'ylim');
+plot(randdiffprop_lo,y(1),'r^','markersize',8);hold on;
+plot(randdiffprop_hi,y(1),'r^','markersize',8);hold on;
+mn = abs(sum([corrtable.corrs{:,4}]'<=0.05 & [corrtable.corrs{:,3}]'<0)-...
+    sum([corrtable.corrs{:,4}]'<=0.05 & [corrtable.corrs{:,3}]'>0))/numcases;
+plot(mn,y(1),'r^','markersize',8,'markerfacecolor','r');hold on;
+title('shuffled vs empirical');
+xlabel('proportion of significantly positive correlations');ylabel('probability');
+set(gca,'fontweight','bold');

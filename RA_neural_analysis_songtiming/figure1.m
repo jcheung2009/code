@@ -1,25 +1,26 @@
 %% figure 1 gap 
 
 %spectrogram, navigate to file with song files 
-filename = 'combined_data_pu44w52_3_20_2006_1026_1125_PCA_CH2_TH_recommended.mat';
-[dat fs] = evsoundin('','pu44w52_100x_200306_1041.52.cbin','obs0');
+filename = 'combined_data_G26G23_SU_5_28_2006_1020_1314_PCA_CH0_TH_recommended.mat';
+[dat fs] = evsoundin('','G26-G23-05292006.200.cbin','obs0r');
+load G26-G23-05292006.200.cbin.not.mat
 filtsong=bandpass(dat,fs,300,10000,'hanningffir');
-ind = strfind(labels,'iabicd')
+ind = strfind(labels,'abcddd')
 ix = 2;
-m = filtsong(floor((offsets(ind(ix)+2)-275)*1e-3*fs):ceil((offsets(ind(ix)+2)+303)*1e-3*fs));
+m = filtsong(floor((offsets(ind(ix)+2)-378)*1e-3*fs):ceil((offsets(ind(ix)+2)+304)*1e-3*fs));
 [sp f tm] = jc_spectrogram(m,fs);
-tm = tm-0.275;
+tm = tm-0.378;
 figure;imagesc(tm,f,log(abs(sp)));axis('xy');colormap('hot');
 
 %% figure 1 syll
-filename = 'combined_data_pu44w52_3_17_2006_1805-2025_PCA_CH2_TH_reco.mat';
-[dat fs] = evsoundin('','pu44w52_100x_170306_1902.15.cbin','obs0');
-load pu44w52_100x_170306_1902.15.cbin.not.mat
+filename = '.mat';
+[dat fs] = evsoundin('','G26-G23-05282006.002.cbin','obs0r');
+load G26-G23-05282006.002.cbin.not.mat
 filtsong=bandpass(dat,fs,300,10000,'hanningffir');
-ind = strfind(labels,'dijii')
-ix = 1;
-m = filtsong(floor((onsets(ind(ix)+2)-300)*1e-3*fs):ceil((onsets(ind(ix)+2)+243)*1e-3*fs));
+ind = strfind(labels,'iabcd')
+ix = 2;
+m = filtsong(floor((onsets(ind(ix)+2)-379)*1e-3*fs):ceil((onsets(ind(ix)+2)+353)*1e-3*fs));
 [sp f tm] = jc_spectrogram(m,fs);
-tm = tm-0.3;
+tm = tm-0.379;
 figure;imagesc(tm,f,log(abs(sp)));axis('xy');colormap('hot');
 

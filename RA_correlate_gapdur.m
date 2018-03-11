@@ -181,17 +181,6 @@ for i = 1:length(ff)
                 npks_burst = mean(smooth_spiketrains(:,burstst:burstend),2).*1000;  
                 lastburstst = burstst;lastburstend = burstend;
                 
-                %n-trial lag correlation 
-                if nargout >=3
-                    [r p] = corrcoef(npks_burst,dur_id_corr);
-                    if mean(pct_error)<=0.02 & pkactivity >= activitythresh & p(2)<=0.05
-                        [trcorr lag] = xcov(npks_burst,dur_id_corr,'coeff');
-                        [shuffcorrtrial lag] = shuffletrialcorr(npks_burst,dur_id_corr,1000);
-                        corrtrial = [corrtrial; [trcorr lag' shuffcorrtrial]];
-                    end
-                    continue
-                end
-                
                 %extract volume for syllables adjacent to target dur and
                 %correlate with target burst
                 vol1 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
@@ -212,7 +201,7 @@ for i = 1:length(ff)
                     dur2_id = seqons(:,ceil(seqlen/2)+targetdur+1)-...
                         seqoffs(:,ceil(seqlen/2)+targetdur);%next gap
                 end
-                
+   
                 %normalize predictors and fit multiple regression and
                 %partial corrs
                 dur_id_corrn = (dur_id_corr-mean(dur_id_corr))/std(dur_id_corr);
@@ -224,6 +213,19 @@ for i = 1:length(ff)
                 betas = mdl.Coefficients.Estimate(2:end);
                 pVals = mdl.Coefficients.pValue(2:end);
                 [rho rpval] = partialcorr(dur_id_corrn,npks_burst,[vol1n vol2n]);
+                
+                %n-trial lag correlation 
+                if nargout >=3
+                    [r p] = corrcoef(npks_burst,dur_id_corr);
+                    if p(2)<=0.05
+                        [trcorr lag] = xcov(npks_burst,dur_id_corr,'coeff');
+                        [shuffcorrtrial lag] = shuffletrialcorr(npks_burst,dur_id_corr,shufftrials);
+                        corrtrial = [corrtrial; [trcorr lag' shuffcorrtrial]];
+                    end
+                    continue
+                end
+                
+                %shuffle test for proportion correlation significant
                 [shuffbetas shuffpVals shuffr shuffp] = shuffle_multipleregress...
                     (npks_burst,[dur_id_corrn vol1n vol2n],shufftrials);
 

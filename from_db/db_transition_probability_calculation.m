@@ -39,27 +39,30 @@ for k = 1:length(all_syllables)
     %creates a variable that will be used to eliminate all syllables
     %that we do not care about
     interest_syllables = [];
+    timeind = [];
+    lbls = [all_syllables{k},'-'];
     
     %goes through each type of motif
     for ii = 1:length(motifs)
         if strcmpi(con_or_div, 'div') == 1
             %for divergent sequences, finds when the divergent sequence
             %occured in each song
-            interest_syllables = [interest_syllables strfind(all_syllables{k},motifs{ii})+length_motif{i}];
+            interest_syllables = [interest_syllables strfind(lbls,motifs{ii})+length_motif{ii}];
+            timeind = [timeind strfind(lbls,motifs{ii})];
         elseif strcmpi(con_or_div, 'con') == 1
             %finds when the convergent sequence occured in each song
-            interest_syllables = [interest_syllables strfind(all_syllables{k},motifs{ii})];
+            interest_syllables = [interest_syllables strfind(lbls,motifs{ii})];
         end
     end
     %sorts the interest_syllables so that the order is correct
     interest_syllables = sort(interest_syllables);
     
     %creates a string per song of the transitions of interest
-    trans_per_song{k} = all_syllables{k}(interest_syllables);
+    trans_per_song{k} = lbls(interest_syllables);
     
     %says the time (in serial date time) when the transition occured
     if ~isempty(time_syl) == 1
-        time_per_song{k} = time_syl{k}(interest_syllables);
+        time_per_song{k} = time_syl{k}(timeind);
     end
     
     clear interest_syllables

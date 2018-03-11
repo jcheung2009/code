@@ -969,15 +969,15 @@ ind2 = cellfun(@(x) x<=0.05,shuffpval_lag,'un',0);
 propnegsigshuff = cellfun(@(x,y) x.*y,ind1,ind2,'un',0);
 propnegsigshuff = cellfun(@(x) sum(x,2)/size(x,2),propnegsigshuff,'un',0);
 propnegsigshuff = cellfun(@(x) sort(x),propnegsigshuff,'un',0);
-propnegsigshuffhi = cellfun(@(x) x(ceil(0.975*length(x))),propnegsigshuff,'un',1);
-propnegsigshufflo = cellfun(@(x) x(floor(0.025*length(x))),propnegsigshuff,'un',1);
+propnegsigshuffhi = cellfun(@(x) x(ceil(0.995*length(x))),propnegsigshuff,'un',1);
+propnegsigshufflo = cellfun(@(x) x(floor(0.005*length(x))),propnegsigshuff,'un',1);
 
 ind1 = cellfun(@(x) x>0,shuffcorr_lag,'un',0);
 proppossigshuff = cellfun(@(x,y) x.*y,ind1,ind2,'un',0);
 proppossigshuff = cellfun(@(x) sum(x,2)/size(x,2),proppossigshuff,'un',0);
 proppossigshuff = cellfun(@(x) sort(x),proppossigshuff,'un',0);
-proppossigshuffhi = cellfun(@(x) x(ceil(0.975*length(x))),proppossigshuff,'un',1);
-proppossigshufflo = cellfun(@(x) x(floor(0.025*length(x))),proppossigshuff,'un',1);
+proppossigshuffhi = cellfun(@(x) x(ceil(0.995*length(x))),proppossigshuff,'un',1);
+proppossigshufflo = cellfun(@(x) x(floor(0.005*length(x))),proppossigshuff,'un',1);
 
 ind = find(cellfun(@(x) ~isempty(x),crosscorr));
 [propnegsig hi lo] = cellfun(@(x) jc_BootstrapfreqCI(x(:,2)<=0.05 & x(:,1)<0),crosscorr(ind),'un',1);
@@ -985,26 +985,29 @@ figure;hold on;plot(crosscorr_lags(ind),propnegsig,'b','marker','o','linewidth',
 patch([crosscorr_lags(ind) fliplr(crosscorr_lags(ind))],[hi' fliplr(lo')],[0.3 0.3 0.7],'edgecolor','none','facealpha',0.7);
 patch([crosscorr_lags(ind) fliplr(crosscorr_lags(ind))],[propnegsigshuffhi' fliplr(propnegsigshufflo')],[0.3 0.3 0.3],'edgecolor','none','facealpha',0.3);
 xlabel('time relative to target gap (ms)');ylabel('proportion significantly negative cases');
-title('multi units');
 
 [proppossig hi lo] = cellfun(@(x) jc_BootstrapfreqCI(x(:,2)<=0.05 & x(:,1)>0),crosscorr(ind),'un',1);
 figure;hold on;plot(crosscorr_lags(ind),proppossig,'r','marker','o','linewidth',2);
 patch([crosscorr_lags(ind) fliplr(crosscorr_lags(ind))],[hi' fliplr(lo')],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.7);
 patch([crosscorr_lags(ind) fliplr(crosscorr_lags(ind))],[proppossigshuffhi' fliplr(proppossigshufflo')],[0.3 0.3 0.3],'edgecolor','none','facealpha',0.3);
 xlabel('time relative to target gap (ms)');ylabel('proportion significantly positive cases');
-title('multi units');
 
 medcorrshuff = cellfun(@(x) mean(abs(x),2),shuffcorr_lag,'un',0);
 medcorrshuff = cellfun(@(x) sort(x),medcorrshuff,'un',0);
-medcorrshuff_hi = cellfun(@(x) x(ceil(0.975*length(x))),medcorrshuff,'un',1);
-medcorrshuff_lo = cellfun(@(x) x(floor(0.025*length(x))),medcorrshuff,'un',1);
+medcorrshuff_hi = cellfun(@(x) x(ceil(0.995*length(x))),medcorrshuff,'un',1);
+medcorrshuff_lo = cellfun(@(x) x(floor(0.005*length(x))),medcorrshuff,'un',1);
 
-[hi lo mncorr] = cellfun(@(x) mBootstrapCI(abs(x(:,1))),crosscorr(ind),'un',1);
+[hi lo mncorr] = cellfun(@(x) mBootstrapCI(abs(x(x(:,1)<0,1))),crosscorr(ind),'un',1);
 figure;hold on;plot(crosscorr_lags(ind),mncorr,'b','marker','o','linewidth',2);
 patch([crosscorr_lags(ind) fliplr(crosscorr_lags(ind))],[hi' fliplr(lo')],[0.3 0.3 0.7],'edgecolor','none','facealpha',0.7);
 patch([crosscorr_lags(ind) fliplr(crosscorr_lags(ind))],[medcorrshuff_hi' fliplr(medcorrshuff_lo')],[0.3 0.3 0.3],'edgecolor','none','facealpha',0.3);
-xlabel('time relative to target gap (ms)');ylabel('average abs correlation');
-title('multi units');
+xlabel('time relative to target gap (ms)');ylabel('average abs(neg) correlation');
+
+[hi lo mncorr] = cellfun(@(x) mBootstrapCI(abs(x(x(:,1)>0,1))),crosscorr(ind),'un',1);
+figure;hold on;plot(crosscorr_lags(ind),mncorr,'r','marker','o','linewidth',2);
+patch([crosscorr_lags(ind) fliplr(crosscorr_lags(ind))],[hi' fliplr(lo')],[0.7 0.3 0.3],'edgecolor','none','facealpha',0.7);
+patch([crosscorr_lags(ind) fliplr(crosscorr_lags(ind))],[medcorrshuff_hi' fliplr(medcorrshuff_lo')],[0.3 0.3 0.3],'edgecolor','none','facealpha',0.3);
+xlabel('time relative to target gap (ms)');ylabel('average abs(pos) correlation');
 
 % mnnegcorrshuff = cellfun(@(x) x.*(x<0),shuffcorr_lag,'un',0);
 % [ii,~,v] = cellfun(@(x) find(x),mnnegcorrshuff,'un',0);
@@ -1402,28 +1405,16 @@ legend({'negative','positive'});
 set(gca,'fontweight','bold');
 
 %% distribution of burst windows relative to target onset
-burstwidth = corrmat(singleiind,5);
-latency = corrmat(singleiind,13);
+burstwidth = corrtable10.width;
+latency = corrtable10.latency;
 windows_st = floor(latency - burstwidth/2);
 windows_ed = ceil(latency + burstwidth/2);
 mintm = min(windows_st);
 maxtm = max(windows_ed);
 windows = cell2mat(arrayfun(@(x,y) [x:y]',windows_st,windows_ed,'un',0));
 figure;
-[n b] = hist(windows,[mintm:1:maxtm]);stairs(b,n/sum(n),'k');hold on;
+[n b] = hist(windows,[mintm:5:maxtm]);stairs(b,n/sum(n),'k');hold on;
 xlabel('ms');ylabel('probability');
-set(gca,'fontweight','bold');
-
-burstwidth = corrmat(multiind,5);
-latency = corrmat(multiind,13);
-windows_st = floor(latency - burstwidth/2);
-windows_ed = ceil(latency + burstwidth/2);
-mintm = min(windows_st);
-maxtm = max(windows_ed);
-windows = cell2mat(arrayfun(@(x,y) [x:y]',windows_st,windows_ed,'un',0));
-[n b] = hist(windows,[mintm:1:maxtm]);stairs(b,n/sum(n),'r');hold on;
-xlabel('ms');ylabel('probability');title('burst windows');
-legend({'single units','multi units'});
 set(gca,'fontweight','bold');
     
 %% lagged trial correlation

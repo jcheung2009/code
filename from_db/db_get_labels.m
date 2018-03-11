@@ -27,7 +27,7 @@ if nargin < 2 || strcmpi(single_song,'y') == 0
         end
         
         %gets the labels for the song
-        syllables{j} = labels;
+        syllables{j} = [labels];
         
         %gets the timing of each syllable in the file
         %gets the time of the recorded file
@@ -59,7 +59,7 @@ elseif strcmpi(single_song,'y') == 1
         load([batchfile '.not.mat'])
     end
     
-    syllables = {labels};
+    syllables = {[labels]};
     
     time_of_file = db_timing4_file(batchfile);
     time_of_syllables = db_convert_seconds_to_serialdate(onsets./1000, 'sec');

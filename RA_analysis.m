@@ -1,7 +1,13 @@
 %% multiple regression with volume and duration for each individual case
 
+[crosscorr crosscorr_lags crosscorr_shuff] = RA_crosscorrelate_gapdur('singleunits_leq_1pctISI_2pcterr',6,25,50,[-300 300],0,'burst',0,10,'gap');
+save('gap_multicorrelation_analysis_fr.mat','crosscorr','crosscorr_lags','crosscorr_shuff','-append');
+
+[~,~,trialcorr]=RA_correlate_gapdur('singleunits_leq_1pctISI_2pcterr',6,25,50,-40,0,0,'n','burst',0,10,'gap');
+save('gap_multicorrelation_analysis_fr.mat','trialcorr','-append');
+
 [corrtable5 dattable5]=RA_correlate_gapdur('batchfile',6,25,50,-40,0,0,'n','burst',1,5,'gap');
-[corrtable10 dattable10]=RA_correlate_gapdur('batchfile',6,25,50,-40,0,0,'n','burst',1,10,'gap');
+[corrtable10 dattable10]=RA_correlate_gapdur('singleunits_leq_1pctISI_2pcterr',6,25,50,-40,0,0,'y+','burst',1,10,'gap');
 [corrtable20 dattable20]=RA_correlate_gapdur('batchfile',6,25,50,-40,0,0,'n','burst',1,20,'gap');
 save('gap_multicorrelation_analysis_ifr','corrtable5','dattable5','corrtable10',...
     'dattable10','corrtable20','dattable20');
@@ -29,14 +35,14 @@ save('dur_multicorrelation_analysis_ifr_spks','corrtable5','dattable5','corrtabl
 disp('4');
 
 [corrtable5 dattable5]=RA_correlate_gapdur('batchfile',6,25,50,-40,0,0,'n','burst',0,5,'gap');
-[corrtable10 dattable10]=RA_correlate_gapdur('batchfile',6,25,50,-40,0,0,'n','burst',0,10,'gap');
+[corrtable10 dattable10]=RA_correlate_gapdur('singleunits_leq_1pctISI_2pcterr',6,25,50,-40,0,0,'y+','burst',0,10,'gap');
 [corrtable20 dattable20]=RA_correlate_gapdur('batchfile',6,25,50,-40,0,0,'n','burst',0,20,'gap');
 save('gap_multicorrelation_analysis_fr','corrtable5','dattable5','corrtable10',...
     'dattable10','corrtable20','dattable20');
 disp('5');
 
 [corrtable5 dattable5]=RA_correlate_gapdur('batchfile',5,25,50,-40,0,0,'n','burst',0,5,'syll');
-[corrtable10 dattable10]=RA_correlate_gapdur('batchfile',5,25,50,-40,0,0,'n','burst',0,10,'syll');
+[corrtable10 dattable10]=RA_correlate_gapdur('batchfile',5,25,50,-40,0,0,'y+','burst',0,10,'syll');
 [corrtable20 dattable20]=RA_correlate_gapdur('batchfile',5,25,50,-40,0,0,'n','burst',0,20,'syll');
 save('dur_multicorrelation_analysis_fr','corrtable5','dattable5','corrtable10',...
     'dattable10','corrtable20','dattable20');

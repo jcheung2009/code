@@ -1,6 +1,8 @@
 function spec = jc_plotfvsummary3(fv_syll_sal, fv_syll_cond,syllable,params,trialparams,fignum);
 %summary plot of spectral features (z-score) and distribution plots
-%generate summary changes in pitch, entropy, volume, and pitch cv
+%stores summary changes in pitch, entropy, volume, and pitch cv
+
+%parameters
 conditions=params.conditions;
 base = params.baseepoch;
 removeoutliers=params.removeoutliers;
@@ -15,37 +17,11 @@ else
     detrend = 'n';
 end
        
-
 %exclude wash-in and match time of day
-tb_sal = jc_tb([fv_syll_sal(:).datenm]',7,0);
-tb_cond = jc_tb([fv_syll_cond(:).datenm]',7,0);
-if isempty(treattime)
-    start_time = tb_cond(1)+3600;
-else
-    start_time = time2datenum(treattime) + 3600;%1 hr buffer
-end
-
-if ~strcmp(base,'morn') & isempty(strfind(trialparams.condition,'saline'))
-    ind2 = find(tb_cond > start_time);
-    tb_cond = tb_cond(ind2);
-    ind1 = find(tb_sal >= tb_cond(1));
-    tb_sal = tb_sal(ind1);
-elseif ~strcmp(base,'morn') & ~isempty(strfind(trialparams.condition,'saline'))
-    ind2 = find(tb_cond > start_time);
-    tb_cond = tb_cond(ind2);
-    ind1 = find(tb_sal >= tb_cond(1));
-    tb_sal = tb_sal(ind1);
-elseif strcmp(base,'morn') & isempty(strfind(trialparams.condition,'saline'))
-    ind2 = find(tb_cond > start_time);
-    tb_cond = tb_cond(ind2);
-    ind1 = 1:length(tb_sal);
-    tb_sal = tb_sal(ind1);
-elseif strcmp(base,'morn') & ~isempty(strfind(trialparams.condition,'saline'))
-    ind2 = find(tb_cond >= 5*3600);
-    tb_cond = tb_cond(ind2);
-    ind1 = find(tb_sal < 5*3600) ;
-    tb_sal = tb_sal(ind1);
-end
+tb_sal = [fv_syll_sal(:).datenm]';
+tb_cond = [fv_syll_cond(:).datenm]';
+[ind1 ind2 tb_sal tb_cond] = restricttimewindow(tb_sal,tb_cond,...
+    treattime,base,trialparams.condition);
 
 pitch2 = [fv_syll_cond(ind2).mxvals]';
 vol2 = log([fv_syll_cond(ind2).maxvol]');
@@ -54,7 +30,6 @@ ent2 = [fv_syll_cond(ind2).spent]';
 pitch = [fv_syll_sal(ind1).mxvals]';
 vol = log([fv_syll_sal(ind1).maxvol]');
 ent = [fv_syll_sal(ind1).spent]';
-
 
 %remove outliers
 if strcmp(removeoutliers,'y')
@@ -74,7 +49,6 @@ ent=jc_removenan(ent);
 pitch2=jc_removenan(pitch2);
 vol2=jc_removenan(vol2);
 ent2=jc_removenan(ent2);
-
 tb_sal = pitch(:,1);
 tb_cond = pitch2(:,1);
 pitch = pitch(:,2);
@@ -157,4 +131,31 @@ spec.pitchcv.cv = [cv(pitch) cv(pitch2)];
 spec.pitchcv.percent = pcv_percent;
 spec.pitchcv.pval = pcv_pval;
 
+function [ind1 ind2 tb_sal tb_cond] = restricttimewindow(tb_sal,tb_cond,...
+    treattime,base,condition);
+%restrict and match the time window of analysis between conditions
+%outputs the indices for data and time vectors 
+    %get time vector for data in seconds relative to 7 AM 
+    tb_sal = jc_tb(cell2mat(tb_sal)',7,0);
+    tb_cond = jc_tb(cell2mat(tb_cond)',7,0);
+    if isempty(treattime)
+        start_time = tb_cond(1)+3600;
+    else
+        start_time = time2datenum(treattime) + 3600;%1 hr buffer
+    end
 
+    if ~strcmp(base,'morn') & ~strcmp(condition,'saline')%comparing drug in afternoon to saline in afternoon 
+        ind2 = find(tb_cond > start_time);
+        ind1 = find(tb_sal >= tb_cond(1));
+    elseif ~strcmp(base,'morn') & strcmp(condition,'saline')%comparing saline to saline between days 
+        ind2 = find(tb_cond > start_time);
+        ind1 = find(tb_sal >= tb_cond(1));
+    elseif strcmp(base,'morn') & ~strcmp(condition,'saline')%comparing drug in afternoon to saline in morning
+        ind2 = find(tb_cond > start_time);
+        ind1 = 1:length(tb_sal);
+    elseif strcmp(base,'morn') & strcmp(condition,'saline')%comparing saline in afternoon to saline in morning
+        ind2 = find(tb_cond >= 5*3600);
+        ind1 = find(tb_sal < 5*3600);
+    end
+    tb_sal = tb_sal(ind1);
+    tb_cond = tb_cond(ind2);

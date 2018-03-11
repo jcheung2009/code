@@ -111,6 +111,8 @@ ylabel('transition probability');
 set(h1,'fontweight','bold','xlim',[0.5 length(conditions)+0.5],'xtick',1:length(conditions),...
     'xticklabel',conditions)
 
+
+
 function [ind1 ind2 tb_sal tb_cond] = restricttimewindow(tb_sal,tb_cond,...
     treattime,base,condition);
 %restrict and match the time window of analysis between conditions
