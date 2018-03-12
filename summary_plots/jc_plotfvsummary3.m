@@ -136,8 +136,8 @@ function [ind1 ind2 tb_sal tb_cond] = restricttimewindow(tb_sal,tb_cond,...
 %restrict and match the time window of analysis between conditions
 %outputs the indices for data and time vectors 
     %get time vector for data in seconds relative to 7 AM 
-    tb_sal = jc_tb(cell2mat(tb_sal)',7,0);
-    tb_cond = jc_tb(cell2mat(tb_cond)',7,0);
+    tb_sal = jc_tb(tb_sal,7,0);
+    tb_cond = jc_tb(tb_cond,7,0);
     if isempty(treattime)
         start_time = tb_cond(1)+3600;
     else

@@ -28,7 +28,7 @@ for iii = 1:number_bootstraps
     for jjj = 1:length(motifs)
         %goes through the different motifs and calculates how many
         %times it occured for this bootstrap iteration
-        boot_results.(motifs{jjj}(isletter(motifs{jjj})))(iii) =...
+        boot_results.(motifs{jjj})(iii) =...
             length(strfind(boot_pool,modified_motifs{jjj}))./length(boot_pool);
     end
 
@@ -36,9 +36,8 @@ for iii = 1:number_bootstraps
     %(entropy = Sigma -p * log2 p)
     entropy_iteration = [];
     for nnn = 1:length(motifs)
-        entropy_iteration = [entropy_iteration boot_results.(motifs{nnn}...
-            (isletter(motifs{nnn})))(iii).*log2(boot_results.(motifs{nnn}...
-            (isletter(motifs{nnn})))(iii))/log2(length(motifs))];
+        entropy_iteration = [entropy_iteration boot_results.(motifs{nnn})(iii)....
+            *log2(boot_results.(motifs{nnn})(iii))/log2(length(motifs))];
     end
 
     entropy_results(iii) = sum(entropy_iteration)*-1;
@@ -51,8 +50,8 @@ entropy_results(isnan(entropy_results)) = 0;
 
 for mmm = 1:length(motifs)
     %transposes bootstrap results so it is easier to read
-    boot_results.(motifs{mmm}(isletter(motifs{mmm}))) = ...
-        boot_results.(motifs{mmm}(isletter(motifs{mmm})))';
+    boot_results.(motifs{mmm}) = ...
+        boot_results.(motifs{mmm})';
 end
 
 entropy_results = entropy_results';

@@ -5,7 +5,7 @@ config;
 pathname = fileparts([pwd,'/analysis/data_structures/']);
 ff = load_batchf(batch);
 if isempty(ind)
-    ind = [1 length(ff)];
+    ind = [1:length(ff)];
 end
 
 for ii = 1:length(params.findmotif)
@@ -16,7 +16,7 @@ for ii = 1:length(params.findmotif)
         dtwtemplate = '';
     end
     
-    for i = ind(1):ind(2)%1:length(ff)
+    for i = ind%1:length(ff)
         if isempty(ff(i).name)
             continue
         

@@ -5,9 +5,9 @@ config;
 pathname = fileparts([pwd,'/analysis/data_structures/']);
 ff = load_batchf(batch);
 if isempty(ind)
-    ind = [1 length(ff)];
+    ind = [1:length(ff)];
 end
-for i = ind(1):ind(2)
+for i = ind
     if isempty(ff(i).name)
         continue
     end

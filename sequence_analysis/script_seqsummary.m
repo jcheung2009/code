@@ -4,15 +4,24 @@
 %difference between baseline and treatment in structure 
 
 config;
-h = figure;
+
 seq = struct();
-for i = 1:length(params.trial)
-    if isfield(params,'findseq')
-        for n = 1:length(params.findseq)
-            transitions = params.findseq(n).transitions;
-            fldnames = cellfun(@(x) x(isletter(x)),transitions,'un',0);
-            load(['analysis/data_structures/',params.findseq(n).seqstruct,params.trial(i).name]);
-            load(['analysis/data_structures/',params.findseq(n).seqstruct,params.trial(i).baseline]);
+if isfield(params,'findseq')
+    for n = 1:length(params.findseq)
+        h = figure;
+        transitions = params.findseq(n).transitions;
+        fldnames = cellfun(@(x) x(isletter(x)),transitions,'un',0);
+        for i = 1:length(params.trial)
+            if exist(['analysis/data_structures/',params.findseq(n).seqstruct,params.trial(i).name,'.mat'])
+                load(['analysis/data_structures/',params.findseq(n).seqstruct,params.trial(i).name]);
+            else
+                continue
+            end
+            if exist(['analysis/data_structures/',params.findseq(n).seqstruct,params.trial(i).baseline,'.mat'])
+                load(['analysis/data_structures/',params.findseq(n).seqstruct,params.trial(i).baseline]);
+            else
+                continue
+            end
             seq_cond = eval([params.findseq(n).seqstruct,params.trial(i).name]);
             seq_base = eval([params.findseq(n).seqstruct,params.trial(i).baseline]);
             seq(i).([strjoin(fldnames,'_')]) = jc_plotseqsummary(seq_base,...

@@ -5,14 +5,14 @@ config;
 pathname = fileparts([pwd,'/analysis/data_structures/']);
 ff = load_batchf(batch);
 if isempty(ind)
-    ind = [1 length(ff)];
+    ind = [1:length(ff)];
 end
 for ii = 1:length(params.findrepeat)
     if ~exist(params.findrepeat(ii).dtwtemplate)
         load(['analysis/',params.findrepeat(ii).dtwtemplate]);
     end
     dtwtemplate = eval([params.findrepeat(ii).dtwtemplate]);
-    for i = ind(1):ind(2)
+    for i = ind
         if isempty(ff(i).name)
             continue
         end
