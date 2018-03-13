@@ -10,7 +10,7 @@ function [trans_per_song time_per_song] = jc_cnt_truncated_motifs(batchfile,moti
 %loop through each song and count when full or truncated motifs occurred
 commonsyl = motif(1);
 for i = 1:length(all_syllables)
-    [st ed] = regexp(all_syllables{i},[commonsyl,'\w*']);
+    [st ed] = regexp(all_syllables{i},[commonsyl,'[abcder]+']);
     trans_per_song{i} = ed-st+1 == length(motif);
     time_per_song{i} = time_syl{i}(st);
 end
