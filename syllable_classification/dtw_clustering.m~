@@ -132,6 +132,8 @@ for i = 1:numcomponents
         sp = abs(sp(ind,:));
         ind = find(abs(sp)<=mean(mean(abs(sp))));
         sp(ind)=mean(mean(abs(sp)))/2;
-        imagesc(log(sp));axis('xy');;
+        sp = log(abs(sp(ind,:)));
+        
+        imagesc(sp);axis('xy');;
     end
 end
