@@ -1,3 +1,5 @@
+%test dtw method for syllable classification using gmm
+
 ff = load_batchf('batch.keep');
 
 ons = []; offs = []; lbls = []; filtsong = [];

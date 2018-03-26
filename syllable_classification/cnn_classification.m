@@ -1,3 +1,4 @@
+%testing use of convolutional neural network to classify syllables
 
 %% extract and process spectrograms for training and test data
 %PCA whitening, no downsampling, log spectrograms are smoothed and min max normalized
