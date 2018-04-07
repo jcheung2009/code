@@ -7,7 +7,21 @@ nfft = 256;
 noise = filtsong(1:fs);
 s = filtsong(3*fs:3*fs+fs-1);
 
+fxnoise = fft(noise,nfft);
+fxs = fft(s,nfft);
+pxnoise = fxnoise.*conj(fxnoise);
+pxs = fxs.*conj(fxs);
+pxnxs = fxs.*conj(fxnoise);
+cxy = pxnxs./sqrt(pxnoise.*pxs);
+cxy = 
+
 pxnoise = pwelch(noise,hann(nfft),nfft-10,nfft,fs);
+pxsignalnoise = pwelch(s,hann(nfft),nfft-10,nfft,fs);
+
+
+
+
+
 pxns = cpsd(noise',s',hann(nfft),nfft-10,nfft,fs);
 
 H = pxns./pxnoise;

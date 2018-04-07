@@ -40,14 +40,9 @@ for ifn=1:length(ff)
         continue;
     end
     
-    if has_nonalphanum([PRENOTE,NOTE,POSTNOTE])
-        p=regexp(labels,[PRENOTE,NOTE,POSTNOTE]);
-        if ~isempty(PRENOTE)
-            p=p+1;
-        end
-    else
-        p = strfind(labels,[PRENOTE,NOTE,POSTNOTE])+length(PRENOTE);
-    end
+ 
+    p = strfind(labels,[PRENOTE,NOTE,POSTNOTE])+length(PRENOTE);
+    
     
     for ii = 1:length(p)
         if(length(onsets)==length(labels))

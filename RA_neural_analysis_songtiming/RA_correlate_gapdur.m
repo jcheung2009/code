@@ -31,6 +31,8 @@ elseif strcmp(plotcasecondition,'y++')
     plotcasecondition = ['rpval<=0.05 & abs(r(2)) >= 0.3 & pkFR >=',num2str(activitythresh)];
 elseif strcmp(plotcasecondition,'y+su')
      plotcasecondition = ['rpval<=0.05 & mean(pct_error)<=0.02 & pkFR >=',num2str(activitythresh)];
+elseif strcmp(plotcasecondition,'y-')
+    plotcasecondition = ['rpval>0.05 & pkFR >=',num2str(activitythresh)];
 end
 
 %% 
@@ -81,8 +83,10 @@ for i = 1:length(ff)
         end
         
         %order trials by gapdur
-        [~,ix] = sort(dur_id,'descend');
-        dur_id = dur_id(ix);seqons = seqons(ix,:);seqoffs = seqoffs(ix,:);
+        if nargout < 3
+            [~,ix] = sort(dur_id,'descend');
+            dur_id = dur_id(ix);seqons = seqons(ix,:);seqoffs = seqoffs(ix,:);
+        end
 
         %offsets for alignment
         durseq = seqoffs-seqons;

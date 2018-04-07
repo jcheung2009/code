@@ -42,7 +42,7 @@ save('gap_multicorrelation_analysis_fr','corrtable5','dattable5','corrtable10',.
 disp('5');
 
 [corrtable5 dattable5]=RA_correlate_gapdur('batchfile',5,25,50,-40,0,0,'n','burst',0,5,'syll');
-[corrtable10 dattable10]=RA_correlate_gapdur('batchfile',5,25,50,-40,0,0,'y+','burst',0,10,'syll');
+[corrtable10 dattable10]=RA_correlate_gapdur('singleunits_leq_1pctISI_2pcterr',5,25,50,-40,0,0,'y-','burst',0,10,'syll');
 [corrtable20 dattable20]=RA_correlate_gapdur('batchfile',5,25,50,-40,0,0,'n','burst',0,20,'syll');
 save('dur_multicorrelation_analysis_fr','corrtable5','dattable5','corrtable10',...
     'dattable10','corrtable20','dattable20');

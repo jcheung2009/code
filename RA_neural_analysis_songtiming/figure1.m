@@ -13,14 +13,14 @@ tm = tm-0.378;
 figure;imagesc(tm,f,log(abs(sp)));axis('xy');colormap('hot');
 
 %% figure 1 syll
-filename = '.mat';
-[dat fs] = evsoundin('','G26-G23-05282006.002.cbin','obs0r');
-load G26-G23-05282006.002.cbin.not.mat
+filename = 'combined_data_Pk35G27_MU_06_01_2007_1130_1215_PCA_CH2_TH_recommended.mat';
+[dat fs] = evsoundin('','Pk35-G27-06012007.002.cbin','obs0r');
+load Pk35-G27-06012007.002.cbin.not.mat
 filtsong=bandpass(dat,fs,300,10000,'hanningffir');
-ind = strfind(labels,'iabcd')
-ix = 2;
-m = filtsong(floor((onsets(ind(ix)+2)-379)*1e-3*fs):ceil((onsets(ind(ix)+2)+353)*1e-3*fs));
+ind = strfind(labels,'adefg')
+ix = 1;
+m = filtsong(floor((onsets(ind(ix)+2)-273)*1e-3*fs):ceil((onsets(ind(ix)+2)+323)*1e-3*fs));
 [sp f tm] = jc_spectrogram(m,fs);
-tm = tm-0.379;
+tm = tm-0.273;
 figure;imagesc(tm,f,log(abs(sp)));axis('xy');colormap('hot');
 

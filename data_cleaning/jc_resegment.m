@@ -15,7 +15,7 @@ for i = 1:length(ff)
         [dat Fs] = evsoundin('',fn,'w');
     end
     sm = evsmooth(dat,Fs);
-    [ons offs] = SegmentNotes(log10(sm),Fs,min_int2,min_dur2,threshold2);%in seconds
+    [ons offs] = SegmentNotes(log10(sm),Fs,min_int2,min_dur2,log10(threshold2));%in seconds
     labels2 = char(ones([1,length(ons)])*fix('-'));
     syllind = regexp(labels,'[a-z]');
     for ii = 1:length(syllind)
@@ -27,7 +27,7 @@ for i = 1:length(ff)
     onsets = ons*1e3;%in ms
     offsets = offs*1e3;
     fname = fn;
-    threshold = 10^threshold2;
+    threshold = threshold2;
     min_int = min_int2;
     min_dur = min_dur2;
     cmd = ['save ',fn,'.not.mat fname Fs labels min_int min_dur ',...
