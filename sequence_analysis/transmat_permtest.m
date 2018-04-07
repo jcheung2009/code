@@ -1,23 +1,22 @@
 salseq = [];
 ff = load_batchf('batch.keep');
-for i = 106:156
+for i = 60:length(ff)
     load([ff(i).name,'.not.mat']);
     salseq = [salseq labels];
 end
 
 nseq = [];
 ff = load_batchf('batch.keep');
-for i = 157:length(ff)
+for i = 60:length(ff)
     load([ff(i).name,'.not.mat']);
     nseq = [nseq labels];
 end
+% 
+% salseq = salseq(find(isletter(salseq)));
+% nseq = nseq(find(isletter(nseq)));
+nseq(strfind(nseq,'i')) = [];
 
-salseq = salseq(find(isletter(salseq)));
-nseq = nseq(find(isletter(nseq)));
-salseq(strfind(salseq,'d')) = [];
-nseq(strfind(nseq,'d')) = [];
-
-sylls = unique(seq);
+sylls = unique(salseq);
 numseqsal = NaN(1,length(salseq));
 for i = 1:length(sylls)
     numseqsal(strfind(salseq,sylls(i))) = i;
@@ -30,21 +29,21 @@ for i = 1:length(sylls)
 end
 naspmmat = getTransitionMatrix(numseqdrug,1);
 
-naspmmat = naspmmat./sum(naspmmat,2)
+naspmmat = naspmmat./sum(naspmmat,2);
 salmat = salmat./sum(salmat,2);
 
 df = sum(sum((naspmmat-salmat).^2));
 
 salseq = {};
 ff = load_batchf('batch.keep');
-for i = 1:length(ff)
+for i = 60:length(ff)
     load([ff(i).name,'.not.mat']);
     salseq = [salseq; labels];
 end
 
 nseq = {};
 ff = load_batchf('batch.keep');
-for i = 106:length(ff)
+for i = 60:length(ff)
     load([ff(i).name,'.not.mat']);
     nseq = [nseq; labels];
 end
@@ -61,10 +60,10 @@ for i = 1:ntrials
     drugsamp = shuffpool(nsal+1:end);
     salsamp = cell2mat(salsamp');
     drugsamp = cell2mat(drugsamp');
-    salsamp(strfind(salsamp,'d')) = [];
-    drugsamp(strfind(drugsamp,'d')) = [];
     salsamp  = salsamp(find(isletter(salsamp)));
     drugsamp = drugsamp(find(isletter(drugsamp)));
+    salsamp(strfind(salsamp,'i')) = [];
+    drugsamp(strfind(drugsamp,'i')) = [];
     sal = NaN(1,length(salsamp));
     drug = NaN(1,length(drugsamp));
     for n = 1:length(sylls)
@@ -78,4 +77,5 @@ for i = 1:ntrials
     difftest(i) = sum(sum((drug-sal).^2));
 end
 
-    
+naspment = -sum(naspmmat.*log(naspmmat),2)./log(5)
+salent = -sum(salmat.*log(salmat),2)./log(5)
