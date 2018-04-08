@@ -1,20 +1,19 @@
+fileid = 1;
+
 salseq = [];
 ff = load_batchf('batch.keep');
-for i = 60:length(ff)
+for i = 1:fileid%length(ff)
     load([ff(i).name,'.not.mat']);
     salseq = [salseq labels];
 end
 
 nseq = [];
 ff = load_batchf('batch.keep');
-for i = 60:length(ff)
+for i = fileid+1:length(ff)
     load([ff(i).name,'.not.mat']);
     nseq = [nseq labels];
 end
-% 
-% salseq = salseq(find(isletter(salseq)));
-% nseq = nseq(find(isletter(nseq)));
-nseq(strfind(nseq,'i')) = [];
+
 
 sylls = unique(salseq);
 numseqsal = NaN(1,length(salseq));
@@ -29,41 +28,42 @@ for i = 1:length(sylls)
 end
 naspmmat = getTransitionMatrix(numseqdrug,1);
 
+ix = strfind(sylls,'-');
+salmat(ix,:) = [];
+salmat(:,ix) = [];
+naspmmat(ix,:) = [];
+naspmmat(:,ix) = [];
+
 naspmmat = naspmmat./sum(naspmmat,2);
 salmat = salmat./sum(salmat,2);
 
-df = sum(sum((naspmmat-salmat).^2));
-
 salseq = {};
 ff = load_batchf('batch.keep');
-for i = 60:length(ff)
+for i = 1:fileid%length(ff)
     load([ff(i).name,'.not.mat']);
     salseq = [salseq; labels];
 end
 
 nseq = {};
 ff = load_batchf('batch.keep');
-for i = 60:length(ff)
+for i = fileid+1:length(ff)
     load([ff(i).name,'.not.mat']);
     nseq = [nseq; labels];
 end
 
-
-ntrials = 1000;
+ntrials = 10000;
 pooled = [salseq;nseq];
 nsal = length(salseq);
 ndrug = length(nseq);
 difftest = NaN(ntrials,1);
+enttest = NaN(size(naspmmat,1),ntrials);
+diffprob = NaN(size(naspmmat,1),ntrials);
 for i = 1:ntrials
     shuffpool = pooled(randperm(length(pooled),length(pooled)));
     salsamp = shuffpool(1:nsal);
     drugsamp = shuffpool(nsal+1:end);
     salsamp = cell2mat(salsamp');
     drugsamp = cell2mat(drugsamp');
-    salsamp  = salsamp(find(isletter(salsamp)));
-    drugsamp = drugsamp(find(isletter(drugsamp)));
-    salsamp(strfind(salsamp,'i')) = [];
-    drugsamp(strfind(drugsamp,'i')) = [];
     sal = NaN(1,length(salsamp));
     drug = NaN(1,length(drugsamp));
     for n = 1:length(sylls)
@@ -72,10 +72,52 @@ for i = 1:ntrials
     end
     sal = getTransitionMatrix(sal,1);
     drug = getTransitionMatrix(drug,1);
+    
+    sal(ix,:) = [];
+    sal(:,ix) = [];
+    drug(ix,:) = [];
+    drug(:,ix) = [];
+
     drug = drug./sum(drug,2);
     sal = sal./sum(sal,2);
+    
     difftest(i) = sum(sum((drug-sal).^2));
+    
+    salent = (sal.*log2(sal))./log2(length(sylls));
+    salent(find(isnan(salent))) = 0;
+    salent = -sum(salent,2);
+    drugent = (drug.*log2(drug))./log2(length(sylls));
+    drugent(find(isnan(drugent))) = 0;
+    drugent = -sum(drugent,2);
+    enttest(:,i) =sum((salent-drugent).^2,2);
+    
+    diffprob(:,i) = sum((drug-sal).^2,2);
+    
 end
 
-naspment = -sum(naspmmat.*log(naspmmat),2)./log(5)
-salent = -sum(salmat.*log(salmat),2)./log(5)
+%sum squared difference of all transitions
+df = sum(sum((naspmmat-salmat).^2));
+%sum sq diff of entropy of each row (each syllable and its transitions)
+naspment = (naspmmat.*log2(naspmmat))./log2(length(sylls));
+naspment(find(isnan(naspment))) = 0;
+naspment = -sum(naspment,2);
+salent = (salmat.*log2(salmat))./log2(length(sylls));
+salent(find(isnan(salent))) = 0;
+salent = -sum(salent,2);
+dfent = sum((naspment-salent).^2,2);
+%sum sq difference in transition probability for each row (each syllable and its
+%transitions)
+dfprob = sum((naspmmat-salmat).^2,2);
+
+p1 = length(find(difftest>df))/ntrials
+p2 = NaN(size(naspmmat,1),1);
+for i = 1:size(naspmmat,1)
+    p2(i) = length(find(enttest(i,:)>dfent(i)))/ntrials;
+end
+p2
+p3 = NaN(size(naspmmat,1),1);
+for i = 1:size(naspmmat,1)
+    p3(i) = length(find(diffprob(i,:)>dfprob(i)))/ntrials;
+end
+p3
+
