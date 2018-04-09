@@ -1,14 +1,15 @@
-fileid = 1;
+fileid = 35;
+batch = 'batch.keep.rand.keep';
 
 salseq = [];
-ff = load_batchf('batch.keep');
+ff = load_batchf(batch);
 for i = 1:fileid%length(ff)
     load([ff(i).name,'.not.mat']);
     salseq = [salseq labels];
 end
 
 nseq = [];
-ff = load_batchf('batch.keep');
+ff = load_batchf(batch);
 for i = fileid+1:length(ff)
     load([ff(i).name,'.not.mat']);
     nseq = [nseq labels];
@@ -37,24 +38,24 @@ naspmmat(:,ix) = [];
 naspmmat = naspmmat./sum(naspmmat,2);
 salmat = salmat./sum(salmat,2);
 
-salseq = {};
-ff = load_batchf('batch.keep');
+salseq2 = {};
+ff = load_batchf(batch);
 for i = 1:fileid%length(ff)
     load([ff(i).name,'.not.mat']);
-    salseq = [salseq; labels];
+    salseq2 = [salseq2; labels];
 end
 
-nseq = {};
-ff = load_batchf('batch.keep');
+nseq2 = {};
+ff = load_batchf(batch);
 for i = fileid+1:length(ff)
     load([ff(i).name,'.not.mat']);
-    nseq = [nseq; labels];
+    nseq2 = [nseq2; labels];
 end
 
 ntrials = 10000;
-pooled = [salseq;nseq];
-nsal = length(salseq);
-ndrug = length(nseq);
+pooled = [salseq2;nseq2];
+nsal = length(salseq2);
+ndrug = length(nseq2);
 difftest = NaN(ntrials,1);
 enttest = NaN(size(naspmmat,1),ntrials);
 diffprob = NaN(size(naspmmat,1),ntrials);
