@@ -57,14 +57,13 @@ for i = 1:length(trials)
     nseqmat = nseqmat./sum(nseqmat,2);
     
     pooled = [seqfiles;nseqfiles];
-    seq_samp = length(seqfiles);
-    nseq_samp = length(nseqfiles);
+    seq_sampsize = length(seqfiles);
     enttest = NaN(size(seqmat,1),nshufftrials);
     diffprob = NaN(size(seqmat,1),nshufftrials);
     for rep = 1:nshufftrials
         shuffpool = pooled(randperm(length(pooled),length(pooled)));
-        seqsamp = shuffpool(1:seq_samp);
-        nseqsamp = shuffpool(seq_samp+1:end);
+        seqsamp = shuffpool(1:seq_sampsize);
+        nseqsamp = shuffpool(seq_sampsize+1:end);
         seqsamp = cell2mat(seqsamp');
         nseqsamp = cell2mat(nseqsamp');
         numseqsamp = NaN(1,length(seqsamp));
@@ -112,6 +111,7 @@ for i = 1:length(trials)
     
     seqsummary(i).trialname = trials(i).name;
     seqsummary(i).condition = trials(i).condition;
+    seqsummary(i).sylls = sylls;
     seqsummary(i).basemat = seqmat;
     seqsummary(i).condmat = nseqmat;
     seqsummary(i).diffprob = dfprob;
@@ -137,10 +137,10 @@ function [ind1 ind2 tb_sal tb_cond] = restricttimewindow(tb_sal,tb_cond,...
 
     if ~strcmp(base,'morn') & isempty(strfind(condition,'saline'))%comparing drug in afternoon to saline in afternoon 
         ind2 = find(tb_cond > start_time);
-        ind1 = find(tb_sal >= tb_cond(1));
+        ind1 = find(tb_sal >= start_time);
     elseif ~strcmp(base,'morn') & ~isempty(strfind(condition,'saline'))%comparing saline to saline between days 
         ind2 = find(tb_cond > start_time);
-        ind1 = find(tb_sal >= tb_cond(1));
+        ind1 = find(tb_sal >= start_time);
     elseif strcmp(base,'morn') & isempty(strfind(condition,'saline'))%comparing drug in afternoon to saline in morning
         ind2 = find(tb_cond > start_time);
         ind1 = 1:length(tb_sal);

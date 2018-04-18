@@ -1,8 +1,6 @@
-function [sp f tm pxx] = jc_spectrogram(filtsong,fs,varargin);
-if ~isempty(varargin)
+function [sp f tm pxx] = jc_spectrogram(filtsong,fs,plt,varargin);
+if nargin > 3
     ax = varargin{1};
-else
-    ax = '';
 end
 
 %spectrogram params
@@ -19,13 +17,13 @@ f=f(indf);sp=sp(indf,:);
 ind = find(abs(sp)<=mean(mean(abs(sp))));
 sp(ind)=mean(mean(abs(sp)))/2;
 
-
-%tm=tm-0.016;
-if ~isempty(ax)
-    axes(ax);hold on;imagesc(tm,f,log(abs(sp)));axis('xy');hold on;
-    xlim([tm(1) tm(end)]);ylim([f(1) f(end)]);
-else
-    figure;imagesc(tm,f,log(abs(sp)));axis('xy');hold on;
-    xlim([tm(1) tm(end)]);ylim([f(1) f(end)]);
+if plt==1
+    if nargin > 3
+        axes(ax);hold on;imagesc(tm,f,log(abs(sp)));axis('xy');hold on;
+        xlim([tm(1) tm(end)]);ylim([f(1) f(end)]);
+    else
+        figure;imagesc(tm,f,log(abs(sp)));axis('xy');hold on;
+        xlim([tm(1) tm(end)]);ylim([f(1) f(end)]);
+    end
+    xlabel('seconds');ylabel('Hz');
 end
-xlabel('seconds');ylabel('Hz');

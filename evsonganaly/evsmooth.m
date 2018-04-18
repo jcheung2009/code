@@ -45,5 +45,5 @@ smooth = conv(h, squared_song);
 offset = round((length(smooth)-length(filtsong))/2);
 smooth=smooth(1+offset:length(filtsong)+offset);
 
-smooth(500:510);
-return;
+
+
