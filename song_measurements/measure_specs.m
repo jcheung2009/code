@@ -1,4 +1,4 @@
-function [pitch pitchcontour spectempent entvar varargout] = measure_specs(filtsong,fvalbnd,timeshift,fs);
+function [pitch pitchcontour spectempent entvar varargout] = measure_specs(filtsong,fvalbnd,timeshift,fs,nbuffer);
 %measure pitch at target timepoint in syllable measure pitch contour and
 %spectrotemporal entropy
 
@@ -33,7 +33,7 @@ else
         end
         pitchcontour = cat(1,pitchcontour,mean(diff([0,mxtmpvec])));
     end
-    tm=tm-0.016;%to account for buffer time added to filtsong)
+    tm=tm-(nbuffer/fs);%to account for buffer time added to filtsong)
     
     %estimate pitch at target time
     if length(timeshift) == 1

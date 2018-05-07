@@ -68,7 +68,7 @@ for ifn=1:length(ff)
                 offsamp2 = onsamp-nbuffer+sm_offs;
                 ton = (onsamp2/fs)*1e3;%best estimate of time onset in song in ms
                 toff = (offsamp2/fs)*1e3;%best estimate of time offset in song in ms
-                smtemp=dat(onsamp2-nbuffer:offsamp2+nbuffer);
+                smtemp=dat(onsamp-nbuffer:offsamp+nbuffer);
                 filtsong=bandpass(smtemp,fs,500,10000,'hanningffir'); 
                 sm=evsmooth(smtemp,fs,'','','',5);
             else
@@ -76,7 +76,7 @@ for ifn=1:length(ff)
             end
             
             %spectral measurements
-            [mxvals pc spectempent entvar sp f tm] = measure_specs(filtsong,FVALBND,TIMESHIFT,fs,nbuffer);
+            [mxvals pc spectempent entvar sp f tm] = measure_specs(filtsong,FVALBND,TIMESHIFT,fs);
             pc = [tm' pc]; 
 
             %extract datenum from rec file, add syllable ton in seconds
