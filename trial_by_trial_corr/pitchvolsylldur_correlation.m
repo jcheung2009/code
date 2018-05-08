@@ -22,9 +22,9 @@ for syll = 1:length(params.findnote)
         %cut off washin time
         tb_cond = jc_tb([testdata(:).datenm]',7,0);
         if ~isempty(trials(i).treattime)
-            start_time = tb_cond(1) + 3600; 
+            start_time = time2datenum(trials(i).treattime) + 5400;%1.5 hr buffer
         else
-            start_time = time2datenum(trials(i).treattime) + 3600;%1.5 hr buffer
+            start_time = tb_cond(1) + 5400; 
         end
         ind = find(tb_cond >= start_time);
         testdata = testdata(ind);
