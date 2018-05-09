@@ -309,41 +309,245 @@ plot([1 2],[volsylldurcorrs_sal volsylldurcorrs_naspm],'k')
 xlim([0 3]);title('vol vs sylldur');
 %% is there an effect of naspm on pitch vs volume? 
 
+%estimate the interaction effect of treatment (naspm or saline ctrl) on
+%pitch vs volume
 c = unique(pitchvolsylldur_data(:,{'birdname','syllID'}));
-naspmeffect = [];
-pitchbeta = [];
+naspmbeta = [];salinectrlbeta = [];
 for i = 1:height(c)
-%     ind = find(strcmp(pitchvolsylldur_data.birdname,c(i,:).birdname) & ...
-%         strcmp(pitchvolsylldur_data.syllID,c(i,:).syllID) & ...
-%         strcmp(pitchvolsylldur_data.condition,'saline'));
-%     ind2 = find(strcmp(pitchvolsylldur_data.birdname,c(i,:).birdname) & ...
-%         strcmp(pitchvolsylldur_data.syllID,c(i,:).syllID) & ...
-%         strcmp(pitchvolsylldur_data.condition,'naspm'));
-%     figure;hold on;
-%     plot(pitchvolsylldur_data{ind,'pitch'},...
-%         pitchvolsylldur_data{ind,'volume'},'k.');hold on;
-%     plot(pitchvolsylldur_data{ind2,'pitch'},...
-%         pitchvolsylldur_data{ind2,'volume'},'r.');hold on;
-    
+    %extract data for each syllable for naspm trial
     ind = find(strcmp(pitchvolsylldur_data.birdname,c(i,:).birdname) & ...
-        strcmp(pitchvolsylldur_data.syllID,c(i,:).syllID));
-%     numsaltrials = length(find(strcmp(pitchvolsylldur_data.birdname,c(i,:).birdname) & ...
-%         strcmp(pitchvolsylldur_data.syllID,c(i,:).syllID) & ...
-%         strcmp(pitchvolsylldur_data.condition,'saline')));
-%     numdrugtrials = length(ind)-numsaltrials;
+        strcmp(pitchvolsylldur_data.syllID,c(i,:).syllID) & ...
+        (strcmp(pitchvolsylldur_data.condition,'saline') | ...
+        strcmp(pitchvolsylldur_data.condition,'naspm')));
     subset = pitchvolsylldur_data(ind,:);
-%     shuffsubset = subset(randi(height(subset),1,height(subset)),:)
-%     figure;plot(shuffsubset{1:numsaltrials,'pitch'},...
-%         shuffsubset{1:numsaltrials,'volume'},'k.');hold on;
-%     plot(shuffsubset{numsaltrials+1:end,'pitch'},...
-%         shuffsubset{numsaltrials+1:end,'volume'},'r.');hold on;
-%     [r p] = corrcoef(shuffsubset{1:numsaltrials,{'pitch','volume'}},'rows','complete');
-%     [r p] = corrcoef(shuffsubset{numsaltrials+1:end,{'pitch','volume'}},'rows','complete')
-    
     formula = 'volume ~ pitch*condition';
     mdl = fitlm(subset,formula);
-    naspmeffect = [naspmeffect; mdl.Coefficients{end,{'Estimate','pValue'}}];
-    pitchbeta = [pitchbeta; mdl.Coefficients{3,{'Estimate','pValue'}}];
+    naspmbeta = [naspmbeta; mdl.Coefficients{'pitch',{'Estimate','pValue'}} ...
+        mdl.Coefficients{'condition_naspm:pitch',{'Estimate','pValue'}}];
+    
+    %extract data for each syllable in saline ctrl trial
+    ind = find(strcmp(pitchvolsylldur_data.birdname,c(i,:).birdname) & ...
+        strcmp(pitchvolsylldur_data.syllID,c(i,:).syllID) & ...
+        (strcmp(pitchvolsylldur_data.condition,'saline1') | ...
+        strcmp(pitchvolsylldur_data.condition,'saline2')));
+    subset = pitchvolsylldur_data(ind,:);
+    formula = 'volume ~ pitch*condition';
+    mdl = fitlm(subset,formula);
+    salinectrlbeta = [salinectrlbeta; mdl.Coefficients{'pitch',{'Estimate','pValue'}} ...
+        mdl.Coefficients{'condition_saline2:pitch',{'Estimate','pValue'}}];
+end
+%test if slopes are different
+naspmbeta = array2table(naspmbeta,'VariableNames',{'pitch_beta','pitch_pval',...
+    'pitchinteraction','pitchinteraction_pval'});
+naspmbeta.condition = repmat({'naspm'},height(naspmbeta),1);
+salinectrlbeta = array2table(salinectrlbeta,'VariableNames',{'pitch_beta','pitch_pval',...
+    'pitchinteraction','pitchinteraction_pval'});
+salinectrlbeta.condition = repmat({'saline'},height(naspmbeta),1);
+allbetas = [naspmbeta;salinectrlbeta];
+formula = 'pitchinteraction ~ pitch_beta*condition';
+mdl = fitlm(allbetas,formula);
+pVal = mdl.Coefficients{'pitch_beta:condition_saline','pValue'};
+
+%plot effect of treatment on pitch vs volume
+figure;plot(naspmbeta.pitch_beta,naspmbeta.pitchinteraction,'r.','markersize',10);hold on;lsline
+plot(salinectrlbeta.pitch_beta,salinectrlbeta.pitchinteraction,'k.','markersize',10);lsline
+xlabel('pitch beta');ylabel('interaction effect on pitch');
+legend({'naspm','','saline',''});title('pitch vs volume');
+text(0,1,['p=',num2str(pVal)],'units','normalized','verticalalignment','top');
+
+%plot pitch vs vol correlation at baseline vs treatment (naspm or saline
+%ctrl)
+c = unique(pitchvolsylldur_corrsummary(:,{'birdname','syllID'}));
+naspmcorr = [];salinectrlcorr= [];
+for i = 1:height(c)
+    %extract data for each syllable for naspm trial
+    ind = find(strcmp(pitchvolsylldur_corrsummary.birdname,c(i,:).birdname) & ...
+        strcmp(pitchvolsylldur_corrsummary.syllID,c(i,:).syllID));
+    subset = pitchvolsylldur_corrsummary(ind,:);
+    
+    naspmcorr = [naspmcorr; subset{strcmp(subset.condition,'saline'),'pitchvol'} ...
+        subset{strcmp(subset.condition,'naspm'),'pitchvol'}];
+    salinectrlcorr = [salinectrlcorr; subset{strcmp(subset.condition,'saline1'),'pitchvol'} ...
+        subset{strcmp(subset.condition,'saline2'),'pitchvol'}];
 end
 
-figure;plot(pitchbeta(:,1),naspmeffect(:,1),'k.');
+%test if slopes are different
+naspmcorr = array2table(naspmcorr,'VariableNames',{'baseline_corr','baseline_corr_pval',...
+    'treatment_corr','treatment_corr_pval'});
+naspmcorr.condition = repmat({'naspm'},height(naspmcorr),1);
+salinectrlcorr = array2table(salinectrlcorr,'VariableNames',{'baseline_corr','baseline_corr_pval',...
+    'treatment_corr','treatment_corr_pval'});
+salinectrlcorr.condition = repmat({'saline'},height(salinectrlcorr),1);
+allbetas = [naspmcorr;salinectrlcorr];
+formula = 'treatment_corr ~ baseline_corr*condition';
+mdl = fitlm(allbetas,formula);
+pVal = mdl.Coefficients{'baseline_corr:condition_saline','pValue'};
+
+figure;plot(naspmcorr.baseline_corr,naspmcorr.treatment_corr,'r.','markersize',10);hold on;lsline
+plot(salinectrlcorr.baseline_corr,salinectrlcorr.treatment_corr,'k.','markersize',10);hold on;lsline
+xlabel('baseline correlation');ylabel('treatment correlation') 
+legend({'naspm','','saline',''});title('pitch vs volume');
+text(0,1,['p=',num2str(pVal)],'units','normalized','verticalalignment','top');
+
+%% is there an effect of naspm on pitch vs sylldur? 
+
+%estimate the interaction effect of treatment (naspm or saline ctrl) on
+%pitch vs sylldur
+c = unique(pitchvolsylldur_data(:,{'birdname','syllID'}));
+naspmbeta = [];salinectrlbeta = [];
+for i = 1:height(c)
+    %extract data for each syllable for naspm trial
+    ind = find(strcmp(pitchvolsylldur_data.birdname,c(i,:).birdname) & ...
+        strcmp(pitchvolsylldur_data.syllID,c(i,:).syllID) & ...
+        (strcmp(pitchvolsylldur_data.condition,'saline') | ...
+        strcmp(pitchvolsylldur_data.condition,'naspm')));
+    subset = pitchvolsylldur_data(ind,:);
+    formula = 'sylldur ~ pitch*condition';
+    mdl = fitlm(subset,formula);
+    naspmbeta = [naspmbeta; mdl.Coefficients{'pitch',{'Estimate','pValue'}} ...
+        mdl.Coefficients{'condition_naspm:pitch',{'Estimate','pValue'}}];
+    
+    %extract data for each syllable in saline ctrl trial
+    ind = find(strcmp(pitchvolsylldur_data.birdname,c(i,:).birdname) & ...
+        strcmp(pitchvolsylldur_data.syllID,c(i,:).syllID) & ...
+        (strcmp(pitchvolsylldur_data.condition,'saline1') | ...
+        strcmp(pitchvolsylldur_data.condition,'saline2')));
+    subset = pitchvolsylldur_data(ind,:);
+    formula = 'sylldur ~ pitch*condition';
+    mdl = fitlm(subset,formula);
+    salinectrlbeta = [salinectrlbeta; mdl.Coefficients{'pitch',{'Estimate','pValue'}} ...
+        mdl.Coefficients{'condition_saline2:pitch',{'Estimate','pValue'}}];
+end
+%test if slopes are different
+naspmbeta = array2table(naspmbeta,'VariableNames',{'pitch_beta','pitch_pval',...
+    'pitchinteraction','pitchinteraction_pval'});
+naspmbeta.condition = repmat({'naspm'},height(naspmbeta),1);
+salinectrlbeta = array2table(salinectrlbeta,'VariableNames',{'pitch_beta','pitch_pval',...
+    'pitchinteraction','pitchinteraction_pval'});
+salinectrlbeta.condition = repmat({'saline'},height(naspmbeta),1);
+allbetas = [naspmbeta;salinectrlbeta];
+formula = 'pitchinteraction ~ pitch_beta*condition';
+mdl = fitlm(allbetas,formula);
+pVal = mdl.Coefficients{'pitch_beta:condition_saline','pValue'};
+
+%plot effect of treatment on pitch vs volume
+figure;plot(naspmbeta.pitch_beta,naspmbeta.pitchinteraction,'r.','markersize',10);hold on;lsline
+plot(salinectrlbeta.pitch_beta,salinectrlbeta.pitchinteraction,'k.','markersize',10);lsline
+xlabel('pitch beta');ylabel('interaction effect on pitch');
+legend({'naspm','','saline',''});title('pitch vs sylldur');
+text(0,1,['p=',num2str(pVal)],'units','normalized','verticalalignment','top');
+
+%plot pitch vs sylldur correlation at baseline vs treatment (naspm or saline
+%ctrl)
+c = unique(pitchvolsylldur_corrsummary(:,{'birdname','syllID'}));
+naspmcorr = [];salinectrlcorr= [];
+for i = 1:height(c)
+    %extract data for each syllable for naspm trial
+    ind = find(strcmp(pitchvolsylldur_corrsummary.birdname,c(i,:).birdname) & ...
+        strcmp(pitchvolsylldur_corrsummary.syllID,c(i,:).syllID));
+    subset = pitchvolsylldur_corrsummary(ind,:);
+    
+    naspmcorr = [naspmcorr; subset{strcmp(subset.condition,'saline'),'pitchsylldur'} ...
+        subset{strcmp(subset.condition,'naspm'),'pitchsylldur'}];
+    salinectrlcorr = [salinectrlcorr; subset{strcmp(subset.condition,'saline1'),'pitchsylldur'} ...
+        subset{strcmp(subset.condition,'saline2'),'pitchsylldur'}];
+end
+
+%test if slopes are different
+naspmcorr = array2table(naspmcorr,'VariableNames',{'baseline_corr','baseline_corr_pval',...
+    'treatment_corr','treatment_corr_pval'});
+naspmcorr.condition = repmat({'naspm'},height(naspmcorr),1);
+salinectrlcorr = array2table(salinectrlcorr,'VariableNames',{'baseline_corr','baseline_corr_pval',...
+    'treatment_corr','treatment_corr_pval'});
+salinectrlcorr.condition = repmat({'saline'},height(salinectrlcorr),1);
+allbetas = [naspmcorr;salinectrlcorr];
+formula = 'treatment_corr ~ baseline_corr*condition';
+mdl = fitlm(allbetas,formula);
+pVal = mdl.Coefficients{'baseline_corr:condition_saline','pValue'};
+
+figure;plot(naspmcorr.baseline_corr,naspmcorr.treatment_corr,'r.','markersize',10);hold on;lsline
+plot(salinectrlcorr.baseline_corr,salinectrlcorr.treatment_corr,'k.','markersize',10);hold on;lsline
+xlabel('baseline correlation');ylabel('treatment correlation') 
+legend({'naspm','','saline',''});title('pitch vs sylldur');
+text(0,1,['p=',num2str(pVal)],'units','normalized','verticalalignment','top');
+%% is there an effect of naspm on vol vs sylldur? 
+
+%estimate the interaction effect of treatment (naspm or saline ctrl) on
+%vol vs sylldur
+c = unique(pitchvolsylldur_data(:,{'birdname','syllID'}));
+naspmbeta = [];salinectrlbeta = [];
+for i = 1:height(c)
+    %extract data for each syllable for naspm trial
+    ind = find(strcmp(pitchvolsylldur_data.birdname,c(i,:).birdname) & ...
+        strcmp(pitchvolsylldur_data.syllID,c(i,:).syllID) & ...
+        (strcmp(pitchvolsylldur_data.condition,'saline') | ...
+        strcmp(pitchvolsylldur_data.condition,'naspm')));
+    subset = pitchvolsylldur_data(ind,:);
+    formula = 'sylldur ~ volume*condition';
+    mdl = fitlm(subset,formula);
+    naspmbeta = [naspmbeta; mdl.Coefficients{'volume',{'Estimate','pValue'}} ...
+        mdl.Coefficients{'condition_naspm:volume',{'Estimate','pValue'}}];
+    
+    %extract data for each syllable in saline ctrl trial
+    ind = find(strcmp(pitchvolsylldur_data.birdname,c(i,:).birdname) & ...
+        strcmp(pitchvolsylldur_data.syllID,c(i,:).syllID) & ...
+        (strcmp(pitchvolsylldur_data.condition,'saline1') | ...
+        strcmp(pitchvolsylldur_data.condition,'saline2')));
+    subset = pitchvolsylldur_data(ind,:);
+    formula = 'sylldur ~ volume*condition';
+    mdl = fitlm(subset,formula);
+    salinectrlbeta = [salinectrlbeta; mdl.Coefficients{'volume',{'Estimate','pValue'}} ...
+        mdl.Coefficients{'condition_saline2:volume',{'Estimate','pValue'}}];
+end
+%test if slopes are different
+naspmbeta = array2table(naspmbeta,'VariableNames',{'volume_beta','volume_pval',...
+    'volumeinteraction','volumeinteraction_pval'});
+naspmbeta.condition = repmat({'naspm'},height(naspmbeta),1);
+salinectrlbeta = array2table(salinectrlbeta,'VariableNames',{'volume_beta','volume_pval',...
+    'volumeinteraction','volumeinteraction_pval'});
+salinectrlbeta.condition = repmat({'saline'},height(naspmbeta),1);
+allbetas = [naspmbeta;salinectrlbeta];
+formula = 'volumeinteraction ~ volume_beta*condition';
+mdl = fitlm(allbetas,formula);
+pVal = mdl.Coefficients{'volume_beta:condition_saline','pValue'};
+
+%plot effect of treatment on pitch vs volume
+figure;plot(naspmbeta.volume_beta,naspmbeta.volumeinteraction,'r.','markersize',10);hold on;lsline
+plot(salinectrlbeta.volume_beta,salinectrlbeta.volumeinteraction,'k.','markersize',10);lsline
+xlabel('volume beta');ylabel('interaction effect on volume');
+legend({'naspm','','saline',''});title('volume vs sylldur');
+text(0,1,['p=',num2str(pVal)],'units','normalized','verticalalignment','top');
+
+%plot pitch vs sylldur correlation at baseline vs treatment (naspm or saline
+%ctrl)
+c = unique(pitchvolsylldur_corrsummary(:,{'birdname','syllID'}));
+naspmcorr = [];salinectrlcorr= [];
+for i = 1:height(c)
+    %extract data for each syllable for naspm trial
+    ind = find(strcmp(pitchvolsylldur_corrsummary.birdname,c(i,:).birdname) & ...
+        strcmp(pitchvolsylldur_corrsummary.syllID,c(i,:).syllID));
+    subset = pitchvolsylldur_corrsummary(ind,:);
+    
+    naspmcorr = [naspmcorr; subset{strcmp(subset.condition,'saline'),'volsylldur'} ...
+        subset{strcmp(subset.condition,'naspm'),'volsylldur'}];
+    salinectrlcorr = [salinectrlcorr; subset{strcmp(subset.condition,'saline1'),'volsylldur'} ...
+        subset{strcmp(subset.condition,'saline2'),'volsylldur'}];
+end
+
+%test if slopes are different
+naspmcorr = array2table(naspmcorr,'VariableNames',{'baseline_corr','baseline_corr_pval',...
+    'treatment_corr','treatment_corr_pval'});
+naspmcorr.condition = repmat({'naspm'},height(naspmcorr),1);
+salinectrlcorr = array2table(salinectrlcorr,'VariableNames',{'baseline_corr','baseline_corr_pval',...
+    'treatment_corr','treatment_corr_pval'});
+salinectrlcorr.condition = repmat({'saline'},height(salinectrlcorr),1);
+allbetas = [naspmcorr;salinectrlcorr];
+formula = 'treatment_corr ~ baseline_corr*condition';
+mdl = fitlm(allbetas,formula);
+pVal = mdl.Coefficients{'baseline_corr:condition_saline','pValue'};
+
+figure;plot(naspmcorr.baseline_corr,naspmcorr.treatment_corr,'r.','markersize',10);hold on;lsline
+plot(salinectrlcorr.baseline_corr,salinectrlcorr.treatment_corr,'k.','markersize',10);hold on;lsline
+xlabel('baseline correlation');ylabel('treatment correlation') 
+legend({'naspm','','saline',''});title('volume vs sylldur');
+text(0,1,['p=',num2str(pVal)],'units','normalized','verticalalignment','top');

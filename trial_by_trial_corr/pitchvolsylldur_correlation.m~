@@ -32,13 +32,13 @@ for syll = 1:length(params.findnote)
             end
             ind = find(tb_cond >= start_time);
             testdata = testdata(ind);
+            ind = find(tb_sal >
         else
+            
             ind = find(tb_cond >= 5*3600);
             testdata = testdata(ind);
-            ind = find(tb_base < 5*3600);
-            basedata = basedata(ind);
-        end
-
+            
+        
         %extract variables from data structures
         pitchbase = [basedata(:).mxvals]';
         volbase = log10([basedata(:).maxvol]');
