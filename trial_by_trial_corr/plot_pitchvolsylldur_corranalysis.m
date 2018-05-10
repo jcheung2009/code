@@ -25,10 +25,11 @@ for i = 1:length(ff)
     pitchvolsylldur_data = [pitchvolsylldur_data; pitchvolsylldur_tbl];
 end
     
-%% test significance of frequency of correlations
+%% test significance of frequency of correlations for pitch vs volume
 aph = 0.01;ntrials=1000;
-
-%pitch vs vol (saline)
+bardata = NaN(2,4);
+significancelevel = NaN(1,8);
+%pitch vs vol (naspm baseline)
 ind = find(strcmp(pitchvolsylldur_corrsummary.condition,'saline'));
 negcorr = length(find(pitchvolsylldur_corrsummary(ind,:).pitchvol(:,2)<= 0.05 & ...
     pitchvolsylldur_corrsummary(ind,:).pitchvol(:,1)< 0));
@@ -45,33 +46,40 @@ randpropsignificant_sorted = sort(randpropsignificant);
 randnumsignificantnegcorr = sum((shuffpval<=0.05).*(shuffcorr<0),2);
 randpropsignificantnegcorr = randnumsignificantnegcorr./size(shuffpval,2);
 randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
+randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
 randnumsignificantposcorr = sum((shuffpval<=0.05).*(shuffcorr>0),2);
 randpropsignificantposcorr = randnumsignificantposcorr./size(shuffpval,2);
 randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
-
+randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
 randdiffprop = abs(randpropsignificantnegcorr-randpropsignificantposcorr);
+significancelevel(1:2) = [randpropsignificantposcorr_hi randpropsignificantnegcorr_hi];
 
-figure;subplot(1,2,1);hold on;
-[n b] = hist(shuffcorr(:),[-0.6:0.05:0.6]);
-stairs(b,n/sum(n),'k','linewidth',2);hold on;
-[n b] = hist(pitchvolsylldur_corrsummary(ind,:).pitchvol(:,1),[-0.6:0.05:0.6]);
-stairs(b,n/sum(n),'r','linewidth',2);hold on;
+figure;subplot(2,4,1);hold on;
+histogram(shuffcorr(:),[-0.6:0.05:0.6],'Displaystyle','stairs','edgecolor',...
+    'k','linewidth',2,'normalization','probability');hold on;
+histogram(pitchvolsylldur_corrsummary(ind,:).pitchvol(:,1),[-0.6:0.05:0.6],...
+    'Displaystyle','stairs','edgecolor',[0.5 0.5 0.5],'linewidth',2,...
+    'normalization','probability');
+plot(mean(shuffcorr(:)),0,'k^','markersize',8,'linewidth',2);hold on;
+plot(mean(pitchvolsylldur_corrsummary(ind,:).pitchvol(:,1)),0,'^','color',...
+    [0.5 0.5 0.5],'markersize',8,'linewidth',2);
 [h p] = ttest2(pitchvolsylldur_corrsummary(ind,:).pitchvol(:,1),shuffcorr(:));
 [h p2] = kstest2(pitchvolsylldur_corrsummary(ind,:).pitchvol(:,1),shuffcorr(:));
 p3 = length(find(randdiffprop>=abs((negcorr/numcases)-(poscorr/numcases))))/ntrials;
 p4 = length(find(randpropsignificant>=sigcorr/numcases))/ntrials;
 p5 = length(find(randpropsignificantposcorr>=poscorr/numcases))/ntrials;
 p6 = length(find(randpropsignificantnegcorr>=negcorr/numcases))/ntrials;
-text(0,1,{['total cases:',num2str(numcases)];...
-    ['proportion significant cases:',num2str(sigcorr/numcases)];...
-    ['proportion negative:',num2str(negcorr/numcases)];...
-    ['proportion positive:',num2str(poscorr/numcases)];...
-    ['p(t)=',num2str(p)];['p(ks)=',num2str(p2)];...
-    ['p(sig)=',num2str(p4)];['p(pos)=',num2str(p5)];['p(neg)=',num2str(p6)];...
-    ['p(neg-pos)=',num2str(p3)]},'units','normalized','verticalalignment','top');
+% text(0,1,{['total cases:',num2str(numcases)];...
+%     ['proportion significant cases:',num2str(sigcorr/numcases)];...
+%     ['proportion negative:',num2str(negcorr/numcases)];...
+%     ['proportion positive:',num2str(poscorr/numcases)];...
+%     ['p(t)=',num2str(p)];['p(ks)=',num2str(p2)];...
+%     ['p(sig)=',num2str(p4)];['p(pos)=',num2str(p5)];['p(neg)=',num2str(p6)];...
+%     ['p(neg-pos)=',num2str(p3)]},'units','normalized','verticalalignment','top');
 xlabel('correlation');ylabel('probability');title('pitch vs volume (saline)');
+bardata(1,1:2) = [poscorr/numcases,negcorr/numcases];
 
-%pitch vs vol (naspm)
+%pitch vs vol (treatment)
 ind2 = find(strcmp(pitchvolsylldur_corrsummary.condition,'naspm'));
 negcorr = length(find(pitchvolsylldur_corrsummary(ind2,:).pitchvol(:,2)<= 0.05 & ...
     pitchvolsylldur_corrsummary(ind2,:).pitchvol(:,1)< 0));
@@ -88,33 +96,152 @@ randpropsignificant_sorted = sort(randpropsignificant);
 randnumsignificantnegcorr = sum((shuffpval<=0.05).*(shuffcorr<0),2);
 randpropsignificantnegcorr = randnumsignificantnegcorr./size(shuffpval,2);
 randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
+randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
 randnumsignificantposcorr = sum((shuffpval<=0.05).*(shuffcorr>0),2);
 randpropsignificantposcorr = randnumsignificantposcorr./size(shuffpval,2);
 randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
-
+randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
 randdiffprop = abs(randpropsignificantnegcorr-randpropsignificantposcorr);
+significancelevel(3:4) = [randpropsignificantposcorr_hi randpropsignificantnegcorr_hi];
 
-subplot(1,2,2);hold on;
-[n b] = hist(shuffcorr(:),[-0.6:0.05:0.6]);
-stairs(b,n/sum(n),'k','linewidth',2);hold on;
-[n b] = hist(pitchvolsylldur_corrsummary(ind2,:).pitchvol(:,1),[-0.6:0.05:0.6]);
-stairs(b,n/sum(n),'r','linewidth',2);hold on;
+subplot(2,4,2);hold on;
+histogram(shuffcorr(:),[-0.6:0.05:0.6],'Displaystyle','stairs','edgecolor',...
+    'k','linewidth',2,'normalization','probability');hold on;
+histogram(pitchvolsylldur_corrsummary(ind2,:).pitchvol(:,1),[-0.6:0.05:0.6],...
+    'Displaystyle','stairs','edgecolor','r','linewidth',2,'normalization','probability');
+plot(mean(shuffcorr(:)),0,'k^','markersize',8,'linewidth',2);hold on;
+plot(mean(pitchvolsylldur_corrsummary(ind2,:).pitchvol(:,1)),0,'r^','markersize',8,'linewidth',2);
+
 [h p] = ttest2(pitchvolsylldur_corrsummary(ind2,:).pitchvol(:,1),shuffcorr(:));
 [h p2] = kstest2(pitchvolsylldur_corrsummary(ind2,:).pitchvol(:,1),shuffcorr(:));
 p3 = length(find(randdiffprop>=abs((negcorr/numcases)-(poscorr/numcases))))/ntrials;
 p4 = length(find(randpropsignificant>=sigcorr/numcases))/ntrials;
 p5 = length(find(randpropsignificantposcorr>=poscorr/numcases))/ntrials;
 p6 = length(find(randpropsignificantnegcorr>=negcorr/numcases))/ntrials;
-text(0,1,{['total cases:',num2str(numcases)];...
-    ['proportion significant cases:',num2str(sigcorr/numcases)];...
-    ['proportion negative:',num2str(negcorr/numcases)];...
-    ['proportion positive:',num2str(poscorr/numcases)];...
-    ['p(t)=',num2str(p)];['p(ks)=',num2str(p2)];...
-    ['p(sig)=',num2str(p4)];['p(pos)=',num2str(p5)];['p(neg)=',num2str(p6)];...
-    ['p(neg-pos)=',num2str(p3)]},'units','normalized','verticalalignment','top');
-xlabel('correlation');ylabel('probability');title('pitch vs volume (naspm)');
+% text(0,1,{['total cases:',num2str(numcases)];...
+%     ['proportion significant cases:',num2str(sigcorr/numcases)];...
+%     ['proportion negative:',num2str(negcorr/numcases)];...
+%     ['proportion positive:',num2str(poscorr/numcases)];...
+%     ['p(t)=',num2str(p)];['p(ks)=',num2str(p2)];...
+%     ['p(sig)=',num2str(p4)];['p(pos)=',num2str(p5)];['p(neg)=',num2str(p6)];...
+%     ['p(neg-pos)=',num2str(p3)]},'units','normalized','verticalalignment','top');
+xlabel('correlation');ylabel('probability');title('pitch vs volume (NASPM)');
+bardata(1,3:4) = [poscorr/numcases,negcorr/numcases];
 
-%pitch vs sylldur (saline)
+%pitch vs vol (salinectrl baseline)
+ind = find(strcmp(pitchvolsylldur_corrsummary.condition,'saline1'));
+negcorr = length(find(pitchvolsylldur_corrsummary(ind,:).pitchvol(:,2)<= 0.05 & ...
+    pitchvolsylldur_corrsummary(ind,:).pitchvol(:,1)< 0));
+poscorr = length(find(pitchvolsylldur_corrsummary(ind,:).pitchvol(:,2)<= 0.05 & ...
+    pitchvolsylldur_corrsummary(ind,:).pitchvol(:,1)> 0));
+sigcorr = length(find(pitchvolsylldur_corrsummary(ind,:).pitchvol(:,2)<= 0.05));
+numcases = length(ind);
+
+shuffcorr =  [pitchvolsylldur_corrsummary(ind,:).pitchvol_shuff{:,1}];
+shuffpval =  [pitchvolsylldur_corrsummary(ind,:).pitchvol_shuff{:,2}];
+randnumsignificant = sum(shuffpval<=0.05,2);    
+randpropsignificant = randnumsignificant/size(shuffpval,2);
+randpropsignificant_sorted = sort(randpropsignificant);
+randnumsignificantnegcorr = sum((shuffpval<=0.05).*(shuffcorr<0),2);
+randpropsignificantnegcorr = randnumsignificantnegcorr./size(shuffpval,2);
+randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
+randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+randnumsignificantposcorr = sum((shuffpval<=0.05).*(shuffcorr>0),2);
+randpropsignificantposcorr = randnumsignificantposcorr./size(shuffpval,2);
+randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
+randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+randdiffprop = abs(randpropsignificantnegcorr-randpropsignificantposcorr);
+significancelevel(5:6) = [randpropsignificantposcorr_hi randpropsignificantnegcorr_hi];
+
+subplot(2,4,5);hold on;
+histogram(shuffcorr(:),[-0.6:0.05:0.6],'Displaystyle','stairs','edgecolor',...
+    'k','linewidth',2,'normalization','probability');hold on;
+histogram(pitchvolsylldur_corrsummary(ind,:).pitchvol(:,1),[-0.6:0.05:0.6],...
+    'Displaystyle','stairs','edgecolor',[0.5 0.5 0.5],'linewidth',2,...
+    'normalization','probability');
+plot(mean(shuffcorr(:)),0,'k^','markersize',8,'linewidth',2);hold on;
+plot(mean(pitchvolsylldur_corrsummary(ind,:).pitchvol(:,1)),0,'^','color',...
+    [0.5 0.5 0.5],'markersize',8,'linewidth',2);
+[h p] = ttest2(pitchvolsylldur_corrsummary(ind,:).pitchvol(:,1),shuffcorr(:));
+[h p2] = kstest2(pitchvolsylldur_corrsummary(ind,:).pitchvol(:,1),shuffcorr(:));
+p3 = length(find(randdiffprop>=abs((negcorr/numcases)-(poscorr/numcases))))/ntrials;
+p4 = length(find(randpropsignificant>=sigcorr/numcases))/ntrials;
+p5 = length(find(randpropsignificantposcorr>=poscorr/numcases))/ntrials;
+p6 = length(find(randpropsignificantnegcorr>=negcorr/numcases))/ntrials;
+% text(0,1,{['total cases:',num2str(numcases)];...
+%     ['proportion significant cases:',num2str(sigcorr/numcases)];...
+%     ['proportion negative:',num2str(negcorr/numcases)];...
+%     ['proportion positive:',num2str(poscorr/numcases)];...
+%     ['p(t)=',num2str(p)];['p(ks)=',num2str(p2)];...
+%     ['p(sig)=',num2str(p4)];['p(pos)=',num2str(p5)];['p(neg)=',num2str(p6)];...
+%     ['p(neg-pos)=',num2str(p3)]},'units','normalized','verticalalignment','top');
+xlabel('correlation');ylabel('probability');title('pitch vs volume (saline1)');
+bardata(2,1:2) = [poscorr/numcases,negcorr/numcases];
+
+%pitch vs vol (salienctrl treatment)
+ind2 = find(strcmp(pitchvolsylldur_corrsummary.condition,'saline2'));
+negcorr = length(find(pitchvolsylldur_corrsummary(ind2,:).pitchvol(:,2)<= 0.05 & ...
+    pitchvolsylldur_corrsummary(ind2,:).pitchvol(:,1)< 0));
+poscorr = length(find(pitchvolsylldur_corrsummary(ind2,:).pitchvol(:,2)<= 0.05 & ...
+    pitchvolsylldur_corrsummary(ind2,:).pitchvol(:,1)> 0));
+sigcorr = length(find(pitchvolsylldur_corrsummary(ind2,:).pitchvol(:,2)<= 0.05));
+numcases = length(ind2);
+
+shuffcorr =  [pitchvolsylldur_corrsummary(ind2,:).pitchvol_shuff{:,1}];
+shuffpval =  [pitchvolsylldur_corrsummary(ind2,:).pitchvol_shuff{:,2}];
+randnumsignificant = sum(shuffpval<=0.05,2);    
+randpropsignificant = randnumsignificant/size(shuffpval,2);
+randpropsignificant_sorted = sort(randpropsignificant);
+randnumsignificantnegcorr = sum((shuffpval<=0.05).*(shuffcorr<0),2);
+randpropsignificantnegcorr = randnumsignificantnegcorr./size(shuffpval,2);
+randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
+randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+randnumsignificantposcorr = sum((shuffpval<=0.05).*(shuffcorr>0),2);
+randpropsignificantposcorr = randnumsignificantposcorr./size(shuffpval,2);
+randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
+randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+randdiffprop = abs(randpropsignificantnegcorr-randpropsignificantposcorr);
+significancelevel(7:8) = [randpropsignificantposcorr_hi randpropsignificantnegcorr_hi];
+
+subplot(2,4,6);hold on;
+histogram(shuffcorr(:),[-0.6:0.05:0.6],'Displaystyle','stairs','edgecolor',...
+    'k','linewidth',2,'normalization','probability');hold on;
+histogram(pitchvolsylldur_corrsummary(ind2,:).pitchvol(:,1),[-0.6:0.05:0.6],...
+    'Displaystyle','stairs','edgecolor',[0.5 0.5 0.5],'linewidth',2,'normalization','probability');
+plot(mean(shuffcorr(:)),0,'k^','markersize',8,'linewidth',2);hold on;
+plot(mean(pitchvolsylldur_corrsummary(ind2,:).pitchvol(:,1)),0,'^','color',...
+    [0.5 0.5 0.5],'markersize',8,'linewidth',2);
+
+[h p] = ttest2(pitchvolsylldur_corrsummary(ind2,:).pitchvol(:,1),shuffcorr(:));
+[h p2] = kstest2(pitchvolsylldur_corrsummary(ind2,:).pitchvol(:,1),shuffcorr(:));
+p3 = length(find(randdiffprop>=abs((negcorr/numcases)-(poscorr/numcases))))/ntrials;
+p4 = length(find(randpropsignificant>=sigcorr/numcases))/ntrials;
+p5 = length(find(randpropsignificantposcorr>=poscorr/numcases))/ntrials;
+p6 = length(find(randpropsignificantnegcorr>=negcorr/numcases))/ntrials;
+% text(0,1,{['total cases:',num2str(numcases)];...
+%     ['proportion significant cases:',num2str(sigcorr/numcases)];...
+%     ['proportion negative:',num2str(negcorr/numcases)];...
+%     ['proportion positive:',num2str(poscorr/numcases)];...
+%     ['p(t)=',num2str(p)];['p(ks)=',num2str(p2)];...
+%     ['p(sig)=',num2str(p4)];['p(pos)=',num2str(p5)];['p(neg)=',num2str(p6)];...
+%     ['p(neg-pos)=',num2str(p3)]},'units','normalized','verticalalignment','top');
+xlabel('correlation');ylabel('probability');title('pitch vs volume (saline2)');
+bardata(2,3:4) = [poscorr/numcases,negcorr/numcases];
+
+subplot(2,4,[3 4 7 8]);hold on;
+b = bar(bardata,'facecolor','none','linewidth',2);hold on;
+xl = get(gca,'xlim');
+plot(xl,[max(significancelevel) max(significancelevel)],'--','color',[0.5 0.5 0.5],'linewidth',2);
+xticks([0.8, 1.2, 1.8, 2.2]);
+xticklabels({'saline','NASPM','saline1','saline2'});
+ylabel('% cases with significant correlations');
+    
+%% test frequency of correlations for pitch vs sylldur 
+aph = 0.01;ntrials=1000;
+bardata = NaN(2,4);
+significancelevel = NaN(1,8);
+
+%pitch vs sylldur (naspm baseline)
 ind = find(strcmp(pitchvolsylldur_corrsummary.condition,'saline'));
 negcorr = length(find(pitchvolsylldur_corrsummary(ind,:).pitchsylldur(:,2)<= 0.05 & ...
     pitchvolsylldur_corrsummary(ind,:).pitchsylldur(:,1)< 0));
@@ -131,17 +258,23 @@ randpropsignificant_sorted = sort(randpropsignificant);
 randnumsignificantnegcorr = sum((shuffpval<=0.05).*(shuffcorr<0),2);
 randpropsignificantnegcorr = randnumsignificantnegcorr./size(shuffpval,2);
 randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
+randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
 randnumsignificantposcorr = sum((shuffpval<=0.05).*(shuffcorr>0),2);
 randpropsignificantposcorr = randnumsignificantposcorr./size(shuffpval,2);
 randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
-
+randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
 randdiffprop = abs(randpropsignificantnegcorr-randpropsignificantposcorr);
+significancelevel(1:2) = [randpropsignificantposcorr_hi randpropsignificantnegcorr_hi];
 
-figure;subplot(1,2,1);hold on;
-[n b] = hist(shuffcorr(:),[-0.6:0.05:0.6]);
-stairs(b,n/sum(n),'k','linewidth',2);hold on;
-[n b] = hist(pitchvolsylldur_corrsummary(ind,:).pitchsylldur(:,1),[-0.6:0.05:0.6]);
-stairs(b,n/sum(n),'r','linewidth',2);hold on;
+figure;subplot(2,4,1);hold on;
+histogram(shuffcorr(:),[-0.6:0.05:0.6],'Displaystyle','stairs','edgecolor',...
+    'k','linewidth',2,'normalization','probability');hold on;
+histogram(pitchvolsylldur_corrsummary(ind,:).pitchsylldur(:,1),[-0.6:0.05:0.6],...
+    'Displaystyle','stairs','edgecolor',[0.5 0.5 0.5],'linewidth',2,...
+    'normalization','probability');
+plot(mean(shuffcorr(:)),0,'k^','markersize',8,'linewidth',2);hold on;
+plot(mean(pitchvolsylldur_corrsummary(ind,:).pitchsylldur(:,1)),0,'^','color',...
+    [0.5 0.5 0.5],'markersize',8,'linewidth',2);
 [h p] = ttest2(pitchvolsylldur_corrsummary(ind,:).pitchsylldur(:,1),shuffcorr(:));
 [h p2] = kstest2(pitchvolsylldur_corrsummary(ind,:).pitchsylldur(:,1),shuffcorr(:));
 p3 = length(find(randdiffprop>=abs((negcorr/numcases)-(poscorr/numcases))))/ntrials;
@@ -156,8 +289,9 @@ text(0,1,{['total cases:',num2str(numcases)];...
     ['p(sig)=',num2str(p4)];['p(pos)=',num2str(p5)];['p(neg)=',num2str(p6)];...
     ['p(neg-pos)=',num2str(p3)]},'units','normalized','verticalalignment','top');
 xlabel('correlation');ylabel('probability');title('pitch vs sylldur (saline)');
+bardata(1,1:2) = [poscorr/numcases,negcorr/numcases];
 
-%pitch vs sylldur (naspm)
+%pitch vs sylldur (treatment)
 ind2 = find(strcmp(pitchvolsylldur_corrsummary.condition,'naspm'));
 negcorr = length(find(pitchvolsylldur_corrsummary(ind2,:).pitchsylldur(:,2)<= 0.05 & ...
     pitchvolsylldur_corrsummary(ind2,:).pitchsylldur(:,1)< 0));
@@ -174,17 +308,22 @@ randpropsignificant_sorted = sort(randpropsignificant);
 randnumsignificantnegcorr = sum((shuffpval<=0.05).*(shuffcorr<0),2);
 randpropsignificantnegcorr = randnumsignificantnegcorr./size(shuffpval,2);
 randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
+randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
 randnumsignificantposcorr = sum((shuffpval<=0.05).*(shuffcorr>0),2);
 randpropsignificantposcorr = randnumsignificantposcorr./size(shuffpval,2);
 randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
-
+randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
 randdiffprop = abs(randpropsignificantnegcorr-randpropsignificantposcorr);
+significancelevel(3:4) = [randpropsignificantposcorr_hi randpropsignificantnegcorr_hi];
 
-subplot(1,2,2);hold on;
-[n b] = hist(shuffcorr(:),[-0.6:0.05:0.6]);
-stairs(b,n/sum(n),'k','linewidth',2);hold on;
-[n b] = hist(pitchvolsylldur_corrsummary(ind2,:).pitchsylldur(:,1),[-0.6:0.05:0.6]);
-stairs(b,n/sum(n),'r','linewidth',2);hold on;
+subplot(2,4,2);hold on;
+histogram(shuffcorr(:),[-0.6:0.05:0.6],'Displaystyle','stairs','edgecolor',...
+    'k','linewidth',2,'normalization','probability');hold on;
+histogram(pitchvolsylldur_corrsummary(ind2,:).pitchsylldur(:,1),[-0.6:0.05:0.6],...
+    'Displaystyle','stairs','edgecolor','r','linewidth',2,'normalization','probability');
+plot(mean(shuffcorr(:)),0,'k^','markersize',8,'linewidth',2);hold on;
+plot(mean(pitchvolsylldur_corrsummary(ind2,:).pitchsylldur(:,1)),0,'r^','markersize',8,'linewidth',2);
+
 [h p] = ttest2(pitchvolsylldur_corrsummary(ind2,:).pitchsylldur(:,1),shuffcorr(:));
 [h p2] = kstest2(pitchvolsylldur_corrsummary(ind2,:).pitchsylldur(:,1),shuffcorr(:));
 p3 = length(find(randdiffprop>=abs((negcorr/numcases)-(poscorr/numcases))))/ntrials;
@@ -198,9 +337,122 @@ text(0,1,{['total cases:',num2str(numcases)];...
     ['p(t)=',num2str(p)];['p(ks)=',num2str(p2)];...
     ['p(sig)=',num2str(p4)];['p(pos)=',num2str(p5)];['p(neg)=',num2str(p6)];...
     ['p(neg-pos)=',num2str(p3)]},'units','normalized','verticalalignment','top');
-xlabel('correlation');ylabel('probability');title('pitch vs sylldur (naspm)');
+xlabel('correlation');ylabel('probability');title('pitch vs sylldur (NASPM)');
+bardata(1,3:4) = [poscorr/numcases,negcorr/numcases];
 
-%vol vs sylldur (saline)
+%pitch vs sylldur (salinectrl baseline)
+ind = find(strcmp(pitchvolsylldur_corrsummary.condition,'saline1'));
+negcorr = length(find(pitchvolsylldur_corrsummary(ind,:).pitchsylldur(:,2)<= 0.05 & ...
+    pitchvolsylldur_corrsummary(ind,:).pitchsylldur(:,1)< 0));
+poscorr = length(find(pitchvolsylldur_corrsummary(ind,:).pitchsylldur(:,2)<= 0.05 & ...
+    pitchvolsylldur_corrsummary(ind,:).pitchsylldur(:,1)> 0));
+sigcorr = length(find(pitchvolsylldur_corrsummary(ind,:).pitchsylldur(:,2)<= 0.05));
+numcases = length(ind);
+
+shuffcorr =  [pitchvolsylldur_corrsummary(ind,:).pitchsylldur_shuff{:,1}];
+shuffpval =  [pitchvolsylldur_corrsummary(ind,:).pitchsylldur_shuff{:,2}];
+randnumsignificant = sum(shuffpval<=0.05,2);    
+randpropsignificant = randnumsignificant/size(shuffpval,2);
+randpropsignificant_sorted = sort(randpropsignificant);
+randnumsignificantnegcorr = sum((shuffpval<=0.05).*(shuffcorr<0),2);
+randpropsignificantnegcorr = randnumsignificantnegcorr./size(shuffpval,2);
+randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
+randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+randnumsignificantposcorr = sum((shuffpval<=0.05).*(shuffcorr>0),2);
+randpropsignificantposcorr = randnumsignificantposcorr./size(shuffpval,2);
+randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
+randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+randdiffprop = abs(randpropsignificantnegcorr-randpropsignificantposcorr);
+significancelevel(5:6) = [randpropsignificantposcorr_hi randpropsignificantnegcorr_hi];
+
+subplot(2,4,5);hold on;
+histogram(shuffcorr(:),[-0.6:0.05:0.6],'Displaystyle','stairs','edgecolor',...
+    'k','linewidth',2,'normalization','probability');hold on;
+histogram(pitchvolsylldur_corrsummary(ind,:).pitchsylldur(:,1),[-0.6:0.05:0.6],...
+    'Displaystyle','stairs','edgecolor',[0.5 0.5 0.5],'linewidth',2,...
+    'normalization','probability');
+plot(mean(shuffcorr(:)),0,'k^','markersize',8,'linewidth',2);hold on;
+plot(mean(pitchvolsylldur_corrsummary(ind,:).pitchsylldur(:,1)),0,'^','color',...
+    [0.5 0.5 0.5],'markersize',8,'linewidth',2);
+[h p] = ttest2(pitchvolsylldur_corrsummary(ind,:).pitchsylldur(:,1),shuffcorr(:));
+[h p2] = kstest2(pitchvolsylldur_corrsummary(ind,:).pitchsylldur(:,1),shuffcorr(:));
+p3 = length(find(randdiffprop>=abs((negcorr/numcases)-(poscorr/numcases))))/ntrials;
+p4 = length(find(randpropsignificant>=sigcorr/numcases))/ntrials;
+p5 = length(find(randpropsignificantposcorr>=poscorr/numcases))/ntrials;
+p6 = length(find(randpropsignificantnegcorr>=negcorr/numcases))/ntrials;
+text(0,1,{['total cases:',num2str(numcases)];...
+    ['proportion significant cases:',num2str(sigcorr/numcases)];...
+    ['proportion negative:',num2str(negcorr/numcases)];...
+    ['proportion positive:',num2str(poscorr/numcases)];...
+    ['p(t)=',num2str(p)];['p(ks)=',num2str(p2)];...
+    ['p(sig)=',num2str(p4)];['p(pos)=',num2str(p5)];['p(neg)=',num2str(p6)];...
+    ['p(neg-pos)=',num2str(p3)]},'units','normalized','verticalalignment','top');
+xlabel('correlation');ylabel('probability');title('pitch vs sylldur (saline1)');
+bardata(2,1:2) = [poscorr/numcases,negcorr/numcases];
+
+%pitch vs sylldur (salienctrl treatment)
+ind2 = find(strcmp(pitchvolsylldur_corrsummary.condition,'saline2'));
+negcorr = length(find(pitchvolsylldur_corrsummary(ind2,:).pitchsylldur(:,2)<= 0.05 & ...
+    pitchvolsylldur_corrsummary(ind2,:).pitchsylldur(:,1)< 0));
+poscorr = length(find(pitchvolsylldur_corrsummary(ind2,:).pitchsylldur(:,2)<= 0.05 & ...
+    pitchvolsylldur_corrsummary(ind2,:).pitchsylldur(:,1)> 0));
+sigcorr = length(find(pitchvolsylldur_corrsummary(ind2,:).pitchsylldur(:,2)<= 0.05));
+numcases = length(ind2);
+
+shuffcorr =  [pitchvolsylldur_corrsummary(ind2,:).pitchsylldur_shuff{:,1}];
+shuffpval =  [pitchvolsylldur_corrsummary(ind2,:).pitchsylldur_shuff{:,2}];
+randnumsignificant = sum(shuffpval<=0.05,2);    
+randpropsignificant = randnumsignificant/size(shuffpval,2);
+randpropsignificant_sorted = sort(randpropsignificant);
+randnumsignificantnegcorr = sum((shuffpval<=0.05).*(shuffcorr<0),2);
+randpropsignificantnegcorr = randnumsignificantnegcorr./size(shuffpval,2);
+randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
+randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+randnumsignificantposcorr = sum((shuffpval<=0.05).*(shuffcorr>0),2);
+randpropsignificantposcorr = randnumsignificantposcorr./size(shuffpval,2);
+randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
+randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+randdiffprop = abs(randpropsignificantnegcorr-randpropsignificantposcorr);
+significancelevel(7:8) = [randpropsignificantposcorr_hi randpropsignificantnegcorr_hi];
+
+subplot(2,4,6);hold on;
+histogram(shuffcorr(:),[-0.6:0.05:0.6],'Displaystyle','stairs','edgecolor',...
+    'k','linewidth',2,'normalization','probability');hold on;
+histogram(pitchvolsylldur_corrsummary(ind2,:).pitchsylldur(:,1),[-0.6:0.05:0.6],...
+    'Displaystyle','stairs','edgecolor',[0.5 0.5 0.5],'linewidth',2,'normalization','probability');
+plot(mean(shuffcorr(:)),0,'k^','markersize',8,'linewidth',2);hold on;
+plot(mean(pitchvolsylldur_corrsummary(ind2,:).pitchsylldur(:,1)),0,'^','color',...
+    [0.5 0.5 0.5],'markersize',8,'linewidth',2);
+
+[h p] = ttest2(pitchvolsylldur_corrsummary(ind2,:).pitchsylldur(:,1),shuffcorr(:));
+[h p2] = kstest2(pitchvolsylldur_corrsummary(ind2,:).pitchsylldur(:,1),shuffcorr(:));
+p3 = length(find(randdiffprop>=abs((negcorr/numcases)-(poscorr/numcases))))/ntrials;
+p4 = length(find(randpropsignificant>=sigcorr/numcases))/ntrials;
+p5 = length(find(randpropsignificantposcorr>=poscorr/numcases))/ntrials;
+p6 = length(find(randpropsignificantnegcorr>=negcorr/numcases))/ntrials;
+text(0,1,{['total cases:',num2str(numcases)];...
+    ['proportion significant cases:',num2str(sigcorr/numcases)];...
+    ['proportion negative:',num2str(negcorr/numcases)];...
+    ['proportion positive:',num2str(poscorr/numcases)];...
+    ['p(t)=',num2str(p)];['p(ks)=',num2str(p2)];...
+    ['p(sig)=',num2str(p4)];['p(pos)=',num2str(p5)];['p(neg)=',num2str(p6)];...
+    ['p(neg-pos)=',num2str(p3)]},'units','normalized','verticalalignment','top');
+xlabel('correlation');ylabel('probability');title('pitch vs sylldur (saline2)');
+bardata(2,3:4) = [poscorr/numcases,negcorr/numcases];
+
+subplot(2,4,[3 4 7 8]);hold on;
+b = bar(bardata,'facecolor','none','linewidth',2);hold on;
+xl = get(gca,'xlim');
+plot(xl,[max(significancelevel) max(significancelevel)],'--','color',[0.5 0.5 0.5],'linewidth',2);
+xticks([0.8, 1.2, 1.8, 2.2]);
+xticklabels({'saline','NASPM','saline1','saline2'});
+ylabel('% cases with significant correlations');
+%% test frequency of correlations for vol vs sylldur 
+aph = 0.01;ntrials=1000;
+bardata = NaN(2,4);
+significancelevel = NaN(1,8);
+
+%vol vs sylldur (naspm baseline)
 ind = find(strcmp(pitchvolsylldur_corrsummary.condition,'saline'));
 negcorr = length(find(pitchvolsylldur_corrsummary(ind,:).volsylldur(:,2)<= 0.05 & ...
     pitchvolsylldur_corrsummary(ind,:).volsylldur(:,1)< 0));
@@ -217,33 +469,40 @@ randpropsignificant_sorted = sort(randpropsignificant);
 randnumsignificantnegcorr = sum((shuffpval<=0.05).*(shuffcorr<0),2);
 randpropsignificantnegcorr = randnumsignificantnegcorr./size(shuffpval,2);
 randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
+randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
 randnumsignificantposcorr = sum((shuffpval<=0.05).*(shuffcorr>0),2);
 randpropsignificantposcorr = randnumsignificantposcorr./size(shuffpval,2);
 randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
-
+randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
 randdiffprop = abs(randpropsignificantnegcorr-randpropsignificantposcorr);
+significancelevel(1:2) = [randpropsignificantposcorr_hi randpropsignificantnegcorr_hi];
 
-figure;subplot(1,2,1);hold on;
-[n b] = hist(shuffcorr(:),[-0.6:0.05:0.6]);
-stairs(b,n/sum(n),'k','linewidth',2);hold on;
-[n b] = hist(pitchvolsylldur_corrsummary(ind,:).volsylldur(:,1),[-0.6:0.05:0.6]);
-stairs(b,n/sum(n),'r','linewidth',2);hold on;
+figure;subplot(2,4,1);hold on;
+histogram(shuffcorr(:),[-0.6:0.05:0.6],'Displaystyle','stairs','edgecolor',...
+    'k','linewidth',2,'normalization','probability');hold on;
+histogram(pitchvolsylldur_corrsummary(ind,:).volsylldur(:,1),[-0.6:0.05:0.6],...
+    'Displaystyle','stairs','edgecolor',[0.5 0.5 0.5],'linewidth',2,...
+    'normalization','probability');
+plot(mean(shuffcorr(:)),0,'k^','markersize',8,'linewidth',2);hold on;
+plot(mean(pitchvolsylldur_corrsummary(ind,:).volsylldur(:,1)),0,'^','color',...
+    [0.5 0.5 0.5],'markersize',8,'linewidth',2);
 [h p] = ttest2(pitchvolsylldur_corrsummary(ind,:).volsylldur(:,1),shuffcorr(:));
 [h p2] = kstest2(pitchvolsylldur_corrsummary(ind,:).volsylldur(:,1),shuffcorr(:));
 p3 = length(find(randdiffprop>=abs((negcorr/numcases)-(poscorr/numcases))))/ntrials;
 p4 = length(find(randpropsignificant>=sigcorr/numcases))/ntrials;
 p5 = length(find(randpropsignificantposcorr>=poscorr/numcases))/ntrials;
 p6 = length(find(randpropsignificantnegcorr>=negcorr/numcases))/ntrials;
-text(0,1,{['total cases:',num2str(numcases)];...
-    ['proportion significant cases:',num2str(sigcorr/numcases)];...
-    ['proportion negative:',num2str(negcorr/numcases)];...
-    ['proportion positive:',num2str(poscorr/numcases)];...
-    ['p(t)=',num2str(p)];['p(ks)=',num2str(p2)];...
-    ['p(sig)=',num2str(p4)];['p(pos)=',num2str(p5)];['p(neg)=',num2str(p6)];...
-    ['p(neg-pos)=',num2str(p3)]},'units','normalized','verticalalignment','top');
+% text(0,1,{['total cases:',num2str(numcases)];...
+%     ['proportion significant cases:',num2str(sigcorr/numcases)];...
+%     ['proportion negative:',num2str(negcorr/numcases)];...
+%     ['proportion positive:',num2str(poscorr/numcases)];...
+%     ['p(t)=',num2str(p)];['p(ks)=',num2str(p2)];...
+%     ['p(sig)=',num2str(p4)];['p(pos)=',num2str(p5)];['p(neg)=',num2str(p6)];...
+%     ['p(neg-pos)=',num2str(p3)]},'units','normalized','verticalalignment','top');
 xlabel('correlation');ylabel('probability');title('vol vs sylldur (saline)');
+bardata(1,1:2) = [poscorr/numcases,negcorr/numcases];
 
-%vol vs sylldur (naspm)
+%vol vs sylldur (treatment)
 ind2 = find(strcmp(pitchvolsylldur_corrsummary.condition,'naspm'));
 negcorr = length(find(pitchvolsylldur_corrsummary(ind2,:).volsylldur(:,2)<= 0.05 & ...
     pitchvolsylldur_corrsummary(ind2,:).volsylldur(:,1)< 0));
@@ -260,55 +519,190 @@ randpropsignificant_sorted = sort(randpropsignificant);
 randnumsignificantnegcorr = sum((shuffpval<=0.05).*(shuffcorr<0),2);
 randpropsignificantnegcorr = randnumsignificantnegcorr./size(shuffpval,2);
 randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
+randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
 randnumsignificantposcorr = sum((shuffpval<=0.05).*(shuffcorr>0),2);
 randpropsignificantposcorr = randnumsignificantposcorr./size(shuffpval,2);
 randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
-
+randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
 randdiffprop = abs(randpropsignificantnegcorr-randpropsignificantposcorr);
+significancelevel(3:4) = [randpropsignificantposcorr_hi randpropsignificantnegcorr_hi];
 
-subplot(1,2,2);hold on;
-[n b] = hist(shuffcorr(:),[-0.6:0.05:0.6]);
-stairs(b,n/sum(n),'k','linewidth',2);hold on;
-[n b] = hist(pitchvolsylldur_corrsummary(ind2,:).volsylldur(:,1),[-0.6:0.05:0.6]);
-stairs(b,n/sum(n),'r','linewidth',2);hold on;
+subplot(2,4,2);hold on;
+histogram(shuffcorr(:),[-0.6:0.05:0.6],'Displaystyle','stairs','edgecolor',...
+    'k','linewidth',2,'normalization','probability');hold on;
+histogram(pitchvolsylldur_corrsummary(ind2,:).volsylldur(:,1),[-0.6:0.05:0.6],...
+    'Displaystyle','stairs','edgecolor','r','linewidth',2,'normalization','probability');
+plot(mean(shuffcorr(:)),0,'k^','markersize',8,'linewidth',2);hold on;
+plot(mean(pitchvolsylldur_corrsummary(ind2,:).volsylldur(:,1)),0,'r^','markersize',8,'linewidth',2);
+
 [h p] = ttest2(pitchvolsylldur_corrsummary(ind2,:).volsylldur(:,1),shuffcorr(:));
 [h p2] = kstest2(pitchvolsylldur_corrsummary(ind2,:).volsylldur(:,1),shuffcorr(:));
 p3 = length(find(randdiffprop>=abs((negcorr/numcases)-(poscorr/numcases))))/ntrials;
 p4 = length(find(randpropsignificant>=sigcorr/numcases))/ntrials;
 p5 = length(find(randpropsignificantposcorr>=poscorr/numcases))/ntrials;
 p6 = length(find(randpropsignificantnegcorr>=negcorr/numcases))/ntrials;
-text(0,1,{['total cases:',num2str(numcases)];...
-    ['proportion significant cases:',num2str(sigcorr/numcases)];...
-    ['proportion negative:',num2str(negcorr/numcases)];...
-    ['proportion positive:',num2str(poscorr/numcases)];...
-    ['p(t)=',num2str(p)];['p(ks)=',num2str(p2)];...
-    ['p(sig)=',num2str(p4)];['p(pos)=',num2str(p5)];['p(neg)=',num2str(p6)];...
-    ['p(neg-pos)=',num2str(p3)]},'units','normalized','verticalalignment','top');
-xlabel('correlation');ylabel('probability');title('vol vs sylldur (naspm)');
+% text(0,1,{['total cases:',num2str(numcases)];...
+%     ['proportion significant cases:',num2str(sigcorr/numcases)];...
+%     ['proportion negative:',num2str(negcorr/numcases)];...
+%     ['proportion positive:',num2str(poscorr/numcases)];...
+%     ['p(t)=',num2str(p)];['p(ks)=',num2str(p2)];...
+%     ['p(sig)=',num2str(p4)];['p(pos)=',num2str(p5)];['p(neg)=',num2str(p6)];...
+%     ['p(neg-pos)=',num2str(p3)]},'units','normalized','verticalalignment','top');
+xlabel('correlation');ylabel('probability');title('vol vs sylldur (NASPM)');
+bardata(1,3:4) = [poscorr/numcases,negcorr/numcases];
+
+%vol vs sylldur (salinectrl baseline)
+ind = find(strcmp(pitchvolsylldur_corrsummary.condition,'saline1'));
+negcorr = length(find(pitchvolsylldur_corrsummary(ind,:).volsylldur(:,2)<= 0.05 & ...
+    pitchvolsylldur_corrsummary(ind,:).volsylldur(:,1)< 0));
+poscorr = length(find(pitchvolsylldur_corrsummary(ind,:).volsylldur(:,2)<= 0.05 & ...
+    pitchvolsylldur_corrsummary(ind,:).volsylldur(:,1)> 0));
+sigcorr = length(find(pitchvolsylldur_corrsummary(ind,:).volsylldur(:,2)<= 0.05));
+numcases = length(ind);
+
+shuffcorr =  [pitchvolsylldur_corrsummary(ind,:).volsylldur_shuff{:,1}];
+shuffpval =  [pitchvolsylldur_corrsummary(ind,:).volsylldur_shuff{:,2}];
+randnumsignificant = sum(shuffpval<=0.05,2);    
+randpropsignificant = randnumsignificant/size(shuffpval,2);
+randpropsignificant_sorted = sort(randpropsignificant);
+randnumsignificantnegcorr = sum((shuffpval<=0.05).*(shuffcorr<0),2);
+randpropsignificantnegcorr = randnumsignificantnegcorr./size(shuffpval,2);
+randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
+randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+randnumsignificantposcorr = sum((shuffpval<=0.05).*(shuffcorr>0),2);
+randpropsignificantposcorr = randnumsignificantposcorr./size(shuffpval,2);
+randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
+randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+randdiffprop = abs(randpropsignificantnegcorr-randpropsignificantposcorr);
+significancelevel(5:6) = [randpropsignificantposcorr_hi randpropsignificantnegcorr_hi];
+
+subplot(2,4,5);hold on;
+histogram(shuffcorr(:),[-0.6:0.05:0.6],'Displaystyle','stairs','edgecolor',...
+    'k','linewidth',2,'normalization','probability');hold on;
+histogram(pitchvolsylldur_corrsummary(ind,:).volsylldur(:,1),[-0.6:0.05:0.6],...
+    'Displaystyle','stairs','edgecolor',[0.5 0.5 0.5],'linewidth',2,...
+    'normalization','probability');
+plot(mean(shuffcorr(:)),0,'k^','markersize',8,'linewidth',2);hold on;
+plot(mean(pitchvolsylldur_corrsummary(ind,:).volsylldur(:,1)),0,'^','color',...
+    [0.5 0.5 0.5],'markersize',8,'linewidth',2);
+[h p] = ttest2(pitchvolsylldur_corrsummary(ind,:).volsylldur(:,1),shuffcorr(:));
+[h p2] = kstest2(pitchvolsylldur_corrsummary(ind,:).volsylldur(:,1),shuffcorr(:));
+p3 = length(find(randdiffprop>=abs((negcorr/numcases)-(poscorr/numcases))))/ntrials;
+p4 = length(find(randpropsignificant>=sigcorr/numcases))/ntrials;
+p5 = length(find(randpropsignificantposcorr>=poscorr/numcases))/ntrials;
+p6 = length(find(randpropsignificantnegcorr>=negcorr/numcases))/ntrials;
+% text(0,1,{['total cases:',num2str(numcases)];...
+%     ['proportion significant cases:',num2str(sigcorr/numcases)];...
+%     ['proportion negative:',num2str(negcorr/numcases)];...
+%     ['proportion positive:',num2str(poscorr/numcases)];...
+%     ['p(t)=',num2str(p)];['p(ks)=',num2str(p2)];...
+%     ['p(sig)=',num2str(p4)];['p(pos)=',num2str(p5)];['p(neg)=',num2str(p6)];...
+%     ['p(neg-pos)=',num2str(p3)]},'units','normalized','verticalalignment','top');
+xlabel('correlation');ylabel('probability');title('vol vs sylldur (saline1)');
+bardata(2,1:2) = [poscorr/numcases,negcorr/numcases];
+
+%vol vs sylldur (salienctrl treatment)
+ind2 = find(strcmp(pitchvolsylldur_corrsummary.condition,'saline2'));
+negcorr = length(find(pitchvolsylldur_corrsummary(ind2,:).volsylldur(:,2)<= 0.05 & ...
+    pitchvolsylldur_corrsummary(ind2,:).volsylldur(:,1)< 0));
+poscorr = length(find(pitchvolsylldur_corrsummary(ind2,:).volsylldur(:,2)<= 0.05 & ...
+    pitchvolsylldur_corrsummary(ind2,:).volsylldur(:,1)> 0));
+sigcorr = length(find(pitchvolsylldur_corrsummary(ind2,:).volsylldur(:,2)<= 0.05));
+numcases = length(ind2);
+
+shuffcorr =  [pitchvolsylldur_corrsummary(ind2,:).volsylldur_shuff{:,1}];
+shuffpval =  [pitchvolsylldur_corrsummary(ind2,:).volsylldur_shuff{:,2}];
+randnumsignificant = sum(shuffpval<=0.05,2);    
+randpropsignificant = randnumsignificant/size(shuffpval,2);
+randpropsignificant_sorted = sort(randpropsignificant);
+randnumsignificantnegcorr = sum((shuffpval<=0.05).*(shuffcorr<0),2);
+randpropsignificantnegcorr = randnumsignificantnegcorr./size(shuffpval,2);
+randpropsignificantnegcorr_sorted = sort(randpropsignificantnegcorr);
+randpropsignificantnegcorr_hi = randpropsignificantnegcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+randnumsignificantposcorr = sum((shuffpval<=0.05).*(shuffcorr>0),2);
+randpropsignificantposcorr = randnumsignificantposcorr./size(shuffpval,2);
+randpropsignificantposcorr_sorted = sort(randpropsignificantposcorr);
+randpropsignificantposcorr_hi = randpropsignificantposcorr_sorted(ceil(ntrials-(aph*ntrials/2)));
+randdiffprop = abs(randpropsignificantnegcorr-randpropsignificantposcorr);
+significancelevel(7:8) = [randpropsignificantposcorr_hi randpropsignificantnegcorr_hi];
+
+subplot(2,4,6);hold on;
+histogram(shuffcorr(:),[-0.6:0.05:0.6],'Displaystyle','stairs','edgecolor',...
+    'k','linewidth',2,'normalization','probability');hold on;
+histogram(pitchvolsylldur_corrsummary(ind2,:).volsylldur(:,1),[-0.6:0.05:0.6],...
+    'Displaystyle','stairs','edgecolor',[0.5 0.5 0.5],'linewidth',2,'normalization','probability');
+plot(mean(shuffcorr(:)),0,'k^','markersize',8,'linewidth',2);hold on;
+plot(mean(pitchvolsylldur_corrsummary(ind2,:).volsylldur(:,1)),0,'^','color',...
+    [0.5 0.5 0.5],'markersize',8,'linewidth',2);
+
+[h p] = ttest2(pitchvolsylldur_corrsummary(ind2,:).volsylldur(:,1),shuffcorr(:));
+[h p2] = kstest2(pitchvolsylldur_corrsummary(ind2,:).volsylldur(:,1),shuffcorr(:));
+p3 = length(find(randdiffprop>=abs((negcorr/numcases)-(poscorr/numcases))))/ntrials;
+p4 = length(find(randpropsignificant>=sigcorr/numcases))/ntrials;
+p5 = length(find(randpropsignificantposcorr>=poscorr/numcases))/ntrials;
+p6 = length(find(randpropsignificantnegcorr>=negcorr/numcases))/ntrials;
+% text(0,1,{['total cases:',num2str(numcases)];...
+%     ['proportion significant cases:',num2str(sigcorr/numcases)];...
+%     ['proportion negative:',num2str(negcorr/numcases)];...
+%     ['proportion positive:',num2str(poscorr/numcases)];...
+%     ['p(t)=',num2str(p)];['p(ks)=',num2str(p2)];...
+%     ['p(sig)=',num2str(p4)];['p(pos)=',num2str(p5)];['p(neg)=',num2str(p6)];...
+%     ['p(neg-pos)=',num2str(p3)]},'units','normalized','verticalalignment','top');
+xlabel('correlation');ylabel('probability');title('vol vs sylldur (saline2)');
+bardata(2,3:4) = [poscorr/numcases,negcorr/numcases];
+
+subplot(2,4,[3 4 7 8]);hold on;
+b = bar(bardata,'facecolor','none','linewidth',2);hold on;
+xl = get(gca,'xlim');
+plot(xl,[max(significancelevel) max(significancelevel)],'--','color',[0.5 0.5 0.5],'linewidth',2);
+xticks([0.8, 1.2, 1.8, 2.2]);
+xticklabels({'saline','NASPM','saline1','saline2'});
+ylabel('% cases with significant correlations');
 
 %% plot correlation in saline vs naspm
-pitchvolcorrs = pitchvolsylldur_corrsummary{:,'pitchvol'}(:,1);
-pitchvolcorrs_sal = pitchvolcorrs(1:2:end);
-pitchvolcorrs_naspm = pitchvolcorrs(2:2:end);
+ind = find(strcmp(pitchvolsylldur_corrsummary.condition,'saline'));
+ind2 = find(strcmp(pitchvolsylldur_corrsummary.condition,'naspm'));
+pitchvolcorrs_sal = pitchvolsylldur_corrsummary{ind,'pitchvol'}(:,1);
+pitchvolcorrs_naspm = pitchvolsylldur_corrsummary{ind2,'pitchvol'}(:,1);
+ind = find(strcmp(pitchvolsylldur_corrsummary.condition,'saline1'));
+ind2 = find(strcmp(pitchvolsylldur_corrsummary.condition,'saline2'));
+pitchvolcorrs_sal1 = pitchvolsylldur_corrsummary{ind,'pitchvol'}(:,1);
+pitchvolcorrs_sal2 = pitchvolsylldur_corrsummary{ind2,'pitchvol'}(:,1);
 figure;hold on;
-plot([1 2],[pitchvolcorrs_sal pitchvolcorrs_naspm],'k')
-xlim([0 3]);title('pitch vs vol');
-    
-pitchsylldurcorrs = pitchvolsylldur_corrsummary{:,'pitchsylldur'}(:,1);
-pitchsylldurcorrs_sal = pitchsylldurcorrs(1:2:end);
-pitchsylldurcorrs_naspm = pitchsylldurcorrs(2:2:end);
-figure;hold on;
-plot([1 2],[pitchsylldurcorrs_sal pitchsylldurcorrs_naspm],'k')
-xlim([0 3]);title('pitch vs sylldur');
+plot([1 2],[pitchvolcorrs_sal pitchvolcorrs_naspm],'k','marker','o');hold on;
+plot([3 4],[pitchvolcorrs_sal1 pitchvolcorrs_sal2],'k','marker','o');hold on;
+xlim([0 5]);refline(0,0);title('pitch vs vol');
+ylabel('correlation');xticks([1:4]);xticklabels({'saline','NASPM','saline1','saline2'});
 
-volsylldurcorrs = pitchvolsylldur_corrsummary{:,'volsylldur'}(:,1);
-volsylldurcorrs_sal = volsylldurcorrs(1:2:end);
-volsylldurcorrs_naspm = volsylldurcorrs(2:2:end);
+ind = find(strcmp(pitchvolsylldur_corrsummary.condition,'saline'));
+ind2 = find(strcmp(pitchvolsylldur_corrsummary.condition,'naspm'));
+pitchsylldurcorrs_sal = pitchvolsylldur_corrsummary{ind,'pitchsylldur'}(:,1);
+pitchsylldurcorrs_naspm = pitchvolsylldur_corrsummary{ind2,'pitchsylldur'}(:,1);
+ind = find(strcmp(pitchvolsylldur_corrsummary.condition,'saline1'));
+ind2 = find(strcmp(pitchvolsylldur_corrsummary.condition,'saline2'));
+pitchsylldurcorrs_sal1 = pitchvolsylldur_corrsummary{ind,'pitchsylldur'}(:,1);
+pitchsylldurcorrs_sal2 = pitchvolsylldur_corrsummary{ind2,'pitchsylldur'}(:,1);
 figure;hold on;
-plot([1 2],[volsylldurcorrs_sal volsylldurcorrs_naspm],'k')
-xlim([0 3]);title('vol vs sylldur');
+plot([1 2],[pitchsylldurcorrs_sal pitchsylldurcorrs_naspm],'k','marker','o');hold on;
+plot([3 4],[pitchsylldurcorrs_sal1 pitchsylldurcorrs_sal2],'k','marker','o');hold on;
+xlim([0 5]);refline(0,0);title('pitch vs sylldur');
+ylabel('correlation');xticks([1:4]);xticklabels({'saline','NASPM','saline1','saline2'});
+
+ind = find(strcmp(pitchvolsylldur_corrsummary.condition,'saline'));
+ind2 = find(strcmp(pitchvolsylldur_corrsummary.condition,'naspm'));
+volsylldurcorrs_sal = pitchvolsylldur_corrsummary{ind,'volsylldur'}(:,1);
+volsylldurcorrs_naspm = pitchvolsylldur_corrsummary{ind2,'volsylldur'}(:,1);
+ind = find(strcmp(pitchvolsylldur_corrsummary.condition,'saline1'));
+ind2 = find(strcmp(pitchvolsylldur_corrsummary.condition,'saline2'));
+volsylldurcorrs_sal1 = pitchvolsylldur_corrsummary{ind,'volsylldur'}(:,1);
+volsylldurcorrs_sal2 = pitchvolsylldur_corrsummary{ind2,'volsylldur'}(:,1);
+figure;hold on;
+plot([1 2],[volsylldurcorrs_sal volsylldurcorrs_naspm],'k','marker','o');hold on;
+plot([3 4],[volsylldurcorrs_sal1 volsylldurcorrs_sal2],'k','marker','o');hold on;
+xlim([0 5]);refline(0,0);title('vol vs sylldur');
+ylabel('correlation');xticks([1:4]);xticklabels({'saline','NASPM','saline1','saline2'});
+
 %% is there an effect of naspm on pitch vs volume? 
-
 %estimate the interaction effect of treatment (naspm or saline ctrl) on
 %pitch vs volume
 c = unique(pitchvolsylldur_data(:,{'birdname','syllID'}));
@@ -348,7 +742,7 @@ formula = 'pitchinteraction ~ pitch_beta*condition';
 mdl = fitlm(allbetas,formula);
 pVal = mdl.Coefficients{'pitch_beta:condition_saline','pValue'};
 
-%plot effect of treatment on pitch vs volume
+%plot effect of treatment on pitch vs volume 
 figure;plot(naspmbeta.pitch_beta,naspmbeta.pitchinteraction,'r.','markersize',10);hold on;lsline
 plot(salinectrlbeta.pitch_beta,salinectrlbeta.pitchinteraction,'k.','markersize',10);lsline
 xlabel('pitch beta');ylabel('interaction effect on pitch');
