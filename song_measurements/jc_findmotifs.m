@@ -169,7 +169,7 @@ for i = 1:length(ff)
                        onsamp_syll = 1;
                    end
                    [mxvals pc spectempent sp f tm] = measure_specs(filtsong(onsamp_syll:offsamp_syll),...
-                       fvalbnd{syllind},timeshifts{syllind},fs);
+                       fvalbnd{syllind},timeshifts{syllind},fs,nbuffer);
                    idx=idx+1;
                    entropyvarestimates(idx) = entropy_variance(filtsong(onsamp_syll:offsamp_syll),fs);
                    pitchestimates(idx) = mxvals;

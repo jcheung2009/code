@@ -7,9 +7,9 @@
 
 config;
 shufftrials = 1000;
-drug = 'naspm';%naspm
-baselinecondition = 'saline';%saline in naspm, saline1 in saline
-treatmentcondition = 'naspm';%naspm in naspm, saline2 in saline
+drug = 'saline';%naspm
+baselinecondition = 'saline1';%saline in naspm, saline1 in saline
+treatmentcondition = 'saline2';%naspm in naspm, saline2 in saline
 
 data = cell(length(params.findnote),2,3);
 trials = params.trial(arrayfun(@(x) strcmp(x.condition,drug),params.trial));
