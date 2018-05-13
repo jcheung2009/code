@@ -1,3 +1,9 @@
+%trial by trial correlation of pitch/volume with gap durations in front and
+%back
+%extracts raw data and places into table pitchvolgap_tbl
+%performs pairwise correlation and shuffle tests and stores in table
+%pitchvolgap_corr
+
 config;
 shufftrials = 1000;
 drug = 'saline';%naspm

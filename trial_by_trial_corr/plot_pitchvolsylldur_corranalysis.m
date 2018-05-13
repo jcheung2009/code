@@ -20,7 +20,6 @@ for i = 1:length(ff)
             continue
         end
     end
-    
     pitchvolsylldur_corrsummary = [pitchvolsylldur_corrsummary; pitchvolsylldur_corr];
     pitchvolsylldur_data = [pitchvolsylldur_data; pitchvolsylldur_tbl];
 end

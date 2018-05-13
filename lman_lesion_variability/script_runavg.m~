@@ -43,14 +43,14 @@ for i = 1:length(ff)
             xlabel('Days','fontweight','bold');
             ylabel('Frequency (Hz)','fontweight','bold')
             
-            numseconds = pitchdat(end,1)-pitchdat(1,1);
+            numseconds = pitchdat(end,1)-pitchdat(:,1);
             timewindow = 3600;
             numtimewindows = ceil(numseconds/timewindow);
             timept1 = pitchdat(1,1);
-            avg = [];
+            avg = NaN(length(hrs)-1,1);
             timebase = [];
             for idx = 1:numtimewindows
-                timept2 = timept1+timewindow;
+                timept2 = timept1+timewindow
                 ix = find(pitchdat(:,1)>=timept1 & pitchdat(:,1)< timept2);
                 avg = [avg; nanmean(pitchdat(ix,2))];
                 timebase = [timebase; timept1];

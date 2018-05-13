@@ -23,10 +23,10 @@ for i = 1:length(ff)
             day_to_day_pre = nanmean(cell2mat(struct2cell(summary.([feature{m}]).([sylls{n}]).day_to_day.pre)));
             day_to_day_post = nanmean(cell2mat(struct2cell(summary.([feature{m}]).([sylls{n}]).day_to_day.post)));
             
-            pre_vs_post.([feature{m}]).hour = [pre_vs_post.([feature{m}]).hour;[hour_pre hour_post]];
-            pre_vs_post.([feature{m}]).morn_to_night = [pre_vs_post.([feature{m}]).morn_to_night;[morn_to_night_pre morn_to_night_post]];
-            pre_vs_post.([feature{m}]).night_to_morn = [pre_vs_post.([feature{m}]).night_to_morn;[night_to_morn_pre night_to_morn_post]];
-            pre_vs_post.([feature{m}]).day_to_day = [pre_vs_post.([feature{m}]).day_to_day;[day_to_day_pre day_to_day_post]];
+            pre_vs_post.([feature{m}]).hour = [pre_vs_post.([feature{m}]).hour;abs([hour_pre hour_post])];
+            pre_vs_post.([feature{m}]).morn_to_night = [pre_vs_post.([feature{m}]).morn_to_night;abs([morn_to_night_pre morn_to_night_post])];
+            pre_vs_post.([feature{m}]).night_to_morn = [pre_vs_post.([feature{m}]).night_to_morn;abs([night_to_morn_pre night_to_morn_post])];
+            pre_vs_post.([feature{m}]).day_to_day = [pre_vs_post.([feature{m}]).day_to_day;abs([day_to_day_pre day_to_day_post])];
         end
     end
 end

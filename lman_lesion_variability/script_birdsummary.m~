@@ -514,9 +514,9 @@ end
 
 %% covariation in pitch and spectral temporal entropy
 nstd = 3;
-if isfield(params,'findmotif')  
-    for n = 1:length(params.findmotif)
-        numsylls = length(params.findmotif(n).syllables);
+if isfield(params,'findnote')  
+    for n = 1:length(params.findnote)
+        numsylls = length(params.findnote(n).syllables);
         if numsylls < 2
                 continue
         end
@@ -667,8 +667,7 @@ if isfield(params,'findnote')
 %             figure;hold on;plot(lag,c,'k');hold on;
 %             patch('XData',[lag fliplr(lag)],'YData',[hi fliplr(lo)],'facecolor',[0.85 0.85 0.85],'facealpha',0.75,'edgecolor','none');
         end
-        summary.pitch_autocorr.([syllable]).pre = autocorr_integral_pre;
-        summary.pitch_autocorr.([syllable]).post = autocorr_integral_post;
+        summary.pitch_autocorr.([syllables{cmb(m,:)}]).post = [r(2) p(2)];
     end
     
 end
