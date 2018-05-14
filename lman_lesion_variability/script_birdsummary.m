@@ -402,8 +402,13 @@ for i = 1:length(params.trial)
                     tb_prev=tb_prev-params.timeshift{2};
                 end
                 intv = find(tb_prev >=9);
-                prev_night = mean([fv_prev(intv).entropyvar]);
-                prev_whole = mean([fv_prev(:).entropyvar]);
+                try
+                    prev_night = mean([fv_prev(intv).entropyvar]);
+                    prev_whole = mean([fv_prev(:).entropyvar]);
+                catch
+                    prev_night = mean([fv_prev(intv).entvar]);
+                    prev_whole = mean([fv_prev(:).entvar]);
+                end
             else
                 night_to_morn = NaN;
                 day_to_day = NaN;
@@ -414,14 +419,23 @@ for i = 1:length(params.trial)
                 tb = tb-2;
             end
             st = floor(tb(1)); en = ceil(tb(end));hrs = [st:en];
-            wholeday = mean([fv(:).entropyvar]);
+            try
+                wholeday = mean([fv(:).entropyvar]);
+            catch
+                wholeday = mean([fv(:).entvar]);
+            end
+                    
             
             %hourly 
             hour = NaN(length(hrs),1);
             for ind = 1:length(hrs)-1
                 intv = find(tb>=hrs(ind) & tb<hrs(ind+1));   
                 if length(intv) >= 20
-                    samp = [fv(intv).entropyvar]';
+                    try
+                        samp = [fv(intv).entropyvar]';
+                    catch
+                        samp = [fv(intv).entvar]';
+                    end
                     hour(ind) = mean(samp);
                 else
                     continue
@@ -432,7 +446,11 @@ for i = 1:length(params.trial)
             %morning 
             intv = find(tb>=hrs(1) & tb<= 3);
             if length(intv) >= 20
-                mornpitch = mean([fv(intv).entropyvar]);
+                try
+                    mornpitch = mean([fv(intv).entropyvar]);
+                catch
+                    mornpitch = mean([fv(intv).entvar]);
+                end
             else
                 mornpitch = NaN;
             end
@@ -440,7 +458,11 @@ for i = 1:length(params.trial)
             %evening
             intv = find(tb>=9);
             if length(intv) >= 20
-                nightpitch = mean([fv(intv).entropyvar]);
+                try
+                    nightpitch = mean([fv(intv).entropyvar]);
+                catch
+                    nightpitch = mean([fv(intv).entvar]);
+                end
             else
                 nightpitch = NaN;
             end
@@ -657,6 +679,7 @@ if isfield(params,'findnote')
             hi = shuffcorrs(shufftrials-floor(shufftrials*aph/2),:);
             ix = find(lag >= 0 & lag <= lagcutoff);
             normc = c-hi';
+            normc(normc < 0) = 0;
             
             if strcmp(params.trial(i).condition,'pre')
                 autocorr_integral_pre = [autocorr_integral_pre; trapz(normc(ix))];
@@ -664,11 +687,43 @@ if isfield(params,'findnote')
                 autocorr_integral_post = [autocorr_integral_post; trapz(normc(ix))];
             end
             
-%             figure;hold on;plot(lag,c,'k');hold on;
-%             patch('XData',[lag fliplr(lag)],'YData',[hi fliplr(lo)],'facecolor',[0.85 0.85 0.85],'facealpha',0.75,'edgecolor','none');
+             figure;hold on;plot(lag,c,'k');hold on;
+             patch('XData',[lag fliplr(lag)],'YData',[hi fliplr(lo)],'facecolor',[0.85 0.85 0.85],'facealpha',0.75,'edgecolor','none');
+             title([syllable,' ',params.trial(i).name],'interpreter','none')
         end
         summary.pitch_autocorr.([syllable]).pre = autocorr_integral_pre;
         summary.pitch_autocorr.([syllable]).post = autocorr_integral_post;
+    end
+    
+end
+
+%% pitch cv before and after
+nstd = 3;
+if isfield(params,'findnote')  
+    for n = 1:length(params.findnote)
+        syllable = params.findnote(n).syllable;
+        pitchcv_pre = [];pitchcv_post = [];
+        for i = 1:length(params.trial)
+            
+            fv = eval([params.findnote(n).fvstruct,params.trial(i).name]);
+            tb = jc_tb([fv(:).datenm]',7,0);
+            pitch = [fv(:).mxvals]';
+            pitch = jc_removeoutliers(pitch,nstd);
+            
+            %detrend  
+            pitch = jc_detrendpitch(pitch,tb);
+            
+            if strcmp(params.trial(i).condition,'pre')
+                pitchcv_pre = [pitchcv_pre; cv(pitch)];
+            elseif strcmp(params.trial(i).condition,'post')
+                pitchcv_post = [pitchcv_post; cv(pitch)];
+            end
+            
+             figure;hold on;plot(tb,pitch,'k.');hold on;
+             title([syllable,' ',params.trial(i).name],'interpreter','none');
+        end
+        summary.pitch_cv.([syllable]).pre = pitchcv_pre;
+        summary.pitch_cv.([syllable]).post = pitchcv_post;
     end
     
 end

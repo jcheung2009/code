@@ -56,6 +56,7 @@ for m = 1:length(feature)
     set(h,'xtick',xtck,'xticklabel',{'pre','post'},'fontweight','bold');
 end
 
+%% pairwise pitch covariance
 pre_vs_post.covar = struct('pitch',[],'spent',[],'entvar',[]);
 feature = fieldnames(pre_vs_post.covar);
 for i = 1:length(ff)
@@ -91,5 +92,40 @@ end
 ylabel('correlation');
 set(gca,'xtick',xtck,'xticklabel',{'pre','post'},'fontweight','bold');
 
+%% plot change in pitch autocorrelation
+pre_vs_post_xcorr = [];
+for i = 1:length(ff)
+    birdnm = ff(i).name;
+    summary = eval(['summary_',birdnm,'.pitch_autocorr']);
+    syllables = fieldnames(summary);
+    for m = 1:length(syllables)
+            pre_xcorr = summary.([syllables{m}]).pre;
+            post_xcorr = summary.([syllables{m}]).post;
+            pre_vs_post_xcorr = [pre_vs_post_xcorr;[mean(pre_xcorr) mean(post_xcorr)]];
+    end
+end
+
+%plot change in xcorr
+figure;hold on;
+plot([0 2],[0 0],'--','color','k');hold on;
+plot([0.5 1.5],(pre_vs_post_xcorr),'marker','o','linewidth',1,'color',[0.5 0.5 0.5]);hold on;
+p = signrank((pre_vs_post_xcorr(:,1)),(pre_vs_post_xcorr(:,2)));
+ylabel('xcorr integral');
+text(0,1,['p=',num2str(p)],'units','normalized','verticalalignment','top');
+
+pre_vs_post_pitchcv = [];
+for i = 1:length(ff)
+    birdnm = ff(i).name;
+    summary = eval(['summary_',birdnm,'.pitch_cv']);
+    syllables = fieldnames(summary);
+    for m = 1:length(syllables)
+            pre_cv = summary.([syllables{m}]).pre;
+            post_cv = summary.([syllables{m}]).post;
+            pre_vs_post_pitchcv = [pre_vs_post_pitchcv;[mean(pre_cv) mean(post_cv)]];
+    end
+end
+
+figure;hold on;
+plot(pre_vs_post_pitchcv(:,2)./pre_vs_post_pitchcv(:,1),(pre_vs_post_xcorr(:,2)-pre_vs_post_xcorr(:,1)),'k.')
 
     
