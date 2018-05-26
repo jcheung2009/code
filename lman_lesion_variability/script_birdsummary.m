@@ -661,6 +661,7 @@ if isfield(params,'findnote')
     for n = 1:length(params.findnote)
         syllable = params.findnote(n).syllable;
         autocorr_integral_pre = [];autocorr_integral_post = [];
+        autocorr_tc_pre = []; autocorr_tc_post = [];
         for i = 1:length(params.trial)
             
             fv = eval([params.findnote(n).fvstruct,params.trial(i).name]);
@@ -687,12 +688,51 @@ if isfield(params,'findnote')
                 autocorr_integral_post = [autocorr_integral_post; trapz(normc(ix))];
             end
             
-             figure;hold on;plot(lag,c,'k');hold on;
-             patch('XData',[lag fliplr(lag)],'YData',[hi fliplr(lo)],'facecolor',[0.85 0.85 0.85],'facealpha',0.75,'edgecolor','none');
-             title([syllable,' ',params.trial(i).name],'interpreter','none')
+            %identify when correlation falls to random from lag 0
+            lag_gt_0 = find(lag >= 0);
+            c = c(lag_gt_0);
+            c_n = conv(c,ones(10,1)./10,'same');
+            hi_gt_0 = hi(lag_gt_0);
+            c_gt_hi = find(bsxfun(@lt,c_n(2:end),hi_gt_0(2:end)'));
+            c_gt_hi = c_gt_hi(1);
+            c = c(1:c_gt_hi);
+            
+            %fit double exponential to autocorr
+            try
+                f = fit([1:length(c)]',c,'exp2');
+                betas = coeffvalues(f);
+                tc = betas([2,4]);
+    %             betaconf = confint(f);
+    %             if 0 >= betaconf(1,1) & 0 <= betaconf(2,1)
+    %                 tc = betas(4);
+    %             elseif 0 >= betaconf(1,3) & 0 <= betaconf(2,3)
+    %                 tc = betas(2);
+    %             elseif betas(3) < betas(1)
+    %                 tc = betas(4);
+    %             elseif betas(1) < betas(3)
+    %                 tc = betas(2);
+    %             end
+                figure;hold on;
+                plot(c(1:c_gt_hi),'k');hold on;
+                plot(f,1:c_gt_hi,c(1:c_gt_hi));hold on;
+                title([syllable,' ',params.trial(i).name],'interpreter','none')
+            catch
+                tc = NaN(1,2);
+            end
+            
+            if strcmp(params.trial(i).condition,'pre')
+                autocorr_tc_pre = [autocorr_tc_pre; tc];
+            elseif strcmp(params.trial(i).condition,'post')
+                autocorr_tc_post = [autocorr_tc_post; tc];
+            end
+%              figure;hold on;plot(lag,c,'k');hold on;
+%              patch('XData',[lag fliplr(lag)],'YData',[hi fliplr(lo)],'facecolor',[0.85 0.85 0.85],'facealpha',0.75,'edgecolor','none');
+%              title([syllable,' ',params.trial(i).name],'interpreter','none')
         end
         summary.pitch_autocorr.([syllable]).pre = autocorr_integral_pre;
         summary.pitch_autocorr.([syllable]).post = autocorr_integral_post;
+        summary.pitch_autocorr.([syllable]).pre_tc = autocorr_tc_pre;
+        summary.pitch_autocorr.([syllable]).post_tc = autocorr_tc_post;
     end
     
 end

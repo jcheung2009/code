@@ -128,4 +128,31 @@ end
 figure;hold on;
 plot(pre_vs_post_pitchcv(:,2)./pre_vs_post_pitchcv(:,1),(pre_vs_post_xcorr(:,2)-pre_vs_post_xcorr(:,1)),'k.')
 
-    
+%% plot xcorr tc
+pre_vs_post_xcorr_tc = [];
+for i = 1:length(ff)
+    birdnm = ff(i).name;
+    summary = eval(['summary_',birdnm,'.pitch_autocorr']);
+    syllables = fieldnames(summary);
+    for m = 1:length(syllables)
+            pre_xcorr_tc = summary.([syllables{m}]).pre_tc;
+            post_xcorr_tc = summary.([syllables{m}]).post_tc;
+            pre_vs_post_xcorr_tc = [pre_vs_post_xcorr_tc;[nanmean(pre_xcorr_tc) nanmean(post_xcorr_tc)]];
+    end
+end    
+
+figure;hold on;
+plot([0 2],[0 0],'--','color','k');hold on;
+plot([0.5 1.5],[pre_vs_post_xcorr_tc(:,1) pre_vs_post_xcorr_tc(:,3)],'marker','o','linewidth',1,'color',[0.5 0.5 0.5]);hold on;
+p = signrank(pre_vs_post_xcorr_tc(:,1),pre_vs_post_xcorr_tc(:,3));
+ylabel('xcorr tc1');
+text(0,1,['p=',num2str(p)],'units','normalized','verticalalignment','top');
+figure;hold on;
+plot([0 2],[0 0],'--','color','k');hold on;
+plot([0.5 1.5],[pre_vs_post_xcorr_tc(:,2) pre_vs_post_xcorr_tc(:,4)],'marker','o','linewidth',1,'color',[0.5 0.5 0.5]);hold on;
+p = signrank(pre_vs_post_xcorr_tc(:,2),pre_vs_post_xcorr_tc(:,4));
+ylabel('xcorr tc2');
+text(0,1,['p=',num2str(p)],'units','normalized','verticalalignment','top');
+
+figure;hold on;
+plot(pre_vs_post_pitchcv(:,2)./pre_vs_post_pitchcv(:,1),(pre_vs_post_xcorr_tc(:,3)-pre_vs_post_xcorr_tc(:,1)),'k.')

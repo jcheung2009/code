@@ -830,21 +830,21 @@ ylabel('correlation');xticks([1:4]);xticklabels({'saline','NASPM','saline1','sal
 
 %% is there an effect of naspm on pitch vs gap? 
 %plot pitch vs vol correlation at baseline vs treatment (naspm or saline
-%ctrl)
+%ctrl) for gap back
 ix = find(strcmp(pitchvolgapdur_corrsummary.gaptype,'back'));
 gaptypesubset = pitchvolgapdur_corrsummary(ix,:);
-c = unique(subset1(:,{'birdname','syllID'}));
+c = unique(gaptypesubset(:,{'birdname','syllID'}));
 naspmcorr = [];salinectrlcorr= [];
 for i = 1:height(c)
     %extract data for each syllable for naspm trial
-    ind = find(strcmp(subset1.birdname,c(i,:).birdname) & ...
-        strcmp(subset1.syllID,c(i,:).syllID));
-    subset = pitchvolsylldur_corrsummary(ind,:);
+    ind = find(strcmp(gaptypesubset.birdname,c(i,:).birdname) & ...
+        strcmp(gaptypesubset.syllID,c(i,:).syllID));
+    subset = gaptypesubset(ind,:);
     
-    naspmcorr = [naspmcorr; subset{strcmp(subset.condition,'saline'),'pitchvol'} ...
-        subset{strcmp(subset.condition,'naspm'),'pitchvol'}];
-    salinectrlcorr = [salinectrlcorr; subset{strcmp(subset.condition,'saline1'),'pitchvol'} ...
-        subset{strcmp(subset.condition,'saline2'),'pitchvol'}];
+    naspmcorr = [naspmcorr; subset{strcmp(subset.condition,'saline'),'pitchgap'} ...
+        subset{strcmp(subset.condition,'naspm'),'pitchgap'}];
+    salinectrlcorr = [salinectrlcorr; subset{strcmp(subset.condition,'saline1'),'pitchgap'} ...
+        subset{strcmp(subset.condition,'saline2'),'pitchgap'}];
 end
 
 %test if slopes are different
@@ -862,5 +862,183 @@ pVal = mdl.Coefficients{'baseline_corr:condition_saline','pValue'};
 figure;plot(naspmcorr.baseline_corr,naspmcorr.treatment_corr,'r.','markersize',10);hold on;lsline
 plot(salinectrlcorr.baseline_corr,salinectrlcorr.treatment_corr,'k.','markersize',10);hold on;lsline
 xlabel('baseline correlation');ylabel('treatment correlation') 
-legend({'naspm','','saline',''});title('pitch vs volume');
+legend({'naspm','','saline',''});title('pitch vs gap back');
 text(0,1,['p=',num2str(pVal)],'units','normalized','verticalalignment','top');
+
+%plot pitch vs vol correlation at baseline vs treatment (naspm or saline
+%ctrl) for gap front
+ix = find(strcmp(pitchvolgapdur_corrsummary.gaptype,'forward'));
+gaptypesubset = pitchvolgapdur_corrsummary(ix,:);
+c = unique(gaptypesubset(:,{'birdname','syllID'}));
+naspmcorr = [];salinectrlcorr= [];
+for i = 1:height(c)
+    %extract data for each syllable for naspm trial
+    ind = find(strcmp(gaptypesubset.birdname,c(i,:).birdname) & ...
+        strcmp(gaptypesubset.syllID,c(i,:).syllID));
+    subset = gaptypesubset(ind,:);
+    
+    naspmcorr = [naspmcorr; subset{strcmp(subset.condition,'saline'),'pitchgap'} ...
+        subset{strcmp(subset.condition,'naspm'),'pitchgap'}];
+    salinectrlcorr = [salinectrlcorr; subset{strcmp(subset.condition,'saline1'),'pitchgap'} ...
+        subset{strcmp(subset.condition,'saline2'),'pitchgap'}];
+end
+
+%test if slopes are different
+naspmcorr = array2table(naspmcorr,'VariableNames',{'baseline_corr','baseline_corr_pval',...
+    'treatment_corr','treatment_corr_pval'});
+naspmcorr.condition = repmat({'naspm'},height(naspmcorr),1);
+salinectrlcorr = array2table(salinectrlcorr,'VariableNames',{'baseline_corr','baseline_corr_pval',...
+    'treatment_corr','treatment_corr_pval'});
+salinectrlcorr.condition = repmat({'saline'},height(salinectrlcorr),1);
+allbetas = [naspmcorr;salinectrlcorr];
+formula = 'treatment_corr ~ baseline_corr*condition';
+mdl = fitlm(allbetas,formula);
+pVal = mdl.Coefficients{'baseline_corr:condition_saline','pValue'};
+
+figure;plot(naspmcorr.baseline_corr,naspmcorr.treatment_corr,'r.','markersize',10);hold on;lsline
+plot(salinectrlcorr.baseline_corr,salinectrlcorr.treatment_corr,'k.','markersize',10);hold on;lsline
+xlabel('baseline correlation');ylabel('treatment correlation') 
+legend({'naspm','','saline',''});title('pitch vs gap front');
+text(0,1,['p=',num2str(pVal)],'units','normalized','verticalalignment','top');
+
+%plot vol vs vol correlation at baseline vs treatment (naspm or saline
+%ctrl) for gap back
+ix = find(strcmp(pitchvolgapdur_corrsummary.gaptype,'back'));
+gaptypesubset = pitchvolgapdur_corrsummary(ix,:);
+c = unique(gaptypesubset(:,{'birdname','syllID'}));
+naspmcorr = [];salinectrlcorr= [];
+for i = 1:height(c)
+    %extract data for each syllable for naspm trial
+    ind = find(strcmp(gaptypesubset.birdname,c(i,:).birdname) & ...
+        strcmp(gaptypesubset.syllID,c(i,:).syllID));
+    subset = gaptypesubset(ind,:);
+    
+    naspmcorr = [naspmcorr; subset{strcmp(subset.condition,'saline'),'volgap'} ...
+        subset{strcmp(subset.condition,'naspm'),'volgap'}];
+    salinectrlcorr = [salinectrlcorr; subset{strcmp(subset.condition,'saline1'),'volgap'} ...
+        subset{strcmp(subset.condition,'saline2'),'volgap'}];
+end
+
+%test if slopes are different
+naspmcorr = array2table(naspmcorr,'VariableNames',{'baseline_corr','baseline_corr_pval',...
+    'treatment_corr','treatment_corr_pval'});
+naspmcorr.condition = repmat({'naspm'},height(naspmcorr),1);
+salinectrlcorr = array2table(salinectrlcorr,'VariableNames',{'baseline_corr','baseline_corr_pval',...
+    'treatment_corr','treatment_corr_pval'});
+salinectrlcorr.condition = repmat({'saline'},height(salinectrlcorr),1);
+allbetas = [naspmcorr;salinectrlcorr];
+formula = 'treatment_corr ~ baseline_corr*condition';
+mdl = fitlm(allbetas,formula);
+pVal = mdl.Coefficients{'baseline_corr:condition_saline','pValue'};
+
+figure;plot(naspmcorr.baseline_corr,naspmcorr.treatment_corr,'r.','markersize',10);hold on;lsline
+plot(salinectrlcorr.baseline_corr,salinectrlcorr.treatment_corr,'k.','markersize',10);hold on;lsline
+xlabel('baseline correlation');ylabel('treatment correlation') 
+legend({'naspm','','saline',''});title('vol vs gap back');
+text(0,1,['p=',num2str(pVal)],'units','normalized','verticalalignment','top');
+
+%plot pitch vs vol correlation at baseline vs treatment (naspm or saline
+%ctrl) for gap front
+ix = find(strcmp(pitchvolgapdur_corrsummary.gaptype,'forward'));
+gaptypesubset = pitchvolgapdur_corrsummary(ix,:);
+c = unique(gaptypesubset(:,{'birdname','syllID'}));
+naspmcorr = [];salinectrlcorr= [];
+for i = 1:height(c)
+    %extract data for each syllable for naspm trial
+    ind = find(strcmp(gaptypesubset.birdname,c(i,:).birdname) & ...
+        strcmp(gaptypesubset.syllID,c(i,:).syllID));
+    subset = gaptypesubset(ind,:);
+    
+    naspmcorr = [naspmcorr; subset{strcmp(subset.condition,'saline'),'volgap'} ...
+        subset{strcmp(subset.condition,'naspm'),'volgap'}];
+    salinectrlcorr = [salinectrlcorr; subset{strcmp(subset.condition,'saline1'),'volgap'} ...
+        subset{strcmp(subset.condition,'saline2'),'volgap'}];
+end
+
+%test if slopes are different
+naspmcorr = array2table(naspmcorr,'VariableNames',{'baseline_corr','baseline_corr_pval',...
+    'treatment_corr','treatment_corr_pval'});
+naspmcorr.condition = repmat({'naspm'},height(naspmcorr),1);
+salinectrlcorr = array2table(salinectrlcorr,'VariableNames',{'baseline_corr','baseline_corr_pval',...
+    'treatment_corr','treatment_corr_pval'});
+salinectrlcorr.condition = repmat({'saline'},height(salinectrlcorr),1);
+allbetas = [naspmcorr;salinectrlcorr];
+formula = 'treatment_corr ~ baseline_corr*condition';
+mdl = fitlm(allbetas,formula);
+pVal = mdl.Coefficients{'baseline_corr:condition_saline','pValue'};
+
+figure;plot(naspmcorr.baseline_corr,naspmcorr.treatment_corr,'r.','markersize',10);hold on;lsline
+plot(salinectrlcorr.baseline_corr,salinectrlcorr.treatment_corr,'k.','markersize',10);hold on;lsline
+xlabel('baseline correlation');ylabel('treatment correlation') 
+legend({'naspm','','saline',''});title('vol vs gap front');
+text(0,1,['p=',num2str(pVal)],'units','normalized','verticalalignment','top');
+
+%% plot trial lag correlation 
+shufftrials = 1000;
+subset = pitchvolgapdur_data(strcmp(pitchvolgapdur_data.condition,'saline') & ...
+    strcmp(pitchvolgapdur_data.gaptype,'forward'),:);
+[cases ia ib] = unique(subset(:,{'birdname','syllID'}));
+lagtrialcorr = {};lagtrialshuffcorr = {};
+for i = 1:height(cases)
+    ind = find(ib == i);
+    data = subset{ind,{'pitch','gapdur'}};
+    data(any(isnan(data),2),:) = [];
+    [r l] = xcov(data(:,1),data(:,2),'biased');
+    lagtrialcorr = [lagtrialcorr; [l' r]];
+    [shuffr shuffl] = shuffletrialcorr(data(:,1),data(:,2),shufftrials);
+    lagtrialshuffcorr = [lagtrialshuffcorr; [shuffl shuffr]];
+end
+
+[~,maxind] = max(cellfun(@(x) size(x,1),lagtrialcorr));
+maxlag = lagtrialcorr{maxind}(:,1);
+lagtrialcorr = cellfun(@(x) [NaN(x(1,1)-maxlag(1),1);x(:,2);...
+    NaN(maxlag(end)-x(end,1),1)],lagtrialcorr,'un',0);
+lagtrialcorr = abs(cell2mat(lagtrialcorr'));
+figure;hold on;
+for i = 1:size(lagtrialcorr,2)
+    plot(maxlag,lagtrialcorr(:,i),'color',[1 0.8 0.8]);hold on;
+end
+patch([maxlag' fliplr(maxlag')],[(nanmean(lagtrialcorr,2)+nanstderr(lagtrialcorr,2))' ...
+    fliplr((nanmean(lagtrialcorr,2)-nanstderr(lagtrialcorr,2))')],'r',...
+    'edgecolor','none','facealpha',0.7);hold on;
+
+[~,maxind] = max(cellfun(@(x) length(x(:,1)),lagtrialshuffcorr));
+maxlag = lagtrialshuffcorr{maxind}(:,1);
+lagtrialshuffcorr = cellfun(@(x) [NaN(x(1,1)-maxlag(1),shufftrials);x(:,2:end);...
+    NaN(maxlag(end)-x(end,1),shufftrials)],lagtrialshuffcorr,'un',0);
+lagtrialshuffcorr = abs(cell2mat(lagtrialshuffcorr'));
+hi = zeros(1,length(maxlag));lo = NaN(1,length(maxlag));
+for i = 1:length(maxlag)
+    id = find(~isnan(lagtrialshuffcorr(i,:)));
+    x = sort(lagtrialshuffcorr(i,id));
+    if length(x) <= 1000
+        continue
+    else
+        hi(i) = x(fix(length(x)*0.95));
+        lo(i) = x(fix(length(x)*0.05));
+    end
+end
+patch([maxlag' fliplr(maxlag')],[lo fliplr(hi)],[0.2 0.2 0.2],...
+    'edgecolor','none','facealpha',0.7);hold on;
+
+function [shuffr shuffl] = shuffletrialcorr(x,y,shufftrials);
+    x_shuff = repmat(x',shufftrials,1);
+    x_shuff = permute_rowel(x_shuff);
+    shuffr = cell(shufftrials,1);
+    shuffl = cell(shufftrials,1);
+    for n = 1:shufftrials
+        shuffdat = [x_shuff(n,:)',y];
+        shuffdat(any(isnan(shuffdat),2),:) = [];
+        [rx lx] = xcorr(shuffdat(:,1),shuffdat(:,2),'biased');
+        shuffr{n} = rx;
+        shuffl{n} = lx';
+    end
+    [~,maxind] = max(cellfun(@length,shuffl));
+    maxlag = shuffl{maxind};
+    shuffr = cellfun(@(x,y) [NaN(x(1)-maxlag(1),1);y;NaN(maxlag(end)-x(end),1)],...
+        shuffl,shuffr,'un',0);
+    shuffr = cell2mat(shuffr');
+    shuffl = maxlag;
+end
+    
+    

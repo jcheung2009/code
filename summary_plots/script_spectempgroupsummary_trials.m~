@@ -34,7 +34,7 @@ for i = 1:length(ff)
             birdsummary = eval(['summary_',ff(i).name]);
         end
     end
-    birdsummary = eval(['summary_',ff(i).name]);
+    
    
     if isfield(birdsummary,'spec')
         numsylls = length(fieldnames(birdsummary.spec));
@@ -151,7 +151,7 @@ for i = 1:length(ff)
         for indcond = 1:length(conditions)
             for n = 1:numreps
                 ind = find(strcmp(arrayfun(@(x) x.([reps{n}]).condition,birdsummary.rep,'unif',0),conditions{indcond}));
-                ind_sal = strcmp(arrayfun(@(x) x.([reps{n}]).condition,birdsummary.rep,'unif',0),salinecomp);
+                ind_sal = strcmp(arrayfun(@(x) x.([reps{n}]).condition,birdsummary.rep,'unif',0),'saline');
                 if isempty(ind)
                     continue
                 end
@@ -160,9 +160,23 @@ for i = 1:length(ff)
                     rep_pvals = [rep_pvals;birdsummary.rep(ind(m)).([reps{n}]).runlength.pval];
                     replength = cell2mat(arrayfun(@(x) x.([reps{n}]).runlength.percent,birdsummary.rep(ind),'unif',0)');
                 end
-
-                replength_sal = mean(cell2mat(arrayfun(@(x) x.([reps{n}]).runlength.percent,birdsummary.rep(ind_sal),'unif',0)'),1);
-                group_rep.(strrep(conditions{indcond},' ','_')){1} = [group_rep.(strrep(conditions{indcond},' ','_')){1};repmat(replength_sal,length(replength),1) replength];
+                
+                mdur_pvals = [];
+                for m = 1:length(ind)
+                    mdur_pvals = [mdur_pvals;birdsummary.temp(ind(m)).([motifs{n}]).motifdur.pval];
+                    motifdur = cell2mat(arrayfun(@(x) x.([motifs{n}]).motifdur.percent,birdsummary.temp(ind),'unif',0)');
+                end
+                
+                
+                if sum(rep_pvals <=0.05) > floor(length(rep_pvals)/2)
+                    runlength = mean(cell2mat(arrayfun(@(x) [x.([reps{n}]).runlength.percent],birdsummary.rep(ind(rep_pvals<=0.05)),'unif',0)'),1);
+                    rep_pval = 0;
+                else
+                    rep_pval = 1;
+                    runlength = mean(cell2mat(arrayfun(@(x) [x.([reps{n}]).runlength.percent],birdsummary.rep(ind),'unif',0)'),1);
+                end
+                runlength_sal = mean(cell2mat(arrayfun(@(x) x.([reps{n}]).runlength.percent,birdsummary.rep(ind_sal),'unif',0)'),1);
+                group_rep.(strrep(conditions{indcond},' ','_')){1} = [group_rep.(strrep(conditions{indcond},' ','_')){1};runlength_sal runlength];
                 group_rep.(strrep(conditions{indcond},' ','_')){2} = [group_rep.(strrep(conditions{indcond},' ','_')){2};{ff(i).name}];
             end
         end

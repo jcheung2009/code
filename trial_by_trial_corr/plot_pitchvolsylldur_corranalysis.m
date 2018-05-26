@@ -944,3 +944,77 @@ plot(salinectrlcorr.baseline_corr,salinectrlcorr.treatment_corr,'k.','markersize
 xlabel('baseline correlation');ylabel('treatment correlation') 
 legend({'naspm','','saline',''});title('volume vs sylldur');
 text(0,1,['p=',num2str(pVal)],'units','normalized','verticalalignment','top');
+
+%% plot trial lag correlation 
+shufftrials = 1000;
+subset = pitchvolsylldur_data(strcmp(pitchvolsylldur_data.condition,'saline'),:);
+[cases ia ib] = unique(subset(:,{'birdname','syllID'}));
+lagtrialcorr = {};lagtrialshuffcorr = {};
+for i = 1:height(cases)
+    ind = find(ib == i);
+    data = subset{ind,{'pitch','sylldur'}};
+    data(any(isnan(data),2),:) = [];
+    [~,p] = corrcoef(data(:,1),data(:,2));
+    if p(2) <= 0.05
+        [r l] = xcov(data(:,1),data(:,2),'biased');
+        lagtrialcorr = [lagtrialcorr; [l' r]];
+        [shuffr shuffl] = shuffletrialcorr(data(:,1),data(:,2),shufftrials);
+        lagtrialshuffcorr = [lagtrialshuffcorr; [shuffl shuffr]];
+    end
+end
+
+[~,maxind] = max(cellfun(@(x) size(x,1),lagtrialcorr));
+maxlag = lagtrialcorr{maxind}(:,1);
+lagtrialcorr = cellfun(@(x) [NaN(x(1,1)-maxlag(1),1);x(:,2);...
+    NaN(maxlag(end)-x(end,1),1)],lagtrialcorr,'un',0);
+lagtrialcorr = abs(cell2mat(lagtrialcorr'));
+figure;hold on;
+for i = 1:size(lagtrialcorr,2)
+    plot(maxlag,lagtrialcorr(:,i),'color',[1 0.8 0.8]);hold on;
+end
+patch([maxlag' fliplr(maxlag')],[(nanmean(lagtrialcorr,2)+nanstderr(lagtrialcorr,2))' ...
+    fliplr((nanmean(lagtrialcorr,2)-nanstderr(lagtrialcorr,2))')],'r',...
+    'edgecolor','none','facealpha',0.7);hold on;
+
+[~,maxind] = max(cellfun(@(x) length(x(:,1)),lagtrialshuffcorr));
+maxlag = lagtrialshuffcorr{maxind}(:,1);
+lagtrialshuffcorr = cellfun(@(x) [NaN(x(1,1)-maxlag(1),shufftrials);x(:,2:end);...
+    NaN(maxlag(end)-x(end,1),shufftrials)],lagtrialshuffcorr,'un',0);
+lagtrialshuffcorr = abs(cell2mat(lagtrialshuffcorr'));
+hi = NaN(1,length(maxlag));lo = NaN(1,length(maxlag));
+for i = 1:length(maxlag)
+    id = find(~isnan(lagtrialshuffcorr(i,:)));
+    x = sort(lagtrialshuffcorr(i,id));
+    if length(x) <= 1000
+        continue
+    else
+        hi(i) = x(fix(length(x)*0.95));
+        lo(i) = x(fix(length(x)*0.05));
+    end
+end
+id = find(isnan(hi));
+hi(id) = [];lo(id) = [];maxlag(id) = [];
+patch([maxlag' fliplr(maxlag')],[lo fliplr(hi)],[0.2 0.2 0.2],...
+    'edgecolor','none','facealpha',0.7);hold on;
+
+function [shuffr shuffl] = shuffletrialcorr(x,y,shufftrials);
+    x_shuff = repmat(x',shufftrials,1);
+    x_shuff = permute_rowel(x_shuff);
+    shuffr = cell(shufftrials,1);
+    shuffl = cell(shufftrials,1);
+    for n = 1:shufftrials
+        shuffdat = [x_shuff(n,:)',y];
+        shuffdat(any(isnan(shuffdat),2),:) = [];
+        [rx lx] = xcov(shuffdat(:,1),shuffdat(:,2),'biased');
+        shuffr{n} = rx;
+        shuffl{n} = lx';
+    end
+    [~,maxind] = max(cellfun(@length,shuffl));
+    maxlag = shuffl{maxind};
+    shuffr = cellfun(@(x,y) [NaN(x(1)-maxlag(1),1);y;NaN(maxlag(end)-x(end),1)],...
+        shuffl,shuffr,'un',0);
+    shuffr = cell2mat(shuffr');
+    shuffl = maxlag;
+end
+    
+    
