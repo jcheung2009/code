@@ -1,15 +1,13 @@
 function [c lags shuffc] = RA_crosscorrelate_gapdur(batchfile,seqlen,minsampsize,...
     activitythresh,timewin,plotfig,mode,ifr,winsize,gap_or_syll);
-%finds burst at different time lags relative to target gap and computes
-%correlation
+%finds burst at different time windows relative to target gap/syllable and computes
+%correlation between neural activity and target element duration
 %seqlen = length of syllable sequence,(6 for gap, 5 for syllable)
 %minsampsize = minimum number of trials
 %activitythresh = for peak detection (zsc relative to shuffled)
 %timewin = [min max], min and max time in ms relative to target gap onset
-%plotfit = 1 or 0, plot peak detection for troubleshooting
-%singleunits = 1 or 0, restrict to single units if 1, use only multi units
-%0 (both have to pass activity threshold)
-%mode = 'burst' for restricting analysis to bursts and detectinb burst borders,'spikes' for counting
+%plotfig = 1 or 0, plot peak detection for troubleshooting
+%mode = 'burst' for restricting analysis to bursts and detecting burst borders,'spikes' for counting
 %any spikes in a set 40 ms window
 %gap_or_syll = 'syll' or 'gap' 
 %ifr = 1 use mean instantaneous FR or 0 use spike count, outputs NaN on
@@ -25,21 +23,23 @@ lags = [timewin(1):shift:timewin(2)];
 c = cell(length(lags),1);
 shuffc = cell(length(lags),1);
 %% 
+%iterate through each unit summary "combined data" file 
 ff = load_batchf(batchfile);
 for i = 1:length(ff)
     disp(ff(i).name)
     load(ff(i).name);
     spiketimes = spiketimes*1000;%ms
 
-    %unique gap id
+    %unique sequences of a given length that greater than min # of trials
     gapids = find_uniquelbls(labels,seqlen,minsampsize);
-    
-    %for each unique sequence found  
     gapdurs_all = onsets(2:end)-offsets(1:end-1);
     durs_all = offsets-onsets;
+    
+    %iterate through each unique sequence found
     for n = 1:length(gapids)
     
-        %remove outliers
+        %remove trials that are outliers where target element duration > 3
+        %STD
         idx = strfind(labels,gapids(n));
         seqons = onsets(bsxfun(@plus, idx',(0:seqlen-1)));%realtime 
         seqoffs = offsets(bsxfun(@plus,idx',(0:seqlen-1)));
@@ -50,6 +50,7 @@ for i = 1:length(ff)
         end
         dur_id = jc_removeoutliers(dur_id,3);
         id = find(isnan(dur_id));dur_id(id) = [];seqons(id,:) = [];seqoffs(id,:) = [];
+        %remove trials where sequence length > 1 sec
         if ~isempty(find(seqoffs(:,end)-seqons(:,1)>=1000))
             id = find(seqoffs(:,end)-seqons(:,1)>=1000);
             seqons(id,:) = [];seqoffs(id,:) = [];dur_id(id) = [];
@@ -58,7 +59,7 @@ for i = 1:length(ff)
             continue
         end
         
-        %order trials by gapdur
+        %order trials by target element duration
         [~,ix] = sort(dur_id,'descend');
         dur_id = dur_id(ix);seqons = seqons(ix,:);seqoffs = seqoffs(ix,:);
         

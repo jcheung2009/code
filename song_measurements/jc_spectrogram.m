@@ -11,7 +11,7 @@ sigma=(1/1000)*fs;
 w=exp(-(t/sigma).^2);
 
 [sp f tm pxx] = spectrogram(filtsong,w,overlap,NFFT,fs);
-indf = find(f>=500 & f<=10000);
+indf = find(f>=300 & f<=10000);
 f=f(indf);sp=sp(indf,:);
 
 ind = find(abs(sp)<=mean(mean(abs(sp))));

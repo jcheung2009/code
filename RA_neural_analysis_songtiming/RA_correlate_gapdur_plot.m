@@ -1,13 +1,13 @@
 function RA_correlate_gapdur_plot(batchfile,caseid,motorwin,winsize,mode,ifr_or_fr,gap_or_syll)
-%plot cases to compare IFR vs FR (spike cnt)
+%plot raster plots, regression/scatter plots for specific cases 
 %caseid = table with list of unitid and seqid to plot 
 %motorwin = -40 (40 ms premotor window)
 %mode = 'burst' for restricting analysis to bursts and detectinb burst borders,'spikes' for counting
 %any spikes in a set 40 ms window
+%ifr_or_fr = 'ifr' or 'fr' 
 %gap_or_syll = 'gap' or 'syll'
 
-%% parameters
-config; 
+%% parameters 
 win = gausswin(winsize);%for smoothing spike trains, 20 ms
 win = win./sum(win);
 shufftrials = 1000;%number of trials for shuffle
@@ -37,7 +37,7 @@ for i = 1:length(ff)
     load(ff(i).name);
     spiketimes = spiketimes*1000;%ms
     
-    %for each unique sequence found  
+    %unique sequences of a given length that greater than min # of trials
     gapdurs_all = onsets(2:end)-offsets(1:end-1);
     durs_all = offsets-onsets;
     seqlen = length(caseid{i,{'seqid'}}{:});
@@ -80,7 +80,8 @@ for i = 1:length(ff)
         dur_id_corr = durseq(:,ceil(seqlen/2));
     end
 
-    %anchors for aligning by onset of target element
+    %first anchor for alignment (gap: prev syll offset,
+        %syll: onset) 
     pt = [motorwin 0];
     if strcmp(gap_or_syll,'gap')
         anchor = seqoffs(:,seqlen/2);
@@ -90,7 +91,8 @@ for i = 1:length(ff)
     seqst = ceil(max(anchor-seqons(:,1)));%start border for sequence activity relative to target gap (sylloff1)
     seqend = ceil(max(seqoffs(:,end)-anchor));%end border 
     
-    %anchors for aligning by secondary element
+    %secondary anchor (gap: prev syll onset,
+        %syll: prev syll's offset) 
     pt2 = offset;
     if strcmp(gap_or_syll,'gap')
         anchor2 = seqons(:,seqlen/2);
@@ -102,10 +104,8 @@ for i = 1:length(ff)
     
     %average pairwise correlation of spike trains 
     varfr = trialbytrialcorr_spiketrain(spiketimes,seqst,seqend,anchor,pt,win);
-
-    %average pairwise trial by trial correlation
     varfr2 = trialbytrialcorr_spiketrain(spiketimes,seqst2,seqend2,anchor2,pt2,win);
-    
+
     %decide to align by target or secondary 
     if varfr<varfr2
         alignby=2;anchor = anchor2;seqst = seqst2; seqend = seqend2;
@@ -114,11 +114,12 @@ for i = 1:length(ff)
         alignby=1;
     end
     
+    
     %compute PSTH from spike trains for specific alignment for IFR
     [PSTH_mn_IFR tb_IFR smooth_spiketrains_IFR spktms] = smoothtrain(...
-        spiketimes,seqst,seqend,anchor,win,1);
+        spiketimes,spikeposterior,seqst,seqend,anchor,win,1);
     [PSTH_mn_FR tb_FR smooth_spiketrains_FR spktms] = smoothtrain(...
-        spiketimes,seqst,seqend,anchor,win,0);
+        spiketimes,spikeposterior,seqst,seqend,anchor,win,0);
 
     %shuffled spike train to detect peaks that are significantly
     %above shuffled activity
@@ -142,12 +143,6 @@ for i = 1:length(ff)
         if ~isempty(pkid) & strcmp(ifr_or_fr,'ifr')
             if length(pkid) >= ixx
                 [burstst burstend] = peakborder2(locs(pkid(ixx)),tb_IFR,PSTH_mn_IFR,mean(PSTH_mn_rand_IFR));
-                %[burstst burstend] = peakborder(wc,pkid(ixx),locs,tb_IFR);
-                pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand_IFR))/std(PSTH_mn_rand_IFR);
-%             else
-%                 [burstst burstend] = peakborder2(locs(pkid(1)),tb_IFR,PSTH_mn_IFR,mean(PSTH_mn_rand_IFR));
-%                 %[burstst burstend] = peakborder(wc,pkid(1),locs,tb_IFR);
-%                 pkactivity = (pks(pkid(1))-mean(PSTH_mn_rand_IFR))/std(PSTH_mn_rand_IFR);
             end
             
             npks_burst =  mean(smooth_spiketrains_IFR(:,burstst:burstend),2).*1000;
@@ -156,19 +151,12 @@ for i = 1:length(ff)
                 seqons(:,ceil(seqlen/2)),seqoffs(:,ceil(seqlen/2)),'un',1);
             vol2 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
                 seqons(:,ceil(seqlen/2)+1),seqoffs(:,ceil(seqlen/2)+1),'un',1);
-            if strcmp(gap_or_syll,'gap')
-                dur1_id = seqoffs(:,ceil(seqlen/2))- seqons(:,ceil(seqlen/2));
-                dur2_id = seqoffs(:,ceil(seqlen/2)+1)-seqons(:,ceil(seqlen/2)+1);%next syll   
-            elseif strcmp(gap_or_syll,'syll')
-                dur1_id = seqons(:,ceil(seqlen/2))-seqoffs(:,ceil(seqlen/2)-1);
-                dur2_id = seqons(:,ceil(seqlen/2)+1)-seqoffs(:,ceil(seqlen/2));
-            end 
-
+            
+            %normalize predictors and fit multiple regression and
+            %partial corrs
             dur_id_corrn = (dur_id_corr-mean(dur_id_corr))/std(dur_id_corr);
             vol1n = (vol1-mean(vol1))/std(vol1);
             vol2n = (vol2-mean(vol2))/std(vol2);
-            dur1_idn = (dur1_id-mean(dur1_id))/std(dur1_id);
-            dur2_idn = (dur2_id-mean(dur2_id))/std(dur2_id);
             [r p] = partialcorr(dur_id_corrn,npks_burst,[vol1n vol2n]);  
 
             subplot(3,1,1);hold on;
@@ -203,12 +191,8 @@ for i = 1:length(ff)
         if ~isempty(pkid) & strcmp(ifr_or_fr,'fr')
             if length(pkid) >= ixx
                 [burstst burstend] = peakborder2(locs(pkid(ixx)),tb_FR,PSTH_mn_FR,mean(PSTH_mn_rand_FR));
-                %[burstst burstend] = peakborder(wc,pkid(ixx),locs,tb_FR);
-                pkactivity = (pks(pkid(ixx))-mean(PSTH_mn_rand_FR))/std(PSTH_mn_rand_FR);
             else
                 [burstst burstend] = peakborder2(locs(pkid(1)),tb_FR,PSTH_mn_FR,mean(PSTH_mn_rand_FR));
-                %[burstst burstend] = peakborder(wc,pkid(1),locs,tb_FR);
-                pkactivity = (pks(pkid(1))-mean(PSTH_mn_rand_FR))/std(PSTH_mn_rand_FR);
             end
 
             npks_burst = mean(smooth_spiketrains_FR(:,burstst:burstend),2).*1000;
@@ -217,19 +201,10 @@ for i = 1:length(ff)
                 seqons(:,ceil(seqlen/2)),seqoffs(:,ceil(seqlen/2)),'un',1);
             vol2 = arrayfun(@(x,y) mean(log(song(floor(x*1e-3*fs):ceil(y*1e-3*fs)))),...
                 seqons(:,ceil(seqlen/2)+1),seqoffs(:,ceil(seqlen/2)+1),'un',1);
-            if strcmp(gap_or_syll,'gap')
-                dur1_id = seqoffs(:,ceil(seqlen/2))- seqons(:,ceil(seqlen/2));
-                dur2_id = seqoffs(:,ceil(seqlen/2)+1)-seqons(:,ceil(seqlen/2)+1);%next syll   
-            elseif strcmp(gap_or_syll,'syll')
-                dur1_id = seqons(:,ceil(seqlen/2))-seqoffs(:,ceil(seqlen/2)-1);
-                dur2_id = seqons(:,ceil(seqlen/2)+1)-seqoffs(:,ceil(seqlen/2));
-            end
 
             dur_id_corrn = (dur_id_corr-mean(dur_id_corr))/std(dur_id_corr);
             vol1n = (vol1-mean(vol1))/std(vol1);
             vol2n = (vol2-mean(vol2))/std(vol2);
-            dur1_idn = (dur1_id-mean(dur1_id))/std(dur1_id);
-            dur2_idn = (dur2_id-mean(dur2_id))/std(dur2_id);
             [r p] = partialcorr(dur_id_corrn,npks_burst,[vol1n vol2n]);  
 
             subplot(3,1,1);hold on;
@@ -318,17 +293,28 @@ for i = 1:length(ff)
     
 end
 
-function [PSTH_mn tb smooth_spiketrains spktms] = smoothtrain(spiketimes,seqst,seqend,anchor,win,ifr);
-    spktms = cell(size(anchor,1),1);%spike times for each trial relative to target gap 
+function [PSTH_mn tb smooth_spiketrains spktms spkpost] = smoothtrain...
+        (spiketimes,spikeposterior,seqst,seqend,anchor,win,ifr);
+    %tb, PSTH_mn = timebase, average firing pattern across all trials, 
+    %smooth_spiketrains = spike trains for each trial after convolution, 
+    %spktms = time of each spike relative to anchor point in each trial
+    %spkpost = posterior probability of spike to be in classified cluster
+    spktms = cell(size(anchor,1),1);
+    if ~isempty(spikeposterior)
+        spkpost = cell(size(anchor,1),1);
+    end
     smooth_spiketrains = zeros(size(anchor,1),seqst+seqend+1);
     for m = 1:size(anchor,1)
         temp = zeros(1,seqst+seqend+1);
         x = spiketimes(find(spiketimes>=(anchor(m)-seqst) & spiketimes<=(anchor(m)+seqend)));
+        if ~isempty(spikeposterior)
+            spkpost{m} = spikeposterior(find(spiketimes>=(anchor(m)-seqst) & ...
+                spiketimes<=(anchor(m)+seqend)),end);
+        end
         spktms{m} = x - anchor(m); 
         spktimes = round(spktms{m})+seqst+1;
         if ifr == 1
             temp = instantfr(spktms{m},-seqst:seqend);
-            %temp(spktimes(1:end-1)) = 1./diff(x);
         else
             temp(spktimes) = 1;
         end
@@ -336,10 +322,11 @@ function [PSTH_mn tb smooth_spiketrains spktms] = smoothtrain(spiketimes,seqst,s
     end
     tb = [-seqst:seqend];
     PSTH_mn = mean(smooth_spiketrains,1).*1000;%spikes/second
-    
+
 function [PSTH_mn_rand smooth_spiketrains_rand] = shuffletrain(spiketimes,...
             seqst,seqend,anchor,win,ifr);
-    spktms = cell(size(anchor,1),1);%spike times for each trial relative to target gap 
+        %same as smoothtrain but spike trains are shuffled
+    spktms = cell(size(anchor,1),1);
     smooth_spiketrains = zeros(size(anchor,1),seqst+seqend+1);
     for m = 1:size(anchor,1)
         temp = zeros(1,seqst+seqend+1);
@@ -357,21 +344,15 @@ function [PSTH_mn_rand smooth_spiketrains_rand] = shuffletrain(spiketimes,...
     smooth_spiketrains_rand = permute_rowel(smooth_spiketrains);
     smooth_spiketrains_rand = conv2(1,win,smooth_spiketrains_rand,'same');
     PSTH_mn_rand = mean(smooth_spiketrains_rand,1).*1000;
-    
+        
 function r = trialbytrialcorr_spiketrain(spiketimes,seqst,seqend,anchor,pt,win);
- %trial by trial correlation based on smoothed spike trains when computed by spikes not ifr
-    [~,tb,smooth_spiketrains] = smoothtrain(spiketimes,seqst,seqend,anchor,win,0);
+ %pairwise trial correlation based on smoothed spike trains when computed by spikes, not ifr
+    [~,tb,smooth_spiketrains] = smoothtrain(spiketimes,'',seqst,seqend,anchor,win,0);
     tbid = find(tb>=pt(1) & tb<=pt(2));
     r = xcov(smooth_spiketrains(:,tbid)',0,'coeff');
     r = reshape(r,[size(smooth_spiketrains,1) size(smooth_spiketrains,1)]);
     r = r(find(triu(r,1)));
     r = nanmean(r);
-    
-function [burstst burstend] = peakborder2(id,tb,PSTH,activitythresh);
- %peak borders based on when activity falls back below activity threshold   
-    FRbelow = find(PSTH<=activitythresh);
-    burstst = FRbelow(find(diff(id-FRbelow>0)<0));
-    burstend = FRbelow(find(diff(id-FRbelow<0)==1)+1);
     
 function [burstst burstend] = peakborder(wc,id,locs,tb);
     burstend = wc(id,2)+(wc(id,2)-locs(id));
@@ -393,6 +374,39 @@ function [burstst burstend] = peakborder(wc,id,locs,tb);
         burstend = length(tb);
     end
     
+function [id cnts] = find_uniquelbls(stringvect,seqlen,mincnt);
+%given string vector, find unique sequences of length seqlen and minimum
+%occurence (mincnt), eliminates full repeats and sequences containing
+%non-alpha characters
+    N = length(stringvect);
+    [id, ~, nn] = unique(stringvect(bsxfun(@plus,1:seqlen,(0:N-seqlen)')),'rows');
+    cnts = sum(bsxfun(@(x,y)x==y,1:size(id,1),nn))';
+    removeind = [];
+    for ii = 1:size(id,1)
+        if length(unique(id(ii,:)))==1 | sum(~isletter(id(ii,:))) > 0 %remove repeats and sequences with non-alpha
+            removeind = [removeind;ii];
+        end
+    end
+    cnts(removeind) = [];id(removeind,:) = [];
+    ind = find(cnts >= mincnt);%only sequences that occur more than 25 times 
+    id = id(ind,:);cnts = cnts(ind);
+    id = mat2cell(id,repmat(1,size(id,1),1))';
+
+function [burstst burstend] = peakborder2(id,tb,PSTH,activitythresh);
+ %peak borders based on when activity falls back below activity threshold   
+    FRbelow = find(PSTH<=activitythresh);
+    if FRbelow(1) ~= 1
+        FRbelow = [1 FRbelow];
+    elseif FRbelow(end) ~= length(tb)
+        FRbelow = [FRbelow length(tb)];
+    end
+    burstst = FRbelow(find(diff(id-FRbelow>0)<0));
+    burstend = FRbelow(find(diff(id-FRbelow<0)==1)+1);
+    
+function burstspkposterior = burstposterior(spktms,spkpost,tm1,tm2);
+    id = cellfun(@(x) (find(x>=tm1 & x<tm2)),spktms,'un',0);
+    burstspkposterior = cell2mat(cellfun(@(x,y) x(y),spkpost,id,'un',0));
+    
 function npks = countspks(spktms,tm1,tm2);
     if length(tm1) == 1
         npks = cellfun(@(x) length(find(x>=tm1 & x<tm2)),spktms);%extract nspks in each trial
@@ -400,14 +414,37 @@ function npks = countspks(spktms,tm1,tm2);
         npks = cellfun(@(x,y,z) length(find(x>=y & x<z)),spktms,tm1,tm2);%extract nspks in each trial
     end
     npks = 1000*(npks./(tm2-tm1));
+    
+function [r p] = shuffle(npks_burst,dur_id_corr,shufftrials);
+    %shuffle trial identity between neural activity and behavior, and then
+    %compute regression (shufftrials = number of times to perform shuffle)
+    npks_burst_shuff = repmat(npks_burst',shufftrials,1);
+    npks_burst_shuff = permute_rowel(npks_burst_shuff);
+    [r p] = corrcoef([npks_burst_shuff',dur_id_corr]);
+    r = r(1:end-1,end);
+    p = p(1:end-1,end);  
 
-function npks = burstifr(spktms,tm1,tm2,win);
-    npks = cellfun(@(x) x(find(x>=tm1 & x<tm2)),spktms,'un',0);
-    npks = cell2mat(cellfun(@(x) median(instantfr(x)),npks,'un',0)).*1000;
-    npks(isnan(npks)) = 0;
-    %npks = mean(cell2mat(cellfun(@(x) conv(instantfr(x,tm1:tm2),win,'same'),npks,'un',0)),2).*1000;
+function [betas pVals r p] = shuffle_multipleregress(npks_burst,vars,shufftrials);
+    %shuffle trial identity between neural activity and behavior, and then
+    %compute multiple regression (shufftrials = number of times to perform shuffle)
+    npks_burst_shuff = repmat(npks_burst',shufftrials,1);
+    npks_burst_shuff = permute_rowel(npks_burst_shuff);
+    betas = NaN(shufftrials,size(vars,2));pVals = NaN(shufftrials,size(vars,2));
+    r = NaN(shufftrials,1);p = NaN(shufftrials,1);
+    parfor n = 1:size(npks_burst_shuff,1);
+        mdl = fitlm(vars,npks_burst_shuff(n,:));
+        betas(n,:) = mdl.Coefficients.Estimate(2:end);
+        pVals(n,:) = mdl.Coefficients.pValue(2:end);
+        [r(n) p(n)] = partialcorr(npks_burst_shuff(n,:)',vars(:,1),vars(:,2:end));
+    end
 
-
+function [r l] = shuffletrialcorr(npks_burst,dur_id_corr,shufftrials);
+    %shuffle trials before performing trial-lag correlation 
+    npks_burst_shuff = repmat(npks_burst',shufftrials,1);
+    npks_burst_shuff = permute_rowel(npks_burst_shuff);
+    [r l] = xcov([npks_burst_shuff',dur_id_corr],'coeff');
+    r =r(:,shufftrials+1:shufftrials+1:end-shufftrials+1);
+                 
 function plotraster(dur_id,spktms,tm1,tm2,seqons,seqoffs,...
     seqst,seqend,anchor,name,pct_error,seqid,corrval,pval)
     thr1 = quantile(dur_id,0.25);%threshold for small gaps
@@ -480,3 +517,4 @@ function plotCORR(npks_burst,dur_id_corr,ifr);
     end
     ylabel('gap duration (ms)');
     set(gca,'fontweight','bold');
+
