@@ -11,7 +11,8 @@ dattable = dattable10(id,:);
 cases = unique(dattable(:,{'unitid','seqid','burstid'}));
 subset = dattable;
 for i = 1:size(cases,1)
-    ind = find(strcmp(subset.unitid,cases(i,:).unitid) & strcmp(subset.seqid,cases(i,:).seqid) & subset.burstid==cases(i,:).burstid);
+    ind = find(strcmp(subset.unitid,cases(i,:).unitid) & ...
+        strcmp(subset.seqid,cases(i,:).seqid) & subset.burstid==cases(i,:).burstid);
     dur = subset(ind,:).dur;
     dur = (dur-mean(dur))/std(dur);
     subset(ind,:).dur = dur;
@@ -288,7 +289,49 @@ mdl = fitlme(subset,formula1,'exclude',i);
 mdl.Rsquared
 figure;plotResiduals(mdl,'fitted')
 
+%% spikes ~ dur1 (not correlated)
+cases = unique(dattable(:,{'unitid','seqid','burstid'}));
+subset = dattable;
+for i = 1:size(cases,1)
+    ind = find(strcmp(subset.unitid,cases(i,:).unitid) & ...
+        strcmp(subset.seqid,cases(i,:).seqid) & subset.burstid==cases(i,:).burstid);
+    dur1 = subset(ind,:).dur1;
+    dur1 = (dur1-mean(dur1))/std(dur1);
+    subset(ind,:).dur1 = dur1;
+end
 
+%test whether to add random effect of seqid on intercept. Yes.
+formula = 'spikes ~ dur1';
+mdl1 = fitlme(subset,formula);
+formula = 'spikes ~ dur1 + (1|unitid:seqid)';
+mdl2 = fitlme(subset,formula);
+compare(mdl1,mdl2,'CheckNesting',true)
+
+figure;plotResiduals(mdl2,'fitted');
+i = find(residuals(mdl2)>100);%outliers
+
+vars = {'+ (dur1-1|unitid:seqid)',...
+    '+ (1|unitid)','+ (dur1-1|unitid)',...
+    '+ (1|birdid)','+ (dur1-1|birdid)'};
+formula1 = 'spikes ~ dur1 + (1|unitid:seqid)';
+for m = 1:length(vars)
+    mdl1 = fitlme(subset,formula1,'exclude',i);
+    formula2 = [formula1,vars{m}];
+    mdl2 = fitlme(subset,formula2,'exclude',i);
+    try
+        t=compare(mdl1,mdl2,'CheckNesting',true)
+    catch
+        continue
+    end
+    if t.pValue <=0.05
+        formula1=formula2;
+    end 
+end
+
+%final model:
+mdl = fitlme(subset,formula1,'exclude',i);
+mdl.Rsquared
+figure;plotResiduals(mdl,'fitted')
 
 %% mixed model IFR ~ dur + vol1 + vol2 + dur1 + dur2 (independent covariance among variables) 
 cases = unique(dattable(:,{'unitid','seqid','burstid'}));

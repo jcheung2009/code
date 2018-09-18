@@ -1,0 +1,44 @@
+%preference for single units to fire relative to target gap or syll onset
+[PSTHs, spiketrains, PSTHs_rand, spiketrains_rand, burstprob_gap] = firing_phase(...
+    'singleunits_leq_1pctISI_2pcterr',6,25,0,10,'gap');
+
+[hi lo] = mBootstrapCI2(PSTHs);
+figure;hold on;
+patch([-100:100,fliplr(-100:100)],[hi fliplr(lo)],'r','edgecolor','none','facealpha',0.5);hold on;
+
+[hi lo] = mBootstrapCI2(PSTHs_rand);
+patch([-100:100,fliplr(-100:100)],[hi fliplr(lo)],'k','edgecolor','none','facealpha',0.5);hold on;
+
+ylabel('firing rate (hz)');xlabel('time relative to gap onset (ms)');
+
+[PSTHs, spiketrains, PSTHs_rand, spiketrains_rand,burstprob_syll] = firing_phase(...
+    'singleunits_leq_1pctISI_2pcterr',5,25,0,10,'syll');
+
+[hi lo] = mBootstrapCI2(PSTHs);
+figure;hold on;
+patch([-100:100,fliplr(-100:100)],[hi fliplr(lo)],'r','edgecolor','none','facealpha',0.5);hold on;
+
+[hi lo] = mBootstrapCI2(PSTHs_rand);
+patch([-100:100,fliplr(-100:100)],[hi fliplr(lo)],'k','edgecolor','none','facealpha',0.5);hold on;
+ylabel('firing rate (hz)');xlabel('time relative to syll onset (ms)');
+
+%% probability for bursting in premotor window given unit is significantly
+%correlated with at least one gap or syll
+load('gap_multicorrelation_analysis_fr.mat');
+ff = load_batchf('singleunits_leq_1pctISI_2pcterr');
+id = [];
+for i = 1:length(ff)
+    id = [id;find(cellfun(@(x) contains(ff(i).name,x),corrtable10.unitid))];
+end
+corrtable = corrtable10(id,:);
+
+[~,~,negcorr,poscorr] = plot_distr_corrs(corrtable,50,1000,0.01);
+[~,ia,ib] = intersect(corrtable(negcorr,{'birdid','unitid'}),burstprob(:,...
+    {'birdid','unitid'}));
+negcorrelated_units = burstprob_gap(ib,:);
+negcorrelated_units = negcorrelated_units(~cellfun(@isempty,negcorrelated_units.counts),:)
+negcorrelated_units_burstprob = cell2mat(cellfun(@(x) x',negcorrelated_units.counts,'un',0));
+
+notcorrelated_units = burstprob(setdiff(1:height(burstprob_gap),ib),:)
+notcorrelated_units = notcorrelated_units(~cellfun(@isempty,notcorrelated_units.counts),:)
+notcorrelated_units_burstprob = cell2mat(cellfun(@(x) x',notcorrelated_units.counts,'un',0));
