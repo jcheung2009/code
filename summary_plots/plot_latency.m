@@ -1,4 +1,4 @@
-function plot_latency(batchfile,condition,feature);
+function latency = plot_latency(condition,feature);
 
 %plots figure for each treatment day of running average of mean pitch,
 %indicates when it exceeds 1 std of pitch during saline morning of same day
@@ -6,7 +6,7 @@ function plot_latency(batchfile,condition,feature);
 %effect for each trial 
 
 %parameters
-config.m
+config
 trialind = find(arrayfun(@(x) strcmp(x.condition,condition),params.trial));
 latency = struct();
 for i = 1:length(trialind)
@@ -51,8 +51,11 @@ for i = 1:length(trialind)
         for p = 1:numtimewindows
             timept2 = timept1+timewindow;
             ind = find(tb_cond >= timept1 & tb_cond < timept2);
-            indsal = 1:length(tb_sal);
-            %indsal = find(tb_sal >= timept1 & tb_sal < timept2);
+            if strcmp(params.baseepoch,'morn')
+                indsal = 1:length(tb_sal);
+            else
+                indsal = find(tb_sal >= timept1 & tb_sal < timept2);
+            end
             cond_valsn = (cond_vals(ind)-nanmean(sal_vals(indsal)))./nanstd(sal_vals(indsal));
             fv_cond_avg = [fv_cond_avg;timept1 nanmean(cond_valsn)];
             timept1 = timept1+jogsize;
@@ -65,7 +68,7 @@ for i = 1:length(trialind)
         plot(ax,fv_cond_avg(:,1),fv_cond_avg(:,2),'color',mcolor(ii,:),'marker','o');hold on;
         
         set(ax,'fontweight','bold');
-        title(ff(i+1).name,'interpreter','none');
+        title(params.trial(trialind(i)).name,'interpreter','none');
         xlim([0 12]);
         ylim('auto');
         ylabel('z-score');
@@ -106,7 +109,7 @@ for i = 1:length(trialind)
     plot(ax,treat_time,1,'r*','markersize',12);
     hold(ax,'off');
     
-    clearvars -except latency
+    clearvars -except params latency i ii trialind feature condition
 end
         
         
