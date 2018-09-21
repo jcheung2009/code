@@ -1,5 +1,21 @@
 function [PSTHs, spiketrains, PSTHs_rand, spiketrains_rand burstprob] = firing_phase(...
     batchfile,seqlen,minsampsize,ifr,winsize,gap_or_syll);
+%this function extracts information for looking at firing activity relative
+%to the onset of all target gaps or syllables 
+%PSTH: averaged across all trials for unit and target gap or syllable 
+%spiketrains: smoothed spike trains for every trial of unit and target gap
+%or syll
+%PSTHs_rand: average across all trials after shuffling spike trains
+%spiketrains_rand: shuffled spike trains
+%burstprob: table where each row is single unit and the counts of whether
+%it bursted before a target gap or syll in bird's song (ie: vector of 1's
+%and 0's) 
+
+%seqlen: length of the sequence for target gap or syll (6 or 5)
+%minsampsize: minimum sample size 
+%ifr: 0 or 1 for IFR or FR
+%winsize: 10 ms, size of convolution window
+%gap_or_syll: 'gap','syll'
 
 %% parameters
 win = gausswin(winsize);%for smoothing spike trains, 10-20 ms

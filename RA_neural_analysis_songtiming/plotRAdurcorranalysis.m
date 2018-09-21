@@ -5,7 +5,7 @@
 
 %% distribution of correlation values, bar plots of permutation test on 
 %proportion of significant correlations for GAPS
-load('gap_multicorrelation_analysis_fr.mat');
+load('dur_multicorrelation_analysis_fr.mat');
 activitythresh = 50;
 ff = load_batchf('singleunits_leq_1pctISI_2pcterr');
 id = [];
