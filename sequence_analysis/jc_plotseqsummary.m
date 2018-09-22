@@ -1,7 +1,7 @@
 function seq = jc_plotseqsummary(seq_sal,seq_cond,transition,params,trialparams,fignum);
 %extracts changes in transition probability and sequence entropy for all
 %trials and stores in seq
-%also plots summary
+%also plots summary plots for sequence entropy and transition probability 
 
 %parameters
 conditions=params.conditions;
@@ -143,7 +143,7 @@ function [ind1 ind2 tb_sal tb_cond] = restricttimewindow(tb_sal,tb_cond,...
     end
     tb_sal = tb_sal(ind1);
     tb_cond = tb_cond(ind2);
-    
+
 function [tspval entpval] = permtest(trans_sal,trans_cond,shufftrials);
 %permutation test for difference in trans prob for dominant transition and
 %seq entropy when vect is 1's and 0's representing full and short motifs
@@ -173,7 +173,7 @@ function [tspval entpval] = permtest(trans_sal,trans_cond,shufftrials);
     
 function [tspval entpval] = permtest2(trans_sal,trans_cond,transition,shufftrials)    
 %permutation test for difference in seq entropy and transition prob of
-%dominant ts
+%first listed transition in config
     [~,modified_motifs] = db_con_or_div(transition);
     
     %determine which ts is dominant
@@ -182,7 +182,8 @@ function [tspval entpval] = permtest2(trans_sal,trans_cond,transition,shufftrial
         ts_sal = [ts_sal; length(strfind(trans_sal,modified_motifs(k)))./length(trans_sal)];
         ts_cond = [ts_cond; length(strfind(trans_cond,modified_motifs(k)))./length(trans_cond)];
     end
-    [~,dominant_ts] = max(ts_sal);
+    %[~,dominant_ts] = max(ts_sal);
+    dominant_ts = 1;
     
     %empirical seq entropy 
     ent_sal = []; ent_cond = [];

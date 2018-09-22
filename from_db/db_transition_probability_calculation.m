@@ -52,6 +52,7 @@ for k = 1:length(all_syllables)
         elseif strcmpi(con_or_div, 'con') == 1
             %finds when the convergent sequence occured in each song
             interest_syllables = [interest_syllables strfind(lbls,motifs{ii})];
+            timeind = [timeind strfind(lbls,motifs{ii})];
         end
     end
     %sorts the interest_syllables so that the order is correct
